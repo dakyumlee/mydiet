@@ -1,0 +1,6 @@
+*.log
+*.class
+/target/
+/.idea/
+.env.env
+backend/build/
