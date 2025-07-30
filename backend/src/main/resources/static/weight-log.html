@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyDiet - 체중 기록</title>
+    <link rel="stylesheet" href="/css/weight-log.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-content">
+            <h1>📊 체중 기록</h1>
+            <nav class="nav-links">
+                <a href="/dashboard.html">대시보드</a>
+                <a href="/meal-log.html">식단 기록</a>
+                <a href="/emotion-log.html">감정 기록</a>
+                <button id="logoutBtn" class="btn-logout">로그아웃</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="weight-main">
+        <div class="weight-container">
+            <section class="weight-status-section">
+                <div class="status-grid">
+                    <div class="status-card current-weight">
+                        <h3>현재 체중</h3>
+                        <div class="weight-display">
+                            <span id="currentWeight" class="weight-value">-</span>
+                            <span class="weight-unit">kg</span>
+                        </div>
+                        <div class="weight-change" id="weightChange"></div>
+                    </div>
+                    
+                    <div class="status-card goal-weight">
+                        <h3>목표 체중</h3>
+                        <div class="weight-display">
+                            <span id="goalWeight" class="weight-value">-</span>
+                            <span class="weight-unit">kg</span>
+                        </div>
+                        <div class="goal-progress" id="goalProgress"></div>
+                    </div>
+                    
+                    <div class="status-card weight-loss">
+                        <h3>총 감량</h3>
+                        <div class="weight-display">
+                            <span id="totalLoss" class="weight-value">-</span>
+                            <span class="weight-unit">kg</span>
+                        </div>
+                        <div class="loss-rate" id="lossRate"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="weight-input-section">
+                <h2>체중 기록하기</h2>
+                <form id="weightForm" class="weight-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="weightInput">체중 (kg)</label>
+                            <input type="number" id="weightInput" step="0.1" min="30" max="300" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="measureTime">측정 시간</label>
+                            <select id="measureTime">
+                                <option value="아침">🌅 아침 (기상 후)</option>
+                                <option value="저녁">🌙 저녁 (취침 전)</option>
+                                <option value="기타">🕐 기타</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="weightNote">메모</label>
+                        <textarea id="weightNote" placeholder="컨디션, 특이사항 등" rows="3"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit">체중 기록하기</button>
+                </form>
+            </section>
+
+            <section class="weight-history-section">
+                <h2>체중 기록 내역</h2>
+                <div class="history-filters">
+                    <button class="filter-btn active" data-period="7">7일</button>
+                    <button class="filter-btn" data-period="30">30일</button>
+                    <button class="filter-btn" data-period="90">90일</button>
+                    <button class="filter-btn" data-period="all">전체</button>
+                </div>
+                
+                <div id="weightChart" class="weight-chart">
+                    <canvas id="weightChartCanvas"></canvas>
+                </div>
+                
+                <div id="weightHistory" class="weight-history">
+                </div>
+            </section>
+            <section class="weight-stats-section">
+                <h2>체중 통계</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>평균 주간 감량</h4>
+                        <div class="stat-value" id="avgWeeklyLoss">- kg</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>최대 일일 변화</h4>
+                        <div class="stat-value" id="maxDailyChange">- kg</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>목표까지 남은 기간</h4>
+                        <div class="stat-value" id="estimatedDays">-일</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>기록 일수</h4>
+                        <div class="stat-value" id="recordDays">-일</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div id="loading" class="loading hidden">로딩 중...</div>
+    <div id="message" class="message hidden"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/js/common.js"></script>
+    <script src="/js/weight-log.js"></script>
+</body>
+</html>

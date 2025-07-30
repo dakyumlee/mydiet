@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyDiet - 감정 기록</title>
+    <link rel="stylesheet" href="/css/emotion-log.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-content">
+            <h1>😊 감정 기록</h1>
+            <nav class="nav-links">
+                <a href="/dashboard.html">대시보드</a>
+                <a href="/meal-log.html">식단 기록</a>
+                <a href="/weight-log.html">체중 기록</a>
+                <button id="logoutBtn" class="btn-logout">로그아웃</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="emotion-main">
+        <div class="emotion-container">
+            <section class="emotion-input-section">
+                <h2>지금 기분은 어떠신가요?</h2>
+                <form id="emotionForm" class="emotion-form">
+                    <div class="emotion-selector">
+                        <div class="emotion-grid">
+                            <label class="emotion-option">
+                                <input type="radio" name="emotion" value="행복" required>
+                                <div class="emotion-card">
+                                    <div class="emotion-emoji">😊</div>
+                                    <div class="emotion-name">행복</div>
+                                </div>
+                            </label>
+                            <label class="emotion-option">
+                                <input type="radio" name="emotion" value="우울" required>
+                                <div class="emotion-card">
+                                    <div class="emotion-emoji">😢</div>
+                                    <div class="emotion-name">우울</div>
+                                </div>
+                            </label>
+                            <label class="emotion-option">
+                                <input type="radio" name="emotion" value="스트레스" required>
+                                <div class="emotion-card">
+                                    <div class="emotion-emoji">😫</div>
+                                    <div class="emotion-name">스트레스</div>
+                                </div>
+                            </label>
+                            <label class="emotion-option">
+                                <input type="radio" name="emotion" value="분노" required>
+                                <div class="emotion-card">
+                                    <div class="emotion-emoji">😠</div>
+                                    <div class="emotion-name">분노</div>
+                                </div>
+                            </label>
+                            <label class="emotion-option">
+                                <input type="radio" name="emotion" value="평온" required>
+                                <div class="emotion-card">
+                                    <div class="emotion-emoji">😌</div>
+                                    <div class="emotion-name">평온</div>
+                                </div>
+                            </label>
+                            <label class="emotion-option">
+                                <input type="radio" name="emotion" value="불안" required>
+                                <div class="emotion-card">
+                                    <div class="emotion-emoji">😰</div>
+                                    <div class="emotion-name">불안</div>
+                                </div>
+                            </label>
+                            <label class="emotion-option">
+                                <input type="radio" name="emotion" value="만족" required>
+                                <div class="emotion-card">
+                                    <div class="emotion-emoji">😄</div>
+                                    <div class="emotion-name">만족</div>
+                                </div>
+                            </label>
+                            <label class="emotion-option">
+                                <input type="radio" name="emotion" value="피곤" required>
+                                <div class="emotion-card">
+                                    <div class="emotion-emoji">😴</div>
+                                    <div class="emotion-name">피곤</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="emotion-intensity">
+                        <label for="intensitySlider">감정 강도</label>
+                        <div class="intensity-container">
+                            <span class="intensity-label">약함</span>
+                            <input type="range" id="intensitySlider" min="1" max="10" value="5">
+                            <span class="intensity-label">강함</span>
+                        </div>
+                        <div class="intensity-value">강도: <span id="intensityValue">5</span></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="emotionNote">상세 내용</label>
+                        <textarea id="emotionNote" placeholder="무엇 때문에 이런 기분이 드시나요?" rows="4" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="emotionTrigger">감정 원인</label>
+                        <select id="emotionTrigger">
+                            <option value="">선택하세요</option>
+                            <option value="음식/다이어트">🥗 음식/다이어트</option>
+                            <option value="운동">🏃 운동</option>
+                            <option value="체중 변화">⚖️ 체중 변화</option>
+                            <option value="스트레스">😫 스트레스</option>
+                            <option value="인간관계">👥 인간관계</option>
+                            <option value="업무/학업">💼 업무/학업</option>
+                            <option value="건강">🏥 건강</option>
+                            <option value="기타">📝 기타</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit">감정 기록하기</button>
+                </form>
+            </section>
+
+            <section class="today-emotions-section">
+                <h2>오늘의 감정 변화</h2>
+                <div id="todayEmotions" class="emotion-timeline">
+                </div>
+            </section>
+
+            <section class="emotion-analysis-section">
+                <h2>감정 분석</h2>
+                <div class="analysis-grid">
+                    <div class="analysis-card">
+                        <h4>이번 주 주요 감정</h4>
+                        <div id="weeklyEmotionChart" class="emotion-chart">
+                            <canvas id="emotionChartCanvas"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-card">
+                        <h4>감정 패턴</h4>
+                        <div id="emotionPatterns" class="pattern-list">
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-card">
+                        <h4>추천 활동</h4>
+                        <div id="recommendedActivities" class="activity-list">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="emotion-history-section">
+                <h2>감정 기록 내역</h2>
+                <div class="history-filters">
+                    <button class="filter-btn active" data-period="7">7일</button>
+                    <button class="filter-btn" data-period="30">30일</button>
+                    <button class="filter-btn" data-period="all">전체</button>
+                </div>
+                
+                <div id="emotionHistory" class="emotion-history">
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div id="loading" class="loading hidden">로딩 중...</div>
+    <div id="message" class="message hidden"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/js/common.js"></script>
+    <script src="/js/emotion-log.js"></script>
+</body>
+</html>

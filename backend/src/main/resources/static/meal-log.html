@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyDiet - 식단 기록</title>
+    <link rel="stylesheet" href="/css/meal-log.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-content">
+            <h1>🥗 식단 기록</h1>
+            <nav class="nav-links">
+                <a href="/dashboard.html">대시보드</a>
+                <a href="/weight-log.html">체중 기록</a>
+                <a href="/emotion-log.html">감정 기록</a>
+                <button id="logoutBtn" class="btn-logout">로그아웃</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="meal-main">
+        <div class="meal-container">
+            <section class="meal-input-section">
+                <h2>오늘 식단 추가</h2>
+                <form id="mealForm" class="meal-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="mealType">식사 시간</label>
+                            <select id="mealType" required>
+                                <option value="">선택하세요</option>
+                                <option value="아침">🌅 아침</option>
+                                <option value="점심">🌞 점심</option>
+                                <option value="저녁">🌙 저녁</option>
+                                <option value="간식">🍪 간식</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="mealDescription">음식 설명</label>
+                            <input type="text" id="mealDescription" placeholder="예: 현미밥, 닭가슴살, 브로콜리" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="mealCalories">예상 칼로리</label>
+                            <input type="number" id="mealCalories" placeholder="칼로리 (kcal)" min="0" max="3000">
+                        </div>
+                        <div class="form-group">
+                            <label for="mealPhoto">사진 URL (선택)</label>
+                            <input type="url" id="mealPhoto" placeholder="음식 사진 URL">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="mealNote">메모</label>
+                        <textarea id="mealNote" placeholder="맛, 느낌, 기타 메모" rows="3"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit">식단 기록하기</button>
+                </form>
+            </section>
+
+            <section class="meal-list-section">
+                <h2>오늘의 식단</h2>
+                <div class="meal-summary">
+                    <div class="summary-item">
+                        <span class="summary-label">총 칼로리:</span>
+                        <span id="totalCalories" class="summary-value">0 kcal</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">식사 횟수:</span>
+                        <span id="mealCount" class="summary-value">0회</span>
+                    </div>
+                </div>
+                
+                <div id="mealList" class="meal-list">
+                </div>
+            </section>
+
+            <section class="meal-stats-section">
+                <h2>이번 주 식단 통계</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>평균 일일 칼로리</h4>
+                        <div class="stat-value" id="avgDailyCalories">- kcal</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>가장 많이 먹은 음식</h4>
+                        <div class="stat-value" id="mostFrequentFood">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>최고 칼로리 하루</h4>
+                        <div class="stat-value" id="maxCalorieDay">- kcal</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>식단 기록 일수</h4>
+                        <div class="stat-value" id="recordedDays">-일</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div id="loading" class="loading hidden">로딩 중...</div>
+    <div id="message" class="message hidden"></div>
+
+    <script src="/js/common.js"></script>
+    <script src="/js/meal-log.js"></script>
+</body>
+</html>

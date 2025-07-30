@@ -1,27 +1,36 @@
-package com.mydiet.controller;
-
-import com.mydiet.dto.MealRequest;
-import com.mydiet.model.MealLog;
-import com.mydiet.service.MealService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 @RestController
 @RequestMapping("/api/meals")
+@RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class MealController {
 
-    @Autowired
-    private MealService mealService;
+    private final MealService mealService;
 
     @PostMapping
     public ResponseEntity<?> saveMeal(@RequestBody MealRequest request) {
-        MealLog saved = mealService.saveMeal(request);
-        return ResponseEntity.ok(saved);
+        try {
+            MealLog saved = mealService.saveMeal(request);
+            return ResponseEntity.ok(Map.of("success", true, "data", saved));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
     }
 
     @GetMapping("/today")
     public ResponseEntity<?> getTodayMeals(@RequestParam Long userId) {
-        return ResponseEntity.ok(mealService.getTodayMeals(userId));
+        try {
+            List<MealLog> meals = mealService.getTodayMeals(userId);
+            return ResponseEntity.ok(Map.of("success", true, "data", meals));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
     }
+}
+
+@Data
+class MealRequest {
+    private Long userId;
+    private String description;
+    private Integer caloriesEstimate;
+    private String photoUrl;
 }

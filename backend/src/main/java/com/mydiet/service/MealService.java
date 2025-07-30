@@ -1,35 +1,20 @@
-package com.mydiet.service;
-
-import com.mydiet.dto.MealRequest;
-import com.mydiet.model.MealLog;
-import com.mydiet.model.User;
-import com.mydiet.repository.MealLogRepository;
-import com.mydiet.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.util.List;
-
 @Service
+@RequiredArgsConstructor
 public class MealService {
 
-    @Autowired
-    private MealLogRepository mealLogRepository;
-    
-    @Autowired
-    private UserRepository userRepository;
+    private final MealLogRepository mealLogRepository;
+    private final UserRepository userRepository;
 
     public MealLog saveMeal(MealRequest request) {
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
         MealLog mealLog = new MealLog();
         mealLog.setUser(user);
         mealLog.setDescription(request.getDescription());
-        mealLog.setPhotoUrl(request.getPhotoUrl());
         mealLog.setCaloriesEstimate(request.getCaloriesEstimate());
-        mealLog.setDate(request.getDate() != null ? request.getDate() : LocalDate.now());
+        mealLog.setPhotoUrl(request.getPhotoUrl());
+        mealLog.setDate(LocalDate.now());
 
         return mealLogRepository.save(mealLog);
     }

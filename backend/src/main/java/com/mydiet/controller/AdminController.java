@@ -1,52 +1,59 @@
-package com.mydiet.controller;
-
-import com.mydiet.repository.UserRepository;
-import com.mydiet.repository.MealLogRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/admin")
+@RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class AdminController {
 
-    @Autowired
-    private UserRepository userRepository;
-    
-    @Autowired
-    private MealLogRepository mealLogRepository;
-
-    private final String ADMIN_PASSWORD = "oicrcutie1998";
-
-    @PostMapping("/login")
-    public ResponseEntity<?> adminLogin(@RequestBody Map<String, Object> request) {
-        String password = (String) request.get("password");
-        
-        if (ADMIN_PASSWORD.equals(password)) {
-            return ResponseEntity.ok(Map.of("success", true, "message", "관리자 인증 성공"));
-        } else {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "error", "잘못된 관리자 비밀번호입니다."));
-        }
-    }
+    private final AdminService adminService;
 
     @GetMapping("/users")
-    public ResponseEntity<?> getAllUsers() {
-        return ResponseEntity.ok(userRepository.findAll());
-    }
-    
-    @GetMapping("/stats")
-    public ResponseEntity<?> getStats() {
-        long totalUsers = userRepository.count();
-        long totalMeals = mealLogRepository.count();
-        
+    public ResponseEntity<?> getAllUsers(HttpSession session,
+                                       @RequestParam(defaultValue = "0") int page,
+                                       @RequestParam(defaultValue = "10") int size) {
+        String userRole = (String) session.getAttribute("userRole");
+        if (!"ADMIN".equals(userRole)) {
+            return ResponseEntity.status(403).body(Map.of("success", false, "message", "관리자 권한이 필요합니다."));
+        }
+
+        Page<UserSummary> users = adminService.getAllUsers(page, size);
         return ResponseEntity.ok(Map.of(
-            "totalUsers", totalUsers,
-            "totalMeals", totalMeals,
-            "totalClaudeResponses", Math.max(1, (int)(totalMeals * 0.8)),
-            "activeToday", Math.max(1, (int)(totalUsers * 0.6))
+            "success", true,
+            "data", users.getContent(),
+            "totalPages", users.getTotalPages(),
+            "totalElements", users.getTotalElements()
         ));
+    }
+
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<?> getUserDetail(@PathVariable Long userId, HttpSession session) {
+        String userRole = (String) session.getAttribute("userRole");
+        if (!"ADMIN".equals(userRole)) {
+            return ResponseEntity.status(403).body(Map.of("success", false, "message", "관리자 권한이 필요합니다."));
+        }
+
+        UserDetail detail = adminService.getUserDetail(userId);
+        return ResponseEntity.ok(Map.of("success", true, "data", detail));
+    }
+
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long userId, HttpSession session) {
+        String userRole = (String) session.getAttribute("userRole");
+        if (!"ADMIN".equals(userRole)) {
+            return ResponseEntity.status(403).body(Map.of("success", false, "message", "관리자 권한이 필요합니다."));
+        }
+
+        adminService.deleteUser(userId);
+        return ResponseEntity.ok(Map.of("success", true, "message", "사용자가 삭제되었습니다."));
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<?> getStats(HttpSession session) {
+        String userRole = (String) session.getAttribute("userRole");
+        if (!"ADMIN".equals(userRole)) {
+            return ResponseEntity.status(403).body(Map.of("success", false, "message", "관리자 권한이 필요합니다."));
+        }
+
+        AdminStats stats = adminService.getStats();
+        return ResponseEntity.ok(Map.of("success", true, "data", stats));
     }
 }
