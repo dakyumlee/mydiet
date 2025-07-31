@@ -11,6 +11,8 @@ import java.util.List;
 public interface EmotionLogRepository extends JpaRepository<EmotionLog, Long> {
     List<EmotionLog> findByUserIdAndDate(Long userId, LocalDate date);
     List<EmotionLog> findTop10ByUserIdOrderByDateDesc(Long userId);
+
+    long countByUserId(Long userId);
     
     @Query("SELECT COUNT(e) FROM EmotionLog e WHERE e.date = :date")
     long countByDate(LocalDate date);

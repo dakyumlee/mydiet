@@ -1,165 +1,80 @@
 package com.mydiet.controller;
 
-import com.mydiet.dto.*;
+import com.mydiet.dto.LoginRequest;
+import com.mydiet.dto.SignupRequest;
+import com.mydiet.model.User;
+import com.mydiet.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 @Slf4j
 public class AuthController {
- 
-    private static final Map<String, UserData> users = new ConcurrentHashMap<>();
-    private static final AtomicLong userIdCounter = new AtomicLong(1);
 
-    static {
-        UserData testUser = new UserData();
-        testUser.id = 1L;
-        testUser.nickname = "테스트유저";
-        testUser.email = "test@test.com";
-        testUser.password = "password123";
-        testUser.weightGoal = 60.0;
-        testUser.emotionMode = "다정함";
-        testUser.createdAt = LocalDateTime.now();
-        
-        users.put("test@test.com", testUser);
-    }
+    private final UserRepository userRepository;
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
-        try {
-            log.info("회원가입 요청: {}", request.getEmail());
-             
-            if (users.containsKey(request.getEmail())) {
-                return ResponseEntity.badRequest()
-                    .body(Map.of("success", false, "message", "이미 가입된 이메일입니다."));
-            }
-             
-            if (request.getPassword().length() < 8) {
-                return ResponseEntity.badRequest()
-                    .body(Map.of("success", false, "message", "비밀번호는 8자 이상이어야 합니다."));
-            }
-            
-            if (request.getEmotionMode() == null || request.getEmotionMode().trim().isEmpty()) {
-                return ResponseEntity.badRequest()
-                    .body(Map.of("success", false, "message", "AI 코치 스타일을 선택해주세요."));
-            }
-             
-            UserData newUser = new UserData();
-            newUser.id = userIdCounter.getAndIncrement();
-            newUser.nickname = request.getNickname();
-            newUser.email = request.getEmail();
-            newUser.password = request.getPassword();
-            newUser.weightGoal = request.getWeightGoal();
-            newUser.emotionMode = request.getEmotionMode();
-            newUser.createdAt = LocalDateTime.now();
-             
-            users.put(request.getEmail(), newUser);
-            
-            log.info("회원가입 성공: {} (ID: {})", newUser.email, newUser.id);
-            
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "회원가입이 완료되었습니다.",
-                "user", createUserResponse(newUser)
-            ));
-            
-        } catch (Exception e) {
-            log.error("회원가입 실패", e);
-            return ResponseEntity.badRequest()
-                .body(Map.of("success", false, "message", "회원가입 중 오류가 발생했습니다."));
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "이미 가입된 이메일입니다."));
         }
+
+        if (request.getPassword().length() < 8) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "비밀번호는 8자 이상이어야 합니다."));
+        }
+
+        User user = new User();
+        user.setNickname(request.getNickname());
+        user.setEmail(request.getEmail());
+        user.setPassword(request.getPassword());
+        user.setWeightGoal(request.getWeightGoal());
+        user.setEmotionMode(request.getEmotionMode());
+        user.setCreatedAt(LocalDateTime.now());
+
+        userRepository.save(user);
+
+        return ResponseEntity.ok(Map.of("success", true, "message", "회원가입 성공", "user", user));
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        try {
-            log.info("로그인 요청: {}", request.getEmail());
-            
-            UserData user = users.get(request.getEmail());
-            
-            if (user == null) {
-                return ResponseEntity.badRequest()
-                    .body(Map.of("success", false, "message", "존재하지 않는 이메일입니다."));
-            }
-            
-            if (!user.password.equals(request.getPassword())) {
-                return ResponseEntity.badRequest()
-                    .body(Map.of("success", false, "message", "비밀번호가 올바르지 않습니다."));
-            }
-            
-            log.info("로그인 성공: {} (ID: {})", user.email, user.id);
-            
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "로그인 성공",
-                "id", user.id,
-                "nickname", user.nickname,
-                "email", user.email,
-                "weightGoal", user.weightGoal,
-                "emotionMode", user.emotionMode
-            ));
-            
-        } catch (Exception e) {
-            log.error("로그인 실패", e);
-            return ResponseEntity.badRequest()
-                .body(Map.of("success", false, "message", "로그인 중 오류가 발생했습니다."));
-        }
-    }
+        Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getUserInfo(@PathVariable Long userId) {
-        try {
-            UserData user = users.values().stream()
-                .filter(u -> u.id.equals(userId))
-                .findFirst()
-                .orElse(null);
-                
-            if (user == null) {
-                return ResponseEntity.notFound().build();
-            }
-            
-            return ResponseEntity.ok(createUserResponse(user));
-            
-        } catch (Exception e) {
-            log.error("사용자 정보 조회 실패", e);
-            return ResponseEntity.badRequest()
-                .body(Map.of("success", false, "message", "사용자 정보 조회 실패"));
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "존재하지 않는 이메일입니다."));
         }
+
+        User user = userOpt.get();
+
+        if (!user.getPassword().equals(request.getPassword())) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "비밀번호가 올바르지 않습니다."));
+        }
+
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "로그인 성공",
+            "user", Map.of(
+                "id", user.getId(),
+                "nickname", user.getNickname(),
+                "email", user.getEmail(),
+                "weightGoal", user.getWeightGoal(),
+                "emotionMode", user.getEmotionMode(),
+                "createdAt", user.getCreatedAt()
+            )
+        ));
     }
 
     @GetMapping("/users/count")
     public ResponseEntity<?> getUserCount() {
-        return ResponseEntity.ok(Map.of("count", users.size()));
-    }
-
-    private Map<String, Object> createUserResponse(UserData user) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("id", user.id);
-        response.put("nickname", user.nickname);
-        response.put("email", user.email);
-        response.put("weightGoal", user.weightGoal);
-        response.put("emotionMode", user.emotionMode);
-        response.put("createdAt", user.createdAt);
-        return response;
-    }
-
-    static class UserData {
-        Long id;
-        String nickname;
-        String email;
-        String password;
-        Double weightGoal;
-        String emotionMode;
-        LocalDateTime createdAt;
+        return ResponseEntity.ok(Map.of("count", userRepository.count()));
     }
 }

@@ -9,6 +9,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface WorkoutLogRepository extends JpaRepository<WorkoutLog, Long> {
+    long countByUserId(Long userId);
+    
     List<WorkoutLog> findByUserIdAndDate(Long userId, LocalDate date);
     List<WorkoutLog> findTop10ByUserIdOrderByDateDesc(Long userId);
     

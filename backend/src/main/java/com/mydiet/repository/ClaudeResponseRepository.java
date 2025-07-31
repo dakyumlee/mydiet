@@ -10,4 +10,6 @@ public interface ClaudeResponseRepository extends JpaRepository<ClaudeResponse, 
     List<ClaudeResponse> findByUserIdOrderByCreatedAtDesc(Long userId);
     List<ClaudeResponse> findTop10ByUserIdOrderByCreatedAtDesc(Long userId);
     List<ClaudeResponse> findTop10ByOrderByCreatedAtDesc();
+    long countByUserId(Long userId);
 }
+

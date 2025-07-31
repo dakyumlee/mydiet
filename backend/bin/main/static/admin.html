@@ -1,901 +1,375 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyDiet 관리자 대시보드</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary: #6366f1;
-            --secondary: #f43f5e;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --error: #ef4444;
-            --background: #f8fafc;
-            --surface: #ffffff;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --border: #e2e8f0;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--background);
-            color: var(--text-primary);
-            line-height: 1.6;
-        }
-
-        .admin-layout {
-            display: flex;
-            min-height: 100vh;
-        }
- 
-        .sidebar {
-            width: 280px;
-            background: var(--surface);
-            border-right: 1px solid var(--border);
-            padding: 2rem 0;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        .sidebar-header {
-            padding: 0 1.5rem 2rem;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 2rem;
-        }
-
-        .sidebar-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        .sidebar-nav {
-            list-style: none;
-        }
-
-        .nav-item {
-            margin-bottom: 0.5rem;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1.5rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: all 0.2s ease;
-        }
-
-        .nav-link:hover, .nav-link.active {
-            background: rgba(99, 102, 241, 0.1);
-            color: var(--primary);
-        }
-
-        .nav-icon {
-            width: 1.25rem;
-            text-align: center;
-        }
- 
-        .main-content {
-            flex: 1;
-            margin-left: 280px;
-            padding: 2rem;
-        }
-
-        .page-header {
-            display: flex;
-            justify-content: between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-
-        .page-title {
-            font-size: 2rem;
-            font-weight: 700;
-        }
-
-        .page-actions {
-            display: flex;
-            gap: 1rem;
-        }
- 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: var(--surface);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            box-shadow: var(--shadow);
-        }
-
-        .stat-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .stat-title {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .stat-icon {
-            width: 2.5rem;
-            height: 2.5rem;
-            border-radius: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-        }
-
-        .stat-change {
-            font-size: 0.875rem;
-            margin-top: 0.5rem;
-        }
-
-        .stat-increase {
-            color: var(--success);
-        }
-
-        .stat-decrease {
-            color: var(--error);
-        }
- 
-        .table-container {
-            background: var(--surface);
-            border-radius: 1rem;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            margin-bottom: 2rem;
-        }
-
-        .table-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .table-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .table th,
-        .table td {
-            padding: 1rem 1.5rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .table th {
-            background: #f8fafc;
-            font-weight: 600;
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .table tbody tr:hover {
-            background: #f8fafc;
-        }
- 
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 0.875rem;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-secondary {
-            background: var(--text-secondary);
-            color: white;
-        }
-
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-
-        .btn-warning {
-            background: var(--warning);
-            color: white;
-        }
-
-        .btn-error {
-            background: var(--error);
-            color: white;
-        }
-
-        .btn-outline {
-            border: 1px solid var(--border);
-            background: transparent;
-            color: var(--text-secondary);
-        }
-
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: var(--shadow);
-        }
- 
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: var(--surface);
-            border-radius: 1rem;
-            padding: 2rem;
-            max-width: 500px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .modal-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--text-secondary);
-        }
- 
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border);
-            border-radius: 0.5rem;
-            font-size: 1rem;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
- 
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-
-        .badge-success {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success);
-        }
-
-        .badge-warning {
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--warning);
-        }
-
-        .badge-error {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--error);
-        }
-
-        /* Mobile */
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .table-container {
-                overflow-x: auto;
-            }
-        }
-
-        .hidden { display: none; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyDiet 관리자 대시보드</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+      margin: 0;
+      display: flex;
+      min-height: 100vh;
+    }
+    aside {
+      width: 240px;
+      background: #fff;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+      padding: 2rem;
+    }
+    aside h2 {
+      font-size: 1.25rem;
+      color: #6366f1;
+      font-weight: bold;
+      margin-bottom: 2rem;
+    }
+    aside nav a {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #64748b;
+      text-decoration: none;
+      padding: 0.5rem 0;
+      transition: 0.2s;
+    }
+    aside nav a:hover, aside nav a.active {
+      color: #6366f1;
+      font-weight: 600;
+    }
+    main {
+      flex: 1;
+      padding: 2rem;
+    }
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    .dashboard-header h1 {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    .refresh-btn {
+      background: #6366f1;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      border: none;
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .card {
+      background: #fff;
+      border-radius: 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      padding: 1.5rem;
+    }
+    .card .title {
+      font-size: 0.875rem;
+      color: #64748b;
+      margin-bottom: 0.5rem;
+    }
+    .card .value {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 0.25rem;
+    }
+    .card .trend {
+      font-size: 0.75rem;
+      color: #10b981;
+    }
+    .card i {
+      float: right;
+      font-size: 1.25rem;
+    }
+    .section {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .section h2 {
+      font-size: 1rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    thead {
+      background-color: #f1f5f9;
+    }
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+    #modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    #modal > div {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      max-width: 600px;
+      width: 90%;
+    }
+    #modal-content {
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 1rem;
+    }
+  </style>
 </head>
 <body>
-    <div class="admin-layout">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-title">
-                    <i class="fas fa-shield-alt"></i> 관리자 패널
-                </div>
-            </div>
-            <nav>
-                <ul class="sidebar-nav">
-                    <li class="nav-item">
-                        <a href="#dashboard" class="nav-link active" data-tab="dashboard">
-                            <i class="nav-icon fas fa-chart-pie"></i>
-                            대시보드
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#users" class="nav-link" data-tab="users">
-                            <i class="nav-icon fas fa-users"></i>
-                            사용자 관리
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#claude" class="nav-link" data-tab="claude">
-                            <i class="nav-icon fas fa-robot"></i>
-                            Claude 응답
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#analytics" class="nav-link" data-tab="analytics">
-                            <i class="nav-icon fas fa-chart-line"></i>
-                            분석
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#settings" class="nav-link" data-tab="settings">
-                            <i class="nav-icon fas fa-cog"></i>
-                            설정
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </aside>
- 
-        <main class="main-content"> 
-            <div id="dashboard-tab" class="tab-content">
-                <div class="page-header">
-                    <h1 class="page-title">대시보드</h1>
-                    <div class="page-actions">
-                        <button class="btn btn-primary" onclick="refreshDashboard()">
-                            <i class="fas fa-sync-alt"></i> 새로고침
-                        </button>
-                    </div>
-                </div>
- 
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-title">총 사용자</div>
-                            <div class="stat-icon" style="background: var(--primary);">
-                                <i class="fas fa-users"></i>
-                            </div>
-                        </div>
-                        <div class="stat-value" id="total-users">-</div>
-                        <div class="stat-change stat-increase">
-                            <i class="fas fa-arrow-up"></i> +12% 이번 주
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-title">오늘 식단 기록</div>
-                            <div class="stat-icon" style="background: var(--success);">
-                                <i class="fas fa-utensils"></i>
-                            </div>
-                        </div>
-                        <div class="stat-value" id="today-meals">-</div>
-                        <div class="stat-change stat-increase">
-                            <i class="fas fa-arrow-up"></i> +8% 어제 대비
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-title">Claude 응답</div>
-                            <div class="stat-icon" style="background: var(--secondary);">
-                                <i class="fas fa-robot"></i>
-                            </div>
-                        </div>
-                        <div class="stat-value" id="claude-responses">-</div>
-                        <div class="stat-change stat-increase">
-                            <i class="fas fa-arrow-up"></i> +25% 이번 주
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-title">활성 사용자</div>
-                            <div class="stat-icon" style="background: var(--warning);">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                        </div>
-                        <div class="stat-value" id="active-users">-</div>
-                        <div class="stat-change stat-increase">
-                            <i class="fas fa-arrow-up"></i> +15% 이번 달
-                        </div>
-                    </div>
-                </div>
- 
-                <div class="table-container">
-                    <div class="table-header">
-                        <h3 class="table-title">최근 가입 사용자</h3>
-                        <button class="btn btn-outline">전체 보기</button>
-                    </div>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>닉네임</th>
-                                <th>이메일</th>
-                                <th>감정 모드</th>
-                                <th>목표 체중</th>
-                                <th>가입일</th>
-                                <th>액션</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recent-users-table">
-                            <tr>
-                                <td colspan="6" style="text-align: center; padding: 2rem;">
-                                    <i class="fas fa-spinner fa-spin"></i> 데이터 로딩 중...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
- 
-            <div id="users-tab" class="tab-content hidden">
-                <div class="page-header">
-                    <h1 class="page-title">사용자 관리</h1>
-                    <div class="page-actions">
-                        <button class="btn btn-primary" onclick="openUserModal()">
-                            <i class="fas fa-plus"></i> 사용자 추가
-                        </button>
-                        <button class="btn btn-outline" onclick="loadUsers()">
-                            <i class="fas fa-sync-alt"></i> 새로고침
-                        </button>
-                    </div>
-                </div>
-
-                <div class="table-container">
-                    <div class="table-header">
-                        <h3 class="table-title">전체 사용자</h3>
-                        <div style="display: flex; gap: 1rem;">
-                            <input type="text" placeholder="사용자 검색..." class="form-input" style="width: 200px;">
-                        </div>
-                    </div>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>닉네임</th>
-                                <th>이메일</th>
-                                <th>감정 모드</th>
-                                <th>목표 체중</th>
-                                <th>가입일</th>
-                                <th>상태</th>
-                                <th>액션</th>
-                            </tr>
-                        </thead>
-                        <tbody id="users-table">
-                            <tr>
-                                <td colspan="8" style="text-align: center; padding: 2rem;">
-                                    <i class="fas fa-spinner fa-spin"></i> 사용자 데이터 로딩 중...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
- 
-            <div id="claude-tab" class="tab-content hidden">
-                <div class="page-header">
-                    <h1 class="page-title">Claude 응답 관리</h1>
-                    <div class="page-actions">
-                        <button class="btn btn-primary" onclick="testClaudeApi()">
-                            <i class="fas fa-flask"></i> API 테스트
-                        </button>
-                        <button class="btn btn-outline" onclick="loadClaudeResponses()">
-                            <i class="fas fa-sync-alt"></i> 새로고침
-                        </button>
-                    </div>
-                </div>
-
-                <div class="table-container">
-                    <div class="table-header">
-                        <h3 class="table-title">Claude 응답 기록</h3>
-                    </div>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>사용자</th>
-                                <th>응답 내용</th>
-                                <th>유형</th>
-                                <th>생성일</th>
-                                <th>액션</th>
-                            </tr>
-                        </thead>
-                        <tbody id="claude-responses-table">
-                            <tr>
-                                <td colspan="5" style="text-align: center; padding: 2rem;">
-                                    <i class="fas fa-spinner fa-spin"></i> Claude 응답 로딩 중...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </main>
-    </div>
- 
-    <div id="user-modal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">사용자 추가/수정</h3>
-                <button class="close-btn" onclick="closeUserModal()">&times;</button>
-            </div>
-            <form id="user-form">
-                <div class="form-group">
-                    <label class="form-label">닉네임</label>
-                    <input type="text" class="form-input" name="nickname" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">이메일</label>
-                    <input type="email" class="form-input" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">목표 체중 (kg)</label>
-                    <input type="number" class="form-input" name="weightGoal" step="0.1">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">감정 모드</label>
-                    <select class="form-input" name="emotionMode">
-                        <option value="무자비">무자비</option>
-                        <option value="츤데레">츤데레</option>
-                        <option value="다정함">다정함</option>
-                        <option value="동기부여">동기부여</option>
-                    </select>
-                </div>
-                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
-                    <button type="button" class="btn btn-outline" onclick="closeUserModal()">취소</button>
-                    <button type="submit" class="btn btn-primary">저장</button>
-                </div>
-            </form>
-        </div>
+  <aside>
+    <h2>관리자 패널</h2>
+    <nav>
+      <a href="#" class="active" onclick="showModal('dashboard')"><i class="fas fa-chart-line"></i> 대시보드</a>
+      <a href="#" onclick="showModal('users')"><i class="fas fa-users"></i> 사용자 관리</a>
+      <a href="#" onclick="showModal('claude')"><i class="fas fa-comment-dots"></i> Claude 응답</a>
+      <a href="#" onclick="showModal('analytics')"><i class="fas fa-chart-pie"></i> 분석</a>
+      <a href="#" onclick="showModal('settings')"><i class="fas fa-cog"></i> 설정</a>
+    </nav>
+  </aside>
+  <main>
+    <div class="dashboard-header">
+      <h1>대시보드</h1>
+      <button class="refresh-btn">새로고침</button>
     </div>
 
-    <script> 
-        function switchTab(tabName) {
- 
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.add('hidden');
-            });
-             
-            document.getElementById(tabName + '-tab').classList.remove('hidden');
-             
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('active');
-            });
-            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-             
-            switch(tabName) {
-                case 'dashboard':
-                    loadDashboard();
-                    break;
-                case 'users':
-                    loadUsers();
-                    break;
-                case 'claude':
-                    loadClaudeResponses();
-                    break;
-            }
-        }
- 
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const tabName = link.getAttribute('data-tab');
-                switchTab(tabName);
-            });
+    <div class="grid">
+      <div class="card">
+        <div class="title">총 사용자 <i class="fas fa-users text-indigo-500"></i></div>
+        <div class="value">-</div>
+        <div class="trend">↑ 12% 이번 주</div>
+      </div>
+      <div class="card">
+        <div class="title">오늘 식단 기록 <i class="fas fa-utensils text-green-500"></i></div>
+        <div class="value">-</div>
+        <div class="trend">↑ 8% 어제 대비</div>
+      </div>
+      <div class="card">
+        <div class="title">Claude 응답 <i class="fas fa-comment-dots text-rose-500"></i></div>
+        <div class="value">-</div>
+        <div class="trend">↑ 25% 이번 주</div>
+      </div>
+      <div class="card">
+        <div class="title">활성 사용자 <i class="fas fa-chart-line text-orange-500"></i></div>
+        <div class="value">-</div>
+        <div class="trend">↑ 15% 이번 달</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h2>최근 가입 사용자</h2>
+        <button style="background:none; color:#6366f1; border:none; cursor:pointer; font-size:0.875rem;" onclick="showModal('users')">전체 보기</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>닉네임</th>
+            <th>이메일</th>
+            <th>감정 모드</th>
+            <th>목표 체중</th>
+            <th>가입일</th>
+            <th>액션</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="6" style="text-align:center; padding:2rem; color:#64748b;">⚙️ 데이터 로딩 중...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <div id="modal">
+    <div>
+      <h2 id="modal-title">제목</h2>
+      <div id="modal-content">불러오는 중...</div>
+      <button onclick="closeModal()" style="margin-top:1rem; background:#6366f1; color:white; border:none; padding:0.5rem 1rem; border-radius:0.375rem;">닫기</button>
+    </div>
+  </div>
+
+  <script>
+    function showModal(type) {
+      document.getElementById('modal').style.display = 'flex';
+      const titleMap = {
+        users: '총 사용자',
+        meals: '식단 기록',
+        claude: 'Claude 응답',
+        active: '활성 사용자',
+        analytics: '📊 분석',
+        settings: '⚙️ 설정'
+      };
+      document.getElementById('modal-title').textContent = titleMap[type] || '정보';
+
+      if (type === 'analytics') {
+        document.getElementById('modal-content').innerHTML = '<p>분석 기능은 아직 개발 중입니다.</p>';
+        return;
+      }
+      if (type === 'settings') {
+        document.getElementById('modal-content').innerHTML = '<p>설정 페이지는 여기에 나옵니다. 관리자 설정 옵션을 구성하세요.</p>';
+        return;
+      }
+
+      fetch(`/api/admin/${type}`)
+        .then(res => res.json())
+        .then(data => {
+          const content = Array.isArray(data)
+            ? '<ul>' + data.map(d => `<li>${JSON.stringify(d)}</li>`).join('') + '</ul>'
+            : `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+          document.getElementById('modal-content').innerHTML = content;
+        })
+        .catch(() => document.getElementById('modal-content').textContent = '불러오기 실패');
+    }
+
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+document.addEventListener('DOMContentLoaded', () => {
+    fetchSummaryStats();
+    loadRecentUsers();
+  });
+  
+  function fetchSummaryStats() {
+    fetch('/api/admin/summary')
+      .then(res => res.json())
+      .then(data => {
+        document.querySelectorAll('.card')[0].querySelector('.value').textContent = data.userCount;
+        document.querySelectorAll('.card')[1].querySelector('.value').textContent = data.todayMealCount;
+        document.querySelectorAll('.card')[2].querySelector('.value').textContent = data.todayClaudeCount;
+        document.querySelectorAll('.card')[3].querySelector('.value').textContent = data.activeUserCount;
+      })
+      .catch(err => console.error('통계 로딩 실패:', err));
+  }
+  
+  function loadRecentUsers() {
+    fetch('/api/admin/users')
+      .then(res => res.json())
+      .then(users => {
+        const tbody = document.querySelector('tbody');
+        tbody.innerHTML = '';
+        users.forEach(user => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${user.nickname}</td>
+            <td>${user.email}</td>
+            <td>${user.emotionMode || '-'}</td>
+            <td>${user.goalWeight || '-'}</td>
+            <td>${user.createdAt || '-'}</td>
+            <td><button onclick="banUser(${user.id})" style="color:red; border:none; background:none; cursor:pointer;">삭제</button></td>
+          `;
+          tbody.appendChild(row);
         });
- 
-        async function loadDashboard() {
-            try {
-                const response = await fetch('/api/admin/dashboard');
-                const data = await response.json();
-                
-                document.getElementById('total-users').textContent = data.totalUsers || 0;
-                document.getElementById('today-meals').textContent = data.todayMeals || 0;
-                document.getElementById('claude-responses').textContent = data.totalClaudeResponses || 0;
-                document.getElementById('active-users').textContent = data.totalUsers || 0;
-                 
-                updateRecentUsersTable(data.recentUsers || []);
-            } catch (error) {
-                console.error('Dashboard 로딩 실패:', error);
-            }
+      })
+      .catch(err => console.error('사용자 목록 실패:', err));
+  }
+  
+  function banUser(userId) {
+    if (!confirm('정말 이 사용자를 삭제하시겠습니까?')) return;
+    fetch(`/api/admin/users/${userId}`, { method: 'DELETE' })
+      .then(res => {
+        if (res.ok) {
+          alert('삭제 완료');
+          loadRecentUsers();
+          fetchSummaryStats();
+        } else {
+          alert('삭제 실패');
         }
+      })
+      .catch(err => console.error('삭제 오류:', err));
+  }
 
-        function updateRecentUsersTable(users) {
-            const tbody = document.getElementById('recent-users-table');
-            if (users.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" style="text-align: center; padding: 2rem;">
-                            등록된 사용자가 없습니다.
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-            
-            tbody.innerHTML = users.map(user => `
-                <tr>
-                    <td>${user.nickname || '-'}</td>
-                    <td>${user.email || '-'}</td>
-                    <td><span class="badge badge-success">${user.emotionMode || '-'}</span></td>
-                    <td>${user.weightGoal ? user.weightGoal + 'kg' : '-'}</td>
-                    <td>${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-'}</td>
-                    <td>
-                        <button class="btn btn-outline" onclick="viewUser(${user.id})">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
- 
-        async function loadUsers() {
-            try {
-                const response = await fetch('/api/admin/users');
-                const data = await response.json();
-                updateUsersTable(data.content || []);
-            } catch (error) {
-                console.error('사용자 로딩 실패:', error);
-            }
-        }
 
-        function updateUsersTable(users) {
-            const tbody = document.getElementById('users-table');
-            if (users.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="8" style="text-align: center; padding: 2rem;">
-                            등록된 사용자가 없습니다.
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-            
-            tbody.innerHTML = users.map(user => `
-                <tr>
-                    <td>${user.id}</td>
-                    <td>${user.nickname || '-'}</td>
-                    <td>${user.email || '-'}</td>
-                    <td><span class="badge badge-success">${user.emotionMode || '-'}</span></td>
-                    <td>${user.weightGoal ? user.weightGoal + 'kg' : '-'}</td>
-                    <td>${user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '-'}</td>
-                    <td><span class="badge badge-success">활성</span></td>
-                    <td>
-                        <button class="btn btn-outline" onclick="editUser(${user.id})" style="margin-right: 0.5rem;">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-error" onclick="deleteUser(${user.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
- 
-        async function loadClaudeResponses() {
-            try {
-                const response = await fetch('/api/admin/claude-responses');
-                const data = await response.json();
-                updateClaudeResponsesTable(data.content || []);
-            } catch (error) {
-                console.error('Claude 응답 로딩 실패:', error);
-            }
-        }
+import Chart from 'chart.js/auto';
 
-        function updateClaudeResponsesTable(responses) {
-            const tbody = document.getElementById('claude-responses-table');
-            if (responses.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5" style="text-align: center; padding: 2rem;">
-                            Claude 응답이 없습니다.
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-            
-            tbody.innerHTML = responses.map(response => `
-                <tr>
-                    <td>${response.user?.nickname || '-'}</td>
-                    <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                        ${response.content || '-'}
-                    </td>
-                    <td><span class="badge badge-warning">${response.type || '-'}</span></td>
-                    <td>${response.createdAt ? new Date(response.createdAt).toLocaleString() : '-'}</td>
-                    <td>
-                        <button class="btn btn-outline" onclick="viewResponse('${response.content}')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
-        }
- 
-        function openUserModal(userId = null) {
-            document.getElementById('user-modal').classList.remove('hidden');
-            if (userId) { 
-            }
-        }
+document.addEventListener('DOMContentLoaded', () => {
+  loadUserGrowthChart();
+  loadClaudeActivityChart();
+});
 
-        function closeUserModal() {
-            document.getElementById('user-modal').classList.add('hidden');
-            document.getElementById('user-form').reset();
+function loadUserGrowthChart() {
+  fetch('/api/admin/analytics/users')
+    .then(res => res.json())
+    .then(data => {
+      const ctx = document.getElementById('userGrowthChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.map(e => e.date),
+          datasets: [{
+            label: '신규 가입자 수',
+            data: data.map(e => e.count),
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99,102,241,0.2)',
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true }
+          }
         }
- 
-        document.getElementById('user-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const userData = Object.fromEntries(formData.entries());
-            
-            try {
-                const response = await fetch('/api/admin/users', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(userData)
-                });
-                
-                if (response.ok) {
-                    closeUserModal();
-                    loadUsers();
-                    alert('사용자가 성공적으로 추가되었습니다.');
-                } else {
-                    alert('사용자 추가에 실패했습니다.');
-                }
-            } catch (error) {
-                console.error('사용자 추가 실패:', error);
-                alert('사용자 추가 중 오류가 발생했습니다.');
-            }
-        });
- 
-        async function testClaudeApi() {
-            try {
-                const response = await fetch('/api/admin/claude/test?userId=1', {
-                    method: 'POST'
-                });
-                const result = await response.text();
-                alert('Claude API 테스트 결과:\n' + result);
-            } catch (error) {
-                console.error('Claude API 테스트 실패:', error);
-                alert('Claude API 테스트에 실패했습니다.');
-            }
-        }
+      });
+    })
+    .catch(err => console.error('User Growth Chart Error:', err));
+}
 
-        async function deleteUser(userId) {
-            if (!confirm('정말로 이 사용자를 삭제하시겠습니까?')) return;
-            
-            try {
-                const response = await fetch(`/api/admin/users/${userId}`, {
-                    method: 'DELETE'
-                });
-                
-                if (response.ok) {
-                    loadUsers();
-                    alert('사용자가 삭제되었습니다.');
-                } else {
-                    alert('사용자 삭제에 실패했습니다.');
-                }
-            } catch (error) {
-                console.error('사용자 삭제 실패:', error);
-                alert('사용자 삭제 중 오류가 발생했습니다.');
-            }
+function loadClaudeActivityChart() {
+  fetch('/api/admin/analytics/claude')
+    .then(res => res.json())
+    .then(data => {
+      const ctx = document.getElementById('claudeChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.map(e => e.date),
+          datasets: [{
+            label: 'Claude 응답 수',
+            data: data.map(e => e.count),
+            backgroundColor: '#06b6d4'
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true }
+          }
         }
+      });
+    })
+    .catch(err => console.error('Claude Chart Error:', err));
+}
 
-        function editUser(userId) {
-            alert('편집 기능은 개발 중입니다.');
-        }
-
-        function viewUser(userId) {
-            window.open(`/admin/user/${userId}`, '_blank');
-        }
-
-        function viewResponse(content) {
-            alert('Claude 응답:\n' + content);
-        }
-
-        function refreshDashboard() {
-            loadDashboard();
-        }
- 
-        document.addEventListener('DOMContentLoaded', function() {
-            switchTab('dashboard');
-        });
-
-        document.getElementById('user-modal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeUserModal();
-            }
-        });
-    </script>
+  
+  </script>
 </body>
 </html>

@@ -547,6 +547,24 @@
             document.getElementById('message-container').innerHTML = '';
         }
 
+        async function loginUser(email, password) {
+            const res = await fetch("/api/auth/login", {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({ email, password })
+            });
+          
+            const data = await res.json();
+          
+            if (data.success) {
+              alert("로그인 성공!");
+              localStorage.setItem("user", JSON.stringify(data.user));
+              location.href = "/dashboard.html";
+            } else {
+              alert("로그인 실패: " + data.message);
+            }
+          }
+          
         async function handleLogin(event) {
             event.preventDefault();
             const btn = document.getElementById('login-btn');
