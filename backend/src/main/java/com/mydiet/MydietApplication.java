@@ -4,8 +4,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class MyDietApplication {
+public class MydietApplication {
     public static void main(String[] args) {
-        SpringApplication.run(MyDietApplication.class, args);
+        SpringApplication.run(MydietApplication.class, args);
     }
 }
