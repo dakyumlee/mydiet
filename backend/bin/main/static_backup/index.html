@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyDiet - 로그인</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            text-align: center;
+            color: white;
+            padding: 2rem;
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .login-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 400px;
+            margin: 2rem auto;
+        }
+        .login-form h2 {
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+        }
+        .auth-links {
+            margin-top: 1rem;
+            color: #666;
+        }
+        .auth-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .auth-links a:hover {
+            text-decoration: underline;
+        }
+        .demo-accounts {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+            border-top: 1px solid #eee;
+            padding-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍽️ MyDiet</h1>
+        <p>나만의 다이어트 관리 시스템</p>
+        
+        <div class="login-form">
+            <h2>로그인</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <input type="email" id="email" placeholder="이메일" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password" placeholder="비밀번호" required>
+                </div>
+                <button type="submit" class="btn-login">로그인</button>
+            </form>
+            
+            <div class="auth-links">
+                <p>계정이 없으신가요? <a href="/register.html">회원가입</a></p>
+            </div>
+            
+            <div class="demo-accounts">
+                <p><strong>데모 계정:</strong></p>
+                <p>관리자: admin@mydiet.com / admin123</p>
+                <p>사용자: test@mydiet.com / test123</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if ((email === 'admin@mydiet.com' && password === 'admin123') ||
+                (email === 'test@mydiet.com' && password === 'test123')) {
+                alert('로그인 성공! 🎉');
+                
+                const userData = {
+                    email: email,
+                    nickname: email === 'admin@mydiet.com' ? '관리자' : '테스트유저',
+                    role: email === 'admin@mydiet.com' ? 'ADMIN' : 'USER',
+                    dietDays: email === 'admin@mydiet.com' ? 1 : 30
+                };
+                localStorage.setItem('currentUser', JSON.stringify(userData));
+                
+                if (email === 'admin@mydiet.com') {
+                    window.location.href = '/admin.html';
+                } else {
+                    window.location.href = '/dashboard.html';
+                }
+                return;
+            }
+            
+            const users = JSON.parse(localStorage.getItem('mydiet_users') || '[]');
+            const user = users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                alert('로그인 성공! 🎉');
+                
+                const startDate = new Date(user.dietStartDate);
+                const today = new Date();
+                const diffTime = Math.abs(today - startDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                const userData = {
+                    ...user,
+                    dietDays: diffDays
+                };
+                localStorage.setItem('currentUser', JSON.stringify(userData));
+                
+                window.location.href = user.role === 'ADMIN' ? '/admin.html' : '/dashboard.html';
+            } else {
+                alert('이메일 또는 비밀번호가 잘못되었습니다.');
+            }
+        });
+    </script>
+</body>
+</html>
