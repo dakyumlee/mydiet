@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mydiet - 관리자 대시보드</title>
+    <style>
+        @font-face {
+            font-family: 'S-CoreDream-3Light';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-3Light.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'S-CoreDream-3Light', sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .admin-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: #c0392b;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #a93226;
+            transform: translateY(-1px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .users-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: #34495e;
+            color: white;
+            padding: 20px 25px;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .section-header h2 {
+            font-size: 1.3rem;
+            margin: 0;
+        }
+
+        .search-box {
+            flex: 1;
+            max-width: 300px;
+            margin-left: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .users-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .users-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin: 0 2px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-view {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .activity-feed {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .activity-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #ecf0f1;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .activity-signup { background: #e8f5e8; color: #28a745; }
+        .activity-login { background: #d1ecf1; color: #17a2b8; }
+        .activity-meal { background: #fff3cd; color: #ffc107; }
+        .activity-workout { background: #f8d7da; color: #dc3545; }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+
+        .quick-stats {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+        }
+
+        .quick-stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .quick-stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .close-btn {
+            float: right;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .user-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .detail-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 1.1rem;
+            color: #2c3e50;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 20px;
+        }
+
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .page-btn:hover,
+        .page-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .users-table {
+                font-size: 0.9rem;
+            }
+            
+            .users-table th,
+            .users-table td {
+                padding: 10px 8px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">🛡️ mydiet Admin</div>
+            <div class="admin-info">
+                <span class="admin-badge">ADMIN</span>
+                <span>관리자</span>
+                <button class="logout-btn" onclick="logout()">로그아웃</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-number" id="totalUsers">0</div>
+                <div class="stat-label">총 회원수</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-number" id="activeUsers">0</div>
+                <div class="stat-label">활성 사용자</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🍽️</div>
+                <div class="stat-number" id="totalMeals">0</div>
+                <div class="stat-label">총 식단 기록</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💪</div>
+                <div class="stat-number" id="totalWorkouts">0</div>
+                <div class="stat-label">총 운동 기록</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="users-section">
+                <div class="section-header">
+                    <h2>👥 회원 관리</h2>
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="회원 검색..." onkeyup="searchUsers()">
+                    </div>
+                </div>
+                
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>회원</th>
+                            <th>이메일</th>
+                            <th>가입일</th>
+                            <th>상태</th>
+                            <th>목표체중</th>
+                            <th>관리</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                    </tbody>
+                </table>
+                
+                <div class="pagination" id="pagination">
+                </div>
+            </div>
+            <div class="sidebar">
+                <div class="activity-feed">
+                    <div class="section-header">
+                        <h2>📊 최근 활동</h2>
+                    </div>
+                    <div id="activityList">
+                    </div>
+                </div>
+ 
+                <div class="quick-stats">
+                    <div class="section-header">
+                        <h2>📈 오늘 통계</h2>
+                    </div>
+                    <div class="quick-stat-item">
+                        <span>신규 가입</span>
+                        <strong id="todaySignups">0</strong>
+                    </div>
+                    <div class="quick-stat-item">
+                        <span>활성 로그인</span>
+                        <strong id="todayLogins">0</strong>
+                    </div>
+                    <div class="quick-stat-item">
+                        <span>식단 기록</span>
+                        <strong id="todayMeals">0</strong>
+                    </div>
+                    <div class="quick-stat-item">
+                        <span>운동 기록</span>
+                        <strong id="todayWorkouts">0</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+ 
+    <div id="userDetailModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('userDetailModal')">&times;</span>
+            <h3>👤 회원 상세 정보</h3>
+            
+            <div class="user-details">
+                <div class="detail-card">
+                    <div class="detail-label">닉네임</div>
+                    <div class="detail-value" id="detailNickname">-</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-label">이메일</div>
+                    <div class="detail-value" id="detailEmail">-</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-label">가입일</div>
+                    <div class="detail-value" id="detailCreatedAt">-</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-label">목표 체중</div>
+                    <div class="detail-value" id="detailWeightGoal">-</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-label">AI 코칭 스타일</div>
+                    <div class="detail-value" id="detailEmotionMode">-</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-label">다이어트 일수</div>
+                    <div class="detail-value" id="detailDietDays">-</div>
+                </div>
+            </div>
+
+            <h4>📊 활동 통계</h4>
+            <div class="user-details">
+                <div class="detail-card">
+                    <div class="detail-label">총 식단 기록</div>
+                    <div class="detail-value" id="detailMealCount">0</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-label">총 운동 기록</div>
+                    <div class="detail-value" id="detailWorkoutCount">0</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-label">총 감정 기록</div>
+                    <div class="detail-value" id="detailEmotionCount">0</div>
+                </div>
+                <div class="detail-card">
+                    <div class="detail-label">최근 로그인</div>
+                    <div class="detail-value" id="detailLastLogin">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+ 
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('editUserModal')">&times;</span>
+            <h3>✏️ 회원 정보 수정</h3>
+            
+            <form id="editUserForm">
+                <input type="hidden" id="editUserId">
+                
+                <div class="form-group">
+                    <label for="editNickname">닉네임</label>
+                    <input type="text" id="editNickname" name="nickname" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editEmail">이메일</label>
+                    <input type="email" id="editEmail" name="email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editWeightGoal">목표 체중 (kg)</label>
+                    <input type="number" id="editWeightGoal" name="weightGoal" step="0.1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editEmotionMode">AI 코칭 스타일</label>
+                    <select id="editEmotionMode" name="emotionMode" required>
+                        <option value="무자비">무자비</option>
+                        <option value="츤데레">츤데레</option>
+                        <option value="다정함">다정함</option>
+                        <option value="유머">유머</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="submit-btn">수정하기</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let allUsers = [];
+        let filteredUsers = [];
+ 
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAdminAuth();
+            loadStatistics();
+            loadUsers();
+            loadRecentActivity();
+            loadTodayStats();
+        });
+ 
+        function checkAdminAuth() {
+            const adminToken = localStorage.getItem('adminToken');
+            if (!adminToken) {
+                window.location.href = '/admin-login.html';
+                return;
+            }
+        }
+ 
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/api/admin/statistics');
+                if (response.ok) {
+                    const stats = await response.json();
+                    document.getElementById('totalUsers').textContent = stats.totalUsers;
+                    document.getElementById('activeUsers').textContent = stats.activeUsers;
+                    document.getElementById('totalMeals').textContent = stats.totalMeals;
+                    document.getElementById('totalWorkouts').textContent = stats.totalWorkouts;
+                }
+            } catch (error) {
+                console.error('통계 로드 실패:', error);
+            }
+        }
+ 
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/admin/users');
+                if (response.ok) {
+                    allUsers = await response.json();
+                    filteredUsers = [...allUsers];
+                    renderUsers();
+                    renderPagination();
+                }
+            } catch (error) {
+                console.error('사용자 목록 로드 실패:', error);
+            }
+        }
+ 
+        function renderUsers() {
+            const tableBody = document.getElementById('usersTableBody');
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageUsers = filteredUsers.slice(startIndex, endIndex);
+
+            tableBody.innerHTML = '';
+
+            pageUsers.forEach(user => {
+                const row = document.createElement('tr');
+                const dietDays = Math.ceil((new Date() - new Date(user.createdAt)) / (1000 * 60 * 60 * 24));
+                const status = user.lastLoginAt && 
+                    (new Date() - new Date(user.lastLoginAt)) < (7 * 24 * 60 * 60 * 1000) ? 'active' : 'inactive';
+
+                row.innerHTML = `
+                    <td>
+                        <div style="display: flex; align-items: center;">
+                            <div class="user-avatar">${user.nickname.charAt(0).toUpperCase()}</div>
+                            <div>
+                                <div style="font-weight: 600;">${user.nickname}</div>
+                                <div style="font-size: 0.8rem; color: #7f8c8d;">${dietDays}일차</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${user.email}</td>
+                    <td>${formatDate(user.createdAt)}</td>
+                    <td>
+                        <span class="status-badge status-${status}">
+                            ${status === 'active' ? '활성' : '비활성'}
+                        </span>
+                    </td>
+                    <td>${user.weightGoal}kg</td>
+                    <td>
+                        <button class="action-btn btn-view" onclick="viewUser(${user.id})">보기</button>
+                        <button class="action-btn btn-edit" onclick="editUser(${user.id})">수정</button>
+                        <button class="action-btn btn-delete" onclick="deleteUser(${user.id})">삭제</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+ 
+        function renderPagination() {
+            const pagination = document.getElementById('pagination');
+            const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+            
+            pagination.innerHTML = '';
+ 
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'page-btn';
+            prevBtn.textContent = '이전';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.onclick = () => changePage(currentPage - 1);
+            pagination.appendChild(prevBtn);
+ 
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                pageBtn.textContent = i;
+                pageBtn.onclick = () => changePage(i);
+                pagination.appendChild(pageBtn);
+            }
+ 
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'page-btn';
+            nextBtn.textContent = '다음';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.onclick = () => changePage(currentPage + 1);
+            pagination.appendChild(nextBtn);
+        }
+ 
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                renderUsers();
+                renderPagination();
+            }
+        }
+ 
+        function searchUsers() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            filteredUsers = allUsers.filter(user => 
+                user.nickname.toLowerCase().includes(searchTerm) ||
+                user.email.toLowerCase().includes(searchTerm)
+            );
+            currentPage = 1;
+            renderUsers();
+            renderPagination();
+        }
+ 
+        async function viewUser(userId) {
+            try {
+                const response = await fetch(`/api/admin/users/${userId}`);
+                if (response.ok) {
+                    const userDetail = await response.json();
+                    showUserDetail(userDetail);
+                }
+            } catch (error) {
+                alert('사용자 정보 로드에 실패했습니다.');
+            }
+        } 
+        function showUserDetail(user) {
+            document.getElementById('detailNickname').textContent = user.nickname;
+            document.getElementById('detailEmail').textContent = user.email;
+            document.getElementById('detailCreatedAt').textContent = formatDate(user.createdAt);
+            document.getElementById('detailWeightGoal').textContent = user.weightGoal + 'kg';
+            document.getElementById('detailEmotionMode').textContent = user.emotionMode;
+            
+            const dietDays = Math.ceil((new Date() - new Date(user.createdAt)) / (1000 * 60 * 60 * 24));
+            document.getElementById('detailDietDays').textContent = dietDays + '일';
+            
+            document.getElementById('detailMealCount').textContent = user.mealCount || 0;
+            document.getElementById('detailWorkoutCount').textContent = user.workoutCount || 0;
+            document.getElementById('detailEmotionCount').textContent = user.emotionCount || 0;
+            document.getElementById('detailLastLogin').textContent = user.lastLoginAt ? formatDate(user.lastLoginAt) : '없음';
+            
+            openModal('userDetailModal');
+        }
+ 
+        function editUser(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (user) {
+                document.getElementById('editUserId').value = user.id;
+                document.getElementById('editNickname').value = user.nickname;
+                document.getElementById('editEmail').value = user.email;
+                document.getElementById('editWeightGoal').value = user.weightGoal;
+                document.getElementById('editEmotionMode').value = user.emotionMode;
+                openModal('editUserModal');
+            }
+        } 
+        async function deleteUser(userId) {
+            if (confirm('정말로 이 사용자를 삭제하시겠습니까?')) {
+                try {
+                    const response = await fetch(`/api/admin/users/${userId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        alert('사용자가 삭제되었습니다.');
+                        loadUsers();
+                        loadStatistics();
+                    } else {
+                        alert('사용자 삭제에 실패했습니다.');
+                    }
+                } catch (error) {
+                    alert('서버 오류가 발생했습니다.');
+                }
+            }
+        }
+ 
+        async function loadRecentActivity() {
+            try {
+                const response = await fetch('/api/admin/recent-activity');
+                if (response.ok) {
+                    const activities = await response.json();
+                    renderRecentActivity(activities);
+                }
+            } catch (error) {
+                console.error('최근 활동 로드 실패:', error);
+            }
+        }
+ 
+        function renderRecentActivity(activities) {
+            const activityList = document.getElementById('activityList');
+            
+            if (activities.length === 0) {
+                activityList.innerHTML = '<div style="padding: 20px; text-align: center; color: #7f8c8d;">최근 활동이 없습니다.</div>';
+                return;
+            }
+
+            activityList.innerHTML = '';
+            activities.forEach(activity => {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'activity-item';
+                
+                const iconMap = {
+                    'signup': { icon: '👥', class: 'activity-signup' },
+                    'login': { icon: '🔑', class: 'activity-login' },
+                    'meal': { icon: '🍽️', class: 'activity-meal' },
+                    'workout': { icon: '💪', class: 'activity-workout' }
+                };
+                
+                const config = iconMap[activity.type] || iconMap['login'];
+                
+                activityItem.innerHTML = `
+                    <div class="activity-icon ${config.class}">${config.icon}</div>
+                    <div class="activity-content">
+                        <div class="activity-title">${activity.title}</div>
+                        <div class="activity-time">${formatDate(activity.createdAt)}</div>
+                    </div>
+                `;
+                
+                activityList.appendChild(activityItem);
+            });
+        }
+ 
+        async function loadTodayStats() {
+            try {
+                const response = await fetch('/api/admin/today-stats');
+                if (response.ok) {
+                    const stats = await response.json();
+                    document.getElementById('todaySignups').textContent = stats.signups;
+                    document.getElementById('todayLogins').textContent = stats.logins;
+                    document.getElementById('todayMeals').textContent = stats.meals;
+                    document.getElementById('todayWorkouts').textContent = stats.workouts;
+                }
+            } catch (error) {
+                console.error('오늘 통계 로드 실패:', error);
+            }
+        }
+ 
+        document.getElementById('editUserForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const userId = document.getElementById('editUserId').value;
+            const formData = new FormData(this);
+            const userData = {
+                nickname: formData.get('nickname'),
+                email: formData.get('email'),
+                weightGoal: parseFloat(formData.get('weightGoal')),
+                emotionMode: formData.get('emotionMode')
+            };
+
+            try {
+                const response = await fetch(`/api/admin/users/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+
+                if (response.ok) {
+                    alert('사용자 정보가 수정되었습니다.');
+                    closeModal('editUserModal');
+                    loadUsers();
+                } else {
+                    alert('사용자 정보 수정에 실패했습니다.');
+                }
+            } catch (error) {
+                alert('서버 오류가 발생했습니다.');
+            }
+        });
+ 
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function logout() {
+            if (confirm('로그아웃 하시겠습니까?')) {
+                localStorage.removeItem('adminToken');
+                window.location.href = '/admin-login.html';
+            }
+        }
+    </script>
+</body>
+</html>

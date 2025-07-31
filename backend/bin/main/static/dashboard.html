@@ -3,62 +3,916 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyDiet - 대시보드</title>
+    <title>mydiet - 대시보드</title>
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; margin: 0; background: #f5f5f5; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; padding: 2rem; }
-        .card { background: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .card h3 { color: #667eea; margin-bottom: 1rem; }
-        input, select, textarea { width: 100%; padding: 10px; margin: 5px 0; border: 2px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        @font-face {
+            font-family: 'S-CoreDream-3Light';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-3Light.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'S-CoreDream-3Light', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .welcome-section {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .welcome-section h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .diet-days {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .card-icon {
+            font-size: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #e9ecef;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 6px;
+            transition: width 0.8s ease;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .action-btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            display: block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8, #6610f2);
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .claude-section {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .claude-message {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .loading {
+            display: inline-block;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .recent-activity {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .activity-meal { background: #e8f5e8; color: #28a745; }
+        .activity-emotion { background: #fff3cd; color: #ffc107; }
+        .activity-workout { background: #d1ecf1; color: #17a2b8; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .close-btn {
+            float: right;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🍽️ MyDiet 대시보드</h1>
-        <button onclick="logout()" style="background: rgba(255,255,255,0.2); padding: 8px 16px;">로그아웃</button>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">🍽️ mydiet</div>
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <span id="userName">사용자</span>
+                <button class="logout-btn" onclick="logout()">로그아웃</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="welcome-section">
+            <h1>안녕하세요, <span id="welcomeName">사용자</span>님! 👋</h1>
+            <div class="diet-days">
+                다이어트 <span id="dietDays">1</span>일차
+            </div>
+            <p>오늘도 목표를 향해 한 걸음 더 나아가세요!</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">⚖️</div>
+                    <div class="card-title">현재 체중</div>
+                </div>
+                <div class="stat-number" id="currentWeight">--</div>
+                <div class="stat-label">kg</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="weightProgress" style="width: 0%"></div>
+                </div>
+                <div style="font-size: 0.9rem; color: #666;">
+                    목표: <span id="goalWeight">--</span>kg
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🍽️</div>
+                    <div class="card-title">오늘 칼로리</div>
+                </div>
+                <div class="stat-number" id="todayCalories">0</div>
+                <div class="stat-label">kcal</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="calorieProgress" style="width: 0%"></div>
+                </div>
+                <div style="font-size: 0.9rem; color: #666;">
+                    권장: 1800kcal
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">💪</div>
+                    <div class="card-title">운동 칼로리</div>
+                </div>
+                <div class="stat-number" id="workoutCalories">0</div>
+                <div class="stat-label">kcal 소모</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="workoutProgress" style="width: 0%"></div>
+                </div>
+                <div style="font-size: 0.9rem; color: #666;">
+                    목표: 300kcal
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">😊</div>
+                    <div class="card-title">오늘 기분</div>
+                </div>
+                <div class="stat-number" id="todayMood">😐</div>
+                <div class="stat-label" id="moodText">보통</div>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <button class="action-btn btn-success" onclick="openModal('mealModal')">
+                🍽️ 식단 기록
+            </button>
+            <button class="action-btn btn-warning" onclick="openModal('emotionModal')">
+                😊 감정 기록
+            </button>
+            <button class="action-btn btn-info" onclick="openModal('workoutModal')">
+                💪 운동 기록
+            </button>
+            <button class="action-btn btn-primary" onclick="openModal('weightModal')">
+                ⚖️ 체중 기록
+            </button>
+        </div>
+
+        <div class="claude-section">
+            <h2>🤖 오늘의 AI 코치</h2>
+            <div class="claude-message" id="claudeMessage">
+                <span class="loading">AI가 당신의 오늘을 분석하고 있습니다...</span>
+            </div>
+            <button class="action-btn" style="background: rgba(255,255,255,0.2); color: white; border: 2px solid white;" onclick="refreshClaudeMessage()">
+                새로운 조언 받기
+            </button>
+        </div>
+
+        <div class="recent-activity">
+            <h3>📊 최근 활동</h3>
+            <div id="activityList">
+                <div class="activity-item">
+                    <div class="activity-icon activity-meal">🍽️</div>
+                    <div>
+                        <div style="font-weight: 600;">아직 기록된 활동이 없습니다</div>
+                        <div style="font-size: 0.9rem; color: #666;">식단, 운동, 감정을 기록해보세요!</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="grid">
-        <div class="card">
-            <h3>📊 체중 관리</h3>
-            <p>현재: <strong>78.5kg</strong> / 목표: 70.0kg</p>
-            <input type="number" placeholder="오늘 체중 (kg)" step="0.1">
-            <button onclick="alert('체중 기록 완료!')">기록하기</button>
+    <!-- 식단 기록 모달 -->
+    <div id="mealModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('mealModal')">&times;</span>
+            <h3>🍽️ 식단 기록</h3>
+            <form id="mealForm">
+                <div class="form-group">
+                    <label for="mealDescription">음식 설명</label>
+                    <textarea id="mealDescription" name="description" rows="3" placeholder="예: 닭가슴살 샐러드, 현미밥 1공기, 사과 1개" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="mealCalories">예상 칼로리 (kcal)</label>
+                    <input type="number" id="mealCalories" name="calories" placeholder="400" required>
+                </div>
+                <button type="submit" class="submit-btn">기록하기</button>
+            </form>
         </div>
+    </div>
 
-        <div class="card">
-            <h3>🥗 식단 기록</h3>
-            <input type="text" placeholder="먹은 음식">
-            <input type="number" placeholder="칼로리">
-            <button onclick="alert('식단 기록 완료!')">기록하기</button>
-        </div>
-
-        <div class="card">
+    <!-- 감정 기록 모달 -->
+    <div id="emotionModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('emotionModal')">&times;</span>
             <h3>😊 감정 기록</h3>
-            <select>
-                <option>감정 선택</option>
-                <option>😊 행복</option>
-                <option>😢 우울</option>
-                <option>😫 스트레스</option>
-            </select>
-            <input type="text" placeholder="상세 내용">
-            <button onclick="alert('감정 기록 완료!')">기록하기</button>
+            <form id="emotionForm">
+                <div class="form-group">
+                    <label for="emotionMood">오늘 기분</label>
+                    <select id="emotionMood" name="mood" required>
+                        <option value="">선택하세요</option>
+                        <option value="매우좋음">😄 매우 좋음</option>
+                        <option value="좋음">😊 좋음</option>
+                        <option value="보통">😐 보통</option>
+                        <option value="나쁨">😔 나쁨</option>
+                        <option value="매우나쁨">😰 매우 나쁨</option>
+                        <option value="스트레스">😤 스트레스</option>
+                        <option value="우울">😞 우울</option>
+                        <option value="분노">😡 분노</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="emotionNote">메모</label>
+                    <textarea id="emotionNote" name="note" rows="3" placeholder="오늘 기분에 대해 자세히 써보세요..."></textarea>
+                </div>
+                <button type="submit" class="submit-btn">기록하기</button>
+            </form>
         </div>
+    </div>
 
-        <div class="card">
-            <h3>📝 일지</h3>
-            <input type="text" placeholder="제목">
-            <textarea placeholder="내용" rows="3"></textarea>
-            <button onclick="alert('일지 저장 완료!')">저장하기</button>
+    <!-- 운동 기록 모달 -->
+    <div id="workoutModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('workoutModal')">&times;</span>
+            <h3>💪 운동 기록</h3>
+            <form id="workoutForm">
+                <div class="form-group">
+                    <label for="workoutType">운동 종류</label>
+                    <select id="workoutType" name="type" required>
+                        <option value="">선택하세요</option>
+                        <option value="걷기">🚶 걷기</option>
+                        <option value="뛰기">🏃 뛰기</option>
+                        <option value="자전거">🚴 자전거</option>
+                        <option value="수영">🏊 수영</option>
+                        <option value="웨이트">🏋️ 웨이트</option>
+                        <option value="요가">🧘 요가</option>
+                        <option value="필라테스">🤸 필라테스</option>
+                        <option value="기타">🎯 기타</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="workoutDuration">운동 시간 (분)</label>
+                    <input type="number" id="workoutDuration" name="duration" placeholder="30" required>
+                </div>
+                <div class="form-group">
+                    <label for="workoutCaloriesBurned">소모 칼로리 (kcal)</label>
+                    <input type="number" id="workoutCaloriesBurned" name="caloriesBurned" placeholder="150" required>
+                </div>
+                <button type="submit" class="submit-btn">기록하기</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 체중 기록 모달 -->
+    <div id="weightModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('weightModal')">&times;</span>
+            <h3>⚖️ 체중 기록</h3>
+            <form id="weightForm">
+                <div class="form-group">
+                    <label for="currentWeightInput">현재 체중 (kg)</label>
+                    <input type="number" id="currentWeightInput" name="weight" step="0.1" placeholder="65.5" required>
+                </div>
+                <div class="form-group">
+                    <label for="weightNote">메모</label>
+                    <textarea id="weightNote" name="note" rows="2" placeholder="컨디션이나 특이사항을 기록해보세요..."></textarea>
+                </div>
+                <button type="submit" class="submit-btn">기록하기</button>
+            </form>
         </div>
     </div>
 
     <script>
+        let currentUser = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadUserData();
+            loadTodayData();
+            loadClaudeMessage();
+            loadRecentActivity();
+        });
+
+        function checkAuth() {
+            const userId = localStorage.getItem('userId');
+            const userInfo = localStorage.getItem('userInfo');
+            
+            if (!userId || !userInfo) {
+                window.location.href = '/login.html';
+                return;
+            }
+            
+            currentUser = JSON.parse(userInfo);
+        }
+
+        function loadUserData() {
+            if (currentUser) {
+                document.getElementById('userName').textContent = currentUser.nickname;
+                document.getElementById('welcomeName').textContent = currentUser.nickname;
+                document.getElementById('userAvatar').textContent = currentUser.nickname.charAt(0).toUpperCase();
+                document.getElementById('goalWeight').textContent = currentUser.weightGoal;
+                
+                const startDate = new Date(currentUser.createdAt);
+                const today = new Date();
+                const diffTime = Math.abs(today - startDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                document.getElementById('dietDays').textContent = diffDays;
+            }
+        }
+
+        async function loadTodayData() {
+            const userId = localStorage.getItem('userId');
+            
+            try {
+                const mealsResponse = await fetch(`/api/meals/today?userId=${userId}`);
+                if (mealsResponse.ok) {
+                    const meals = await mealsResponse.json();
+                    const totalCalories = meals.reduce((sum, meal) => sum + (meal.caloriesEstimate || 0), 0);
+                    document.getElementById('todayCalories').textContent = totalCalories;
+                    
+                    const calorieProgress = Math.min((totalCalories / 1800) * 100, 100);
+                    document.getElementById('calorieProgress').style.width = calorieProgress + '%';
+                }
+
+                const workoutsResponse = await fetch(`/api/workouts/today?userId=${userId}`);
+                if (workoutsResponse.ok) {
+                    const workouts = await workoutsResponse.json();
+                    const totalWorkoutCalories = workouts.reduce((sum, workout) => sum + (workout.caloriesBurned || 0), 0);
+                    document.getElementById('workoutCalories').textContent = totalWorkoutCalories;
+                    
+                    const workoutProgress = Math.min((totalWorkoutCalories / 300) * 100, 100);
+                    document.getElementById('workoutProgress').style.width = workoutProgress + '%';
+                }
+
+                const emotionsResponse = await fetch(`/api/emotions/today?userId=${userId}`);
+                if (emotionsResponse.ok) {
+                    const emotions = await emotionsResponse.json();
+                    if (emotions.length > 0) {
+                        const latestEmotion = emotions[emotions.length - 1];
+                        updateMoodDisplay(latestEmotion.mood);
+                    }
+                }
+
+                const weightResponse = await fetch(`/api/weight/latest?userId=${userId}`);
+                if (weightResponse.ok) {
+                    const weightData = await weightResponse.json();
+                    if (weightData) {
+                        document.getElementById('currentWeight').textContent = weightData.weight;
+                        
+                        const progress = Math.max(0, ((weightData.weight - currentUser.weightGoal) / weightData.weight) * 100);
+                        document.getElementById('weightProgress').style.width = progress + '%';
+                    }
+                }
+
+            } catch (error) {
+                console.error('데이터 로드 실패:', error);
+            }
+        }
+
+        function updateMoodDisplay(mood) {
+            const moodEmojis = {
+                '매우좋음': '😄',
+                '좋음': '😊',
+                '보통': '😐',
+                '나쁨': '😔',
+                '매우나쁨': '😰',
+                '스트레스': '😤',
+                '우울': '😞',
+                '분노': '😡'
+            };
+            
+            document.getElementById('todayMood').textContent = moodEmojis[mood] || '😐';
+            document.getElementById('moodText').textContent = mood || '보통';
+        }
+
+        async function loadClaudeMessage() {
+            const userId = localStorage.getItem('userId');
+            
+            try {
+                const response = await fetch(`/api/claude/message?userId=${userId}`);
+                if (response.ok) {
+                    const message = await response.text();
+                    document.getElementById('claudeMessage').innerHTML = message;
+                } else {
+                    document.getElementById('claudeMessage').innerHTML = '오늘은 아직 충분한 데이터가 없어서 조언을 드릴 수 없어요. 식단과 운동을 기록해보세요! 💪';
+                }
+            } catch (error) {
+                document.getElementById('claudeMessage').innerHTML = 'AI 조언을 불러오는데 실패했습니다. 나중에 다시 시도해주세요.';
+            }
+        }
+
+        function refreshClaudeMessage() {
+            document.getElementById('claudeMessage').innerHTML = '<span class="loading">새로운 조언을 준비하고 있습니다...</span>';
+            loadClaudeMessage();
+        }
+
+        async function loadRecentActivity() {
+            const userId = localStorage.getItem('userId');
+            const activityList = document.getElementById('activityList');
+            
+            try {
+                const response = await fetch(`/api/activity/recent?userId=${userId}`);
+                if (response.ok) {
+                    const activities = await response.json();
+                    
+                    if (activities.length === 0) {
+                        return; 
+                    }
+                    
+                    activityList.innerHTML = '';
+                    activities.forEach(activity => {
+                        const activityItem = createActivityItem(activity);
+                        activityList.appendChild(activityItem);
+                    });
+                }
+            } catch (error) {
+                console.error('최근 활동 로드 실패:', error);
+            }
+        }
+
+        function createActivityItem(activity) {
+            const item = document.createElement('div');
+            item.className = 'activity-item';
+            
+            const iconMap = {
+                'meal': { icon: '🍽️', class: 'activity-meal' },
+                'workout': { icon: '💪', class: 'activity-workout' },
+                'emotion': { icon: '😊', class: 'activity-emotion' },
+                'weight': { icon: '⚖️', class: 'activity-meal' }
+            };
+            
+            const config = iconMap[activity.type] || iconMap['meal'];
+            
+            item.innerHTML = `
+                <div class="activity-icon ${config.class}">${config.icon}</div>
+                <div>
+                    <div style="font-weight: 600;">${activity.title}</div>
+                    <div style="font-size: 0.9rem; color: #666;">${activity.description}</div>
+                </div>
+            `;
+            
+            return item;
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        document.getElementById('mealForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const userId = localStorage.getItem('userId');
+            
+            const formData = new FormData(this);
+            const mealData = {
+                userId: parseInt(userId),
+                description: formData.get('description'),
+                caloriesEstimate: parseInt(formData.get('calories'))
+            };
+
+            try {
+                const response = await fetch('/api/meals', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(mealData)
+                });
+
+                if (response.ok) {
+                    closeModal('mealModal');
+                    this.reset();
+                    loadTodayData();
+                    loadRecentActivity();
+                    alert('식단이 기록되었습니다!');
+                }
+            } catch (error) {
+                alert('식단 기록에 실패했습니다.');
+            }
+        });
+
+        document.getElementById('emotionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const userId = localStorage.getItem('userId');
+            
+            const formData = new FormData(this);
+            const emotionData = {
+                userId: parseInt(userId),
+                mood: formData.get('mood'),
+                note: formData.get('note')
+            };
+
+            try {
+                const response = await fetch('/api/emotions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(emotionData)
+                });
+
+                if (response.ok) {
+                    closeModal('emotionModal');
+                    this.reset();
+                    loadTodayData();
+                    loadRecentActivity();
+                    alert('감정이 기록되었습니다!');
+                }
+            } catch (error) {
+                alert('감정 기록에 실패했습니다.');
+            }
+        });
+
+        document.getElementById('workoutForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const userId = localStorage.getItem('userId');
+            
+            const formData = new FormData(this);
+            const workoutData = {
+                userId: parseInt(userId),
+                type: formData.get('type'),
+                duration: parseInt(formData.get('duration')),
+                caloriesBurned: parseInt(formData.get('caloriesBurned'))
+            };
+
+            try {
+                const response = await fetch('/api/workouts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(workoutData)
+                });
+
+                if (response.ok) {
+                    closeModal('workoutModal');
+                    this.reset();
+                    loadTodayData();
+                    loadRecentActivity();
+                    alert('운동이 기록되었습니다!');
+                }
+            } catch (error) {
+                alert('운동 기록에 실패했습니다.');
+            }
+        });
+
+        document.getElementById('weightForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const userId = localStorage.getItem('userId');
+            
+            const formData = new FormData(this);
+            const weightData = {
+                userId: parseInt(userId),
+                weight: parseFloat(formData.get('weight')),
+                note: formData.get('note')
+            };
+
+            try {
+                const response = await fetch('/api/weight', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(weightData)
+                });
+
+                if (response.ok) {
+                    closeModal('weightModal');
+                    this.reset();
+                    loadTodayData();
+                    loadRecentActivity();
+                    alert('체중이 기록되었습니다!');
+                }
+            } catch (error) {
+                alert('체중 기록에 실패했습니다.');
+            }
+        });
+
         function logout() {
             if (confirm('로그아웃 하시겠습니까?')) {
-                window.location.href = '/';
+                localStorage.removeItem('userId');
+                localStorage.removeItem('userInfo');
+                window.location.href = '/login.html';
             }
         }
     </script>
