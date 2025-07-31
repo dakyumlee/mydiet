@@ -1,53 +1,51 @@
 package com.mydiet.service;
 
-import com.mydiet.dto.StatisticsResponse;
-import com.mydiet.dto.TodayStatsResponse;
-import com.mydiet.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Slf4j
 public class AdminService {
 
-    private final UserRepository userRepository;
-    private final MealLogRepository mealLogRepository;
-    private final WorkoutLogRepository workoutLogRepository;
-    private final EmotionLogRepository emotionLogRepository;
+    private final ClaudeService claudeService;
 
-    public StatisticsResponse getStatistics() {
-        long totalUsers = userRepository.count();
-        long activeUsers = userRepository.countByLastLoginAtAfter(LocalDateTime.now().minusDays(7));
-        long totalMeals = mealLogRepository.count();
-        long totalWorkouts = workoutLogRepository.count();
+    public Map<String, Object> getDashboardData() {
+        Map<String, Object> dashboard = new HashMap<>();
         
-        return StatisticsResponse.builder()
-                .totalUsers(totalUsers)
-                .activeUsers(activeUsers)
-                .totalMeals(totalMeals)
-                .totalWorkouts(totalWorkouts)
-                .build();
+        try {
+            // 임시 시뮬레이션 데이터
+            dashboard.put("totalUsers", (long)(Math.random() * 100) + 10);
+            dashboard.put("todayMeals", (long)(Math.random() * 50));
+            dashboard.put("todayEmotions", (long)(Math.random() * 30));
+            dashboard.put("todayWorkouts", (long)(Math.random() * 40));
+            dashboard.put("totalClaudeResponses", (long)(Math.random() * 500) + 100);
+            
+            log.info("대시보드 데이터 로딩 완료 (시뮬레이션)");
+            
+        } catch (Exception e) {
+            log.error("대시보드 데이터 로딩 실패", e);
+            // 오류 시 기본값 설정
+            dashboard.put("totalUsers", 0L);
+            dashboard.put("todayMeals", 0L);
+            dashboard.put("todayEmotions", 0L);
+            dashboard.put("todayWorkouts", 0L);
+            dashboard.put("totalClaudeResponses", 0L);
+        }
+        
+        return dashboard;
     }
 
-    public TodayStatsResponse getTodayStats() {
-        LocalDate today = LocalDate.now();
-        LocalDateTime startOfDay = today.atStartOfDay();
-        LocalDateTime endOfDay = today.atTime(23, 59, 59);
-        
-        long signups = userRepository.countByCreatedAtBetween(startOfDay, endOfDay);
-        long meals = mealLogRepository.countByDate(today);
-        long workouts = workoutLogRepository.countByDate(today);
-        
-        return TodayStatsResponse.builder()
-                .signups(signups)
-                .logins(0)
-                .meals(meals)
-                .workouts(workouts)
-                .build();
+    public String testClaudeResponse(Long userId) {
+        try {
+            return claudeService.generateResponse(userId);
+        } catch (Exception e) {
+            log.error("Claude API 테스트 실패 - 사용자 ID: {}", userId, e);
+            return "Claude API 테스트 실패: " + e.getMessage();
+        }
     }
 }

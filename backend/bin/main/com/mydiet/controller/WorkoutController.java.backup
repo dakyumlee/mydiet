@@ -1,7 +1,7 @@
 package com.mydiet.controller;
 
 import com.mydiet.dto.WorkoutRequest;
-import com.mydiet.entity.WorkoutLog;
+import com.mydiet.model.WorkoutLog;
 import com.mydiet.service.WorkoutService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

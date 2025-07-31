@@ -1,8 +1,8 @@
 package com.mydiet.service;
 
 import com.mydiet.dto.MealRequest;
-import com.mydiet.entity.MealLog;
-import com.mydiet.entity.User;
+import com.mydiet.model.MealLog;
+import com.mydiet.model.User;
 import com.mydiet.repository.MealLogRepository;
 import com.mydiet.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

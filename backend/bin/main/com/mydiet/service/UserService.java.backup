@@ -1,7 +1,7 @@
 package com.mydiet.service;
 
 import com.mydiet.dto.SignupRequest;
-import com.mydiet.entity.User;
+import com.mydiet.model.User;
 import com.mydiet.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;

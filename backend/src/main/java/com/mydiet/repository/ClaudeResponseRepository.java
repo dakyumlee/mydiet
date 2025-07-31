@@ -1,12 +1,13 @@
-package com.mydiet.repository;
+package com.repository;
 
-import com.mydiet.entity.ClaudeResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+
+import com.mydiet.model.ClaudeResponse;
 
 import java.util.List;
 
-@Repository
 public interface ClaudeResponseRepository extends JpaRepository<ClaudeResponse, Long> {
     List<ClaudeResponse> findByUserIdOrderByCreatedAtDesc(Long userId);
+    List<ClaudeResponse> findTop10ByUserIdOrderByCreatedAtDesc(Long userId);
+    List<ClaudeResponse> findTop10ByOrderByCreatedAtDesc();
 }

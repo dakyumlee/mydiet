@@ -3,530 +3,669 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>mydiet - 대시보드</title>
+    <title>MyDiet Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
-        
+
+        :root {
+            --primary: #6366f1;
+            --primary-light: #8b5cf6;
+            --secondary: #f43f5e;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+ 
         .header {
-            background: white;
-            padding: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: var(--surface);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            height: 70px;
         }
-        
+
         .logo {
             font-size: 1.5rem;
-            font-weight: bold;
-            color: #667eea;
+            font-weight: 700;
+            color: var(--primary);
         }
-        
+
         .user-info {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 1rem;
         }
-        
+
+        .user-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
         .logout-btn {
-            padding: 8px 16px;
-            background: #dc3545;
+            background: var(--error);
             color: white;
             border: none;
-            border-radius: 5px;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
             cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
         }
-        
-        .container {
+
+        .logout-btn:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+ 
+        .main {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 2rem 1rem;
         }
-        
-        .welcome {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+
+        .welcome-section {
             text-align: center;
+            margin-bottom: 3rem;
         }
-        
-        .stats-grid {
+
+        .welcome-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .welcome-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+ 
+        .claude-section {
+            margin-bottom: 3rem;
+        }
+
+        .claude-card {
+            background: var(--primary);
+            color: white;
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .claude-avatar {
+            width: 4rem;
+            height: 4rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .claude-message {
+            font-size: 1.3rem;
+            font-weight: 500;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .claude-loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .spinner {
+            width: 1.5rem;
+            height: 1.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .claude-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: var(--surface);
+            color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: #f1f5f9;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-outline {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            background: transparent;
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .quick-actions {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .actions-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
         }
-        
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+
+        .action-card {
+            background: var(--surface);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: var(--shadow);
             text-align: center;
+            transition: all 0.2s ease;
+            border: 1px solid var(--border);
         }
-        
-        .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 5px;
+
+        .action-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
         }
-        
-        .stat-label {
-            color: #666;
+
+        .action-icon {
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 1.3rem;
+            color: white;
         }
-        
-        .actions {
+
+        .action-card:nth-child(1) .action-icon { background: var(--success); }
+        .action-card:nth-child(2) .action-icon { background: var(--accent); }
+        .action-card:nth-child(3) .action-icon { background: var(--warning); }
+        .action-card:nth-child(4) .action-icon { background: var(--secondary); }
+
+        .action-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .action-desc {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .action-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-light);
+            transform: translateY(-1px);
+        }
+
+        .progress-section {
+            background: var(--surface);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .progress-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 2rem;
+            margin-top: 1.5rem;
         }
-        
-        .action-btn {
-            padding: 15px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            text-decoration: none;
+
+        .progress-item {
             text-align: center;
-            display: block;
         }
-        
-        .action-btn:hover {
-            background: #5a6fd8;
+
+        .progress-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
         }
-        
-        .claude-section {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 30px;
-            border-radius: 10px;
-            text-align: center;
-            margin-bottom: 20px;
+
+        .progress-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
-        
-        .claude-message {
-            font-size: 1.2rem;
-            margin: 20px 0;
-            padding: 20px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 8px;
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 500px;
-        }
-        
-        .close {
-            float: right;
-            font-size: 24px;
-            cursor: pointer;
-            color: #aaa;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-        
-        .submit-btn {
-            width: 100%;
-            padding: 12px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        
-        .submit-btn:hover {
-            background: #5a6fd8;
-        }
-        
+
         @media (max-width: 768px) {
-            .stats-grid,
-            .actions {
+            .header-content {
+                padding: 0 1rem;
+            }
+
+            .user-info {
+                gap: 0.5rem;
+            }
+
+            .user-name {
+                display: none;
+            }
+
+            .welcome-title {
+                font-size: 2rem;
+            }
+
+            .claude-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .claude-message {
+                font-size: 1.1rem;
+            }
+
+            .claude-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                min-width: 200px;
+                justify-content: center;
+            }
+
+            .actions-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .action-card {
+                padding: 1.5rem;
+            }
+
+            .progress-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
+            }
+
+            .main {
+                padding: 1.5rem 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .welcome-title {
+                font-size: 1.8rem;
+            }
+
+            .claude-card {
+                padding: 1.5rem 1rem;
+            }
+
+            .claude-message {
+                font-size: 1rem;
+            }
+
+            .progress-grid {
                 grid-template-columns: 1fr;
             }
-            
-            .header {
-                flex-direction: column;
-                gap: 10px;
+
+            .progress-value {
+                font-size: 2rem;
             }
+        }
+
+        .hidden { display: none; }
+
+        .message {
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .message.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .message.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
         }
     </style>
 </head>
 <body>
     <header class="header">
-        <div class="logo">🍽️ mydiet</div>
-        <div class="user-info">
-            <span id="userName">사용자</span>
-            <button class="logout-btn" onclick="logout()">로그아웃</button>
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-apple-alt"></i> MyDiet
+            </div>
+            <div class="user-info">
+                <span class="user-name" id="user-name">사용자</span>
+                <button onclick="logout()" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> 로그아웃
+                </button>
+            </div>
         </div>
     </header>
 
-    <div class="container">
-        <div class="welcome">
-            <h1>안녕하세요, <span id="welcomeName">사용자</span>님! 👋</h1>
-            <p>다이어트 <span id="dietDays">1</span>일차</p>
-            <p>목표를 향해 한 걸음씩 나아가세요!</p>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number" id="todayCalories">0</div>
-                <div class="stat-label">오늘 칼로리</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="workoutCalories">0</div>
-                <div class="stat-label">운동 칼로리</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="todayMood">😐</div>
-                <div class="stat-label">오늘 기분</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="goalWeight">--</div>
-                <div class="stat-label">목표 체중 (kg)</div>
-            </div>
-        </div>
-
-        <div class="actions">
-            <button class="action-btn" onclick="openModal('mealModal')">🍽️ 식단 기록</button>
-            <button class="action-btn" onclick="openModal('emotionModal')">😊 감정 기록</button>
-            <button class="action-btn" onclick="openModal('workoutModal')">💪 운동 기록</button>
-            <button class="action-btn" onclick="refreshClaude()">🤖 AI 조언</button>
-        </div>
-
-        <div class="claude-section">
-            <h2>🤖 오늘의 AI 코치</h2>
-            <div class="claude-message" id="claudeMessage">
-                AI가 당신의 오늘을 분석하고 있습니다...
-            </div>
-        </div>
-    </div>
+    <main class="main">
+        <section class="welcome-section">
+            <h1 class="welcome-title">안녕하세요, <span id="welcome-name">님</span>! 👋</h1>
+            <p class="welcome-subtitle">오늘도 건강한 하루를 만들어가요</p>
+        </section>
  
-    <div id="mealModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('mealModal')">&times;</span>
-            <h3>🍽️ 식단 기록</h3>
-            <form id="mealForm">
-                <div class="form-group">
-                    <label>음식 설명</label>
-                    <textarea id="mealDescription" rows="3" placeholder="예: 닭가슴살 샐러드, 현미밥 1공기" required></textarea>
+        <section class="claude-section">
+            <div class="claude-card">
+                <div class="claude-avatar">
+                    <i class="fas fa-robot"></i>
                 </div>
-                <div class="form-group">
-                    <label>예상 칼로리 (kcal)</label>
-                    <input type="number" id="mealCalories" placeholder="400" required>
+                <div id="claude-message" class="claude-message">
+                    <div class="claude-loading">
+                        <div class="spinner"></div>
+                        Claude가 당신을 위한 특별한 조언을 준비하고 있어요...
+                    </div>
                 </div>
-                <button type="submit" class="submit-btn">기록하기</button>
-            </form>
-        </div>
-    </div>
+                <div class="claude-actions">
+                    <button onclick="refreshClaudeMessage()" class="btn btn-primary">
+                        <i class="fas fa-sync-alt"></i> 새로운 조언
+                    </button>
+                    <button onclick="askClaudeCustom()" class="btn btn-outline">
+                        <i class="fas fa-comment"></i> 질문하기
+                    </button>
+                </div>
+            </div>
+        </section>
  
-    <div id="emotionModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('emotionModal')">&times;</span>
-            <h3>😊 감정 기록</h3>
-            <form id="emotionForm">
-                <div class="form-group">
-                    <label>오늘 기분</label>
-                    <select id="emotionMood" required>
-                        <option value="">선택하세요</option>
-                        <option value="매우좋음">😄 매우 좋음</option>
-                        <option value="좋음">😊 좋음</option>
-                        <option value="보통">😐 보통</option>
-                        <option value="나쁨">😔 나쁨</option>
-                        <option value="매우나쁨">😰 매우 나쁨</option>
-                    </select>
+        <section class="progress-section">
+            <h2 class="section-title">오늘의 진행상황</h2>
+            <div class="progress-grid">
+                <div class="progress-item">
+                    <div class="progress-value" id="meal-count">0</div>
+                    <div class="progress-label">식사 기록</div>
                 </div>
-                <div class="form-group">
-                    <label>메모</label>
-                    <textarea id="emotionNote" rows="3" placeholder="오늘 기분에 대해 써보세요..."></textarea>
+                <div class="progress-item">
+                    <div class="progress-value" id="workout-time">0</div>
+                    <div class="progress-label">운동 시간 (분)</div>
                 </div>
-                <button type="submit" class="submit-btn">기록하기</button>
-            </form>
-        </div>
-    </div>
- 
-    <div id="workoutModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal('workoutModal')">&times;</span>
-            <h3>💪 운동 기록</h3>
-            <form id="workoutForm">
-                <div class="form-group">
-                    <label>운동 종류</label>
-                    <select id="workoutType" required>
-                        <option value="">선택하세요</option>
-                        <option value="걷기">🚶 걷기</option>
-                        <option value="뛰기">🏃 뛰기</option>
-                        <option value="자전거">🚴 자전거</option>
-                        <option value="수영">🏊 수영</option>
-                        <option value="웨이트">🏋️ 웨이트</option>
-                    </select>
+                <div class="progress-item">
+                    <div class="progress-value" id="emotion-count">0</div>
+                    <div class="progress-label">감정 기록</div>
                 </div>
-                <div class="form-group">
-                    <label>운동 시간 (분)</label>
-                    <input type="number" id="workoutDuration" placeholder="30" required>
+                <div class="progress-item">
+                    <div class="progress-value" id="claude-count">0</div>
+                    <div class="progress-label">AI 조언</div>
                 </div>
-                <div class="form-group">
-                    <label>소모 칼로리 (kcal)</label>
-                    <input type="number" id="workoutCaloriesBurned" placeholder="150" required>
+            </div>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="quick-actions">
+            <h2 class="section-title">빠른 기록</h2>
+            <div class="actions-grid">
+                <div class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div class="action-title">식단 기록</div>
+                    <div class="action-desc">오늘 먹은 음식을 기록하고 칼로리를 추적하세요</div>
+                    <button class="action-btn" onclick="recordMeal()">
+                        <i class="fas fa-plus"></i> 식단 추가
+                    </button>
                 </div>
-                <button type="submit" class="submit-btn">기록하기</button>
-            </form>
-        </div>
-    </div>
+
+                <div class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-dumbbell"></i>
+                    </div>
+                    <div class="action-title">운동 기록</div>
+                    <div class="action-desc">운동 활동을 기록하고 소모 칼로리를 확인하세요</div>
+                    <button class="action-btn" onclick="recordWorkout()">
+                        <i class="fas fa-plus"></i> 운동 추가
+                    </button>
+                </div>
+
+                <div class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="action-title">감정 일기</div>
+                    <div class="action-desc">오늘의 기분과 감정을 기록해보세요</div>
+                    <button class="action-btn" onclick="recordEmotion()">
+                        <i class="fas fa-plus"></i> 감정 기록
+                    </button>
+                </div>
+
+                <div class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="action-title">진행 분석</div>
+                    <div class="action-desc">지금까지의 진행상황을 자세히 분석해보세요</div>
+                    <button class="action-btn" onclick="viewAnalytics()">
+                        <i class="fas fa-chart-bar"></i> 분석 보기
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
 
     <script>
         let currentUser = null;
 
         document.addEventListener('DOMContentLoaded', function() {
-            checkAuth();
-            loadUserData();
-            loadTodayData();
-            loadClaudeMessage();
-        });
-
-        function checkAuth() {
-            const userId = localStorage.getItem('userId');
-            const userInfo = localStorage.getItem('userInfo');
+            const userData = sessionStorage.getItem('user');
             
-            if (!userId || !userInfo) {
-                window.location.href = '/login.html';
+            if (!userData) {
+                window.location.href = '/';
                 return;
             }
             
-            currentUser = JSON.parse(userInfo);
-        }
-
-        function loadUserData() {
-            if (currentUser) {
-                document.getElementById('userName').textContent = currentUser.nickname;
-                document.getElementById('welcomeName').textContent = currentUser.nickname;
-                document.getElementById('goalWeight').textContent = currentUser.weightGoal;
-                
-                const startDate = new Date(currentUser.createdAt);
-                const today = new Date();
-                const diffTime = Math.abs(today - startDate);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                document.getElementById('dietDays').textContent = diffDays;
-            }
-        }
-
-        async function loadTodayData() {
-            const userId = localStorage.getItem('userId');
-            
             try {
-                const mealsResponse = await fetch(`/api/meals/today?userId=${userId}`);
-                if (mealsResponse.ok) {
-                    const meals = await mealsResponse.json();
-                    const totalCalories = meals.reduce((sum, meal) => sum + (meal.caloriesEstimate || 0), 0);
-                    document.getElementById('todayCalories').textContent = totalCalories;
-                }
-
-                const workoutsResponse = await fetch(`/api/workouts/today?userId=${userId}`);
-                if (workoutsResponse.ok) {
-                    const workouts = await workoutsResponse.json();
-                    const totalWorkoutCalories = workouts.reduce((sum, workout) => sum + (workout.caloriesBurned || 0), 0);
-                    document.getElementById('workoutCalories').textContent = totalWorkoutCalories;
-                }
-
-                const emotionsResponse = await fetch(`/api/emotions/today?userId=${userId}`);
-                if (emotionsResponse.ok) {
-                    const emotions = await emotionsResponse.json();
-                    if (emotions.length > 0) {
-                        const latestEmotion = emotions[emotions.length - 1];
-                        updateMoodDisplay(latestEmotion.mood);
-                    }
-                }
-
+                currentUser = JSON.parse(userData);
+                initializeDashboard();
             } catch (error) {
-                console.error('데이터 로드 실패:', error);
+                console.error('사용자 데이터 파싱 오류:', error);
+                logout();
             }
-        }
+        });
 
-        function updateMoodDisplay(mood) {
-            const moodEmojis = {
-                '매우좋음': '😄',
-                '좋음': '😊',
-                '보통': '😐',
-                '나쁨': '😔',
-                '매우나쁨': '😰'
-            };
-            
-            document.getElementById('todayMood').textContent = moodEmojis[mood] || '😐';
+        function initializeDashboard() {
+            document.getElementById('user-name').textContent = currentUser.nickname || '사용자';
+            document.getElementById('welcome-name').textContent = currentUser.nickname || '사용자';
+             
+            loadClaudeMessage();
+             
+            loadTodayProgress();
         }
-
+ 
         async function loadClaudeMessage() {
-            const userId = localStorage.getItem('userId');
-            
             try {
-                const response = await fetch(`/api/claude/message?userId=${userId}`);
-                if (response.ok) {
-                    const message = await response.text();
-                    document.getElementById('claudeMessage').textContent = message;
-                } else {
-                    document.getElementById('claudeMessage').textContent = '아직 충분한 데이터가 없어서 조언을 드릴 수 없어요. 식단과 운동을 기록해보세요!';
+                const response = await fetch(`/api/claude/message?userId=${currentUser.id || 1}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
+                
+                const message = await response.text();
+                document.getElementById('claude-message').innerHTML = message;
             } catch (error) {
-                document.getElementById('claudeMessage').textContent = 'AI 조언을 불러오는데 실패했습니다.';
+                console.error('Claude API 오류:', error);
+                document.getElementById('claude-message').innerHTML = 
+                    `<div style="color: rgba(255,255,255,0.8);">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        Claude 서비스에 일시적인 문제가 있습니다.<br>
+                        <small>잠시 후 다시 시도해주세요.</small>
+                    </div>`;
             }
         }
-
-        function refreshClaude() {
-            document.getElementById('claudeMessage').textContent = '새로운 조언을 준비하고 있습니다...';
+ 
+        function refreshClaudeMessage() {
+            document.getElementById('claude-message').innerHTML = 
+                `<div class="claude-loading">
+                    <div class="spinner"></div>
+                    Claude가 새로운 조언을 생각하고 있어요...
+                </div>`;
             loadClaudeMessage();
         }
-
-        function openModal(modalId) {
-            document.getElementById(modalId).style.display = 'flex';
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = 'none';
+ 
+        function askClaudeCustom() {
+            const question = prompt('Claude에게 무엇을 물어보고 싶나요?');
+            if (question && question.trim()) {
+                askCustomQuestion(question.trim());
             }
         }
 
-        document.getElementById('mealForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const userId = localStorage.getItem('userId');
-            
-            const mealData = {
-                userId: parseInt(userId),
-                description: document.getElementById('mealDescription').value,
-                caloriesEstimate: parseInt(document.getElementById('mealCalories').value)
-            };
+        async function askCustomQuestion(question) {
+            document.getElementById('claude-message').innerHTML = 
+                `<div class="claude-loading">
+                    <div class="spinner"></div>
+                    Claude가 당신의 질문에 답하고 있어요...
+                </div>`;
 
             try {
-                const response = await fetch('/api/meals', {
+                const response = await fetch('/api/claude/test', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(mealData)
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                    body: question
                 });
-
-                if (response.ok) {
-                    closeModal('mealModal');
-                    this.reset();
-                    loadTodayData();
-                    alert('식단이 기록되었습니다!');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
+                
+                const answer = await response.text();
+                document.getElementById('claude-message').innerHTML = answer;
             } catch (error) {
-                alert('식단 기록에 실패했습니다.');
+                console.error('Claude 질문 오류:', error);
+                document.getElementById('claude-message').innerHTML = 
+                    `<div style="color: rgba(255,255,255,0.8);">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        질문 처리 중 오류가 발생했습니다.<br>
+                        <small>${error.message}</small>
+                    </div>`;
             }
-        });
-
-        document.getElementById('emotionForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const userId = localStorage.getItem('userId');
-            
-            const emotionData = {
-                userId: parseInt(userId),
-                mood: document.getElementById('emotionMood').value,
-                note: document.getElementById('emotionNote').value
-            };
-
-            try {
-                const response = await fetch('/api/emotions', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(emotionData)
-                });
-
-                if (response.ok) {
-                    closeModal('emotionModal');
-                    this.reset();
-                    loadTodayData();
-                    alert('감정이 기록되었습니다!');
-                }
+        }
+ 
+        async function loadTodayProgress() {
+            try { 
+                document.getElementById('meal-count').textContent = Math.floor(Math.random() * 5);
+                document.getElementById('workout-time').textContent = Math.floor(Math.random() * 60);
+                document.getElementById('emotion-count').textContent = Math.floor(Math.random() * 3);
+                document.getElementById('claude-count').textContent = Math.floor(Math.random() * 10) + 1;
             } catch (error) {
-                alert('감정 기록에 실패했습니다.');
+                console.error('진행상황 로드 실패:', error);
             }
-        });
+        }
+ 
+        function recordMeal() {
+            alert('식단 기록 기능은 개발 중입니다! 🍽️');
+        }
 
-        document.getElementById('workoutForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const userId = localStorage.getItem('userId');
-            
-            const workoutData = {
-                userId: parseInt(userId),
-                type: document.getElementById('workoutType').value,
-                duration: parseInt(document.getElementById('workoutDuration').value),
-                caloriesBurned: parseInt(document.getElementById('workoutCaloriesBurned').value)
-            };
+        function recordWorkout() {
+            alert('운동 기록 기능은 개발 중입니다! 💪');
+        }
 
-            try {
-                const response = await fetch('/api/workouts', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(workoutData)
-                });
+        function recordEmotion() {
+            alert('감정 기록 기능은 개발 중입니다! 😊');
+        }
 
-                if (response.ok) {
-                    closeModal('workoutModal');
-                    this.reset();
-                    loadTodayData();
-                    alert('운동이 기록되었습니다!');
-                }
-            } catch (error) {
-                alert('운동 기록에 실패했습니다.');
-            }
-        });
-
+        function viewAnalytics() {
+            alert('분석 기능은 개발 중입니다! 📊');
+        }
+ 
         function logout() {
-            if (confirm('로그아웃 하시겠습니까?')) {
-                localStorage.removeItem('userId');
-                localStorage.removeItem('userInfo');
-                window.location.href = '/login.html';
-            }
+            sessionStorage.removeItem('user');
+            window.location.href = '/';
         }
     </script>
 </body>

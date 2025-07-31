@@ -8,9 +8,9 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SignupRequest {
+    private String nickname;
     private String email;
     private String password;
-    private String nickname;
     private Double weightGoal;
     private String emotionMode;
 }

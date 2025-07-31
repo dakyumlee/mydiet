@@ -1,6 +1,8 @@
 package com.mydiet.controller;
 
 import com.mydiet.dto.*;
+import com.mydiet.model.User;
+import com.mydiet.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -9,37 +11,23 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 @Slf4j
 public class AuthController {
- 
-    private static final Map<String, UserData> users = new ConcurrentHashMap<>();
-    private static final AtomicLong userIdCounter = new AtomicLong(1);
 
-    static {
-        UserData testUser = new UserData();
-        testUser.id = 1L;
-        testUser.nickname = "테스트유저";
-        testUser.email = "test@test.com";
-        testUser.password = "password123";
-        testUser.weightGoal = 60.0;
-        testUser.emotionMode = "다정함";
-        testUser.createdAt = LocalDateTime.now();
-        
-        users.put("test@test.com", testUser);
-    }
+    private final UserRepository userRepository;
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
         try {
             log.info("회원가입 요청: {}", request.getEmail());
              
-            if (users.containsKey(request.getEmail())) {
+            if (userRepository.findByEmail(request.getEmail()).isPresent()) {
                 return ResponseEntity.badRequest()
                     .body(Map.of("success", false, "message", "이미 가입된 이메일입니다."));
             }
@@ -54,23 +42,22 @@ public class AuthController {
                     .body(Map.of("success", false, "message", "AI 코치 스타일을 선택해주세요."));
             }
              
-            UserData newUser = new UserData();
-            newUser.id = userIdCounter.getAndIncrement();
-            newUser.nickname = request.getNickname();
-            newUser.email = request.getEmail();
-            newUser.password = request.getPassword();
-            newUser.weightGoal = request.getWeightGoal();
-            newUser.emotionMode = request.getEmotionMode();
-            newUser.createdAt = LocalDateTime.now();
+            User newUser = new User();
+            newUser.setNickname(request.getNickname());
+            newUser.setEmail(request.getEmail());
+            newUser.setPassword(request.getPassword());  
+            newUser.setWeightGoal(request.getWeightGoal());
+            newUser.setEmotionMode(request.getEmotionMode());
+            newUser.setCreatedAt(LocalDateTime.now());
              
-            users.put(request.getEmail(), newUser);
+            User savedUser = userRepository.save(newUser);
             
-            log.info("회원가입 성공: {} (ID: {})", newUser.email, newUser.id);
+            log.info("회원가입 성공: {} (ID: {})", savedUser.getEmail(), savedUser.getId());
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "회원가입이 완료되었습니다.",
-                "user", createUserResponse(newUser)
+                "user", createUserResponse(savedUser)
             ));
             
         } catch (Exception e) {
@@ -85,28 +72,30 @@ public class AuthController {
         try {
             log.info("로그인 요청: {}", request.getEmail());
             
-            UserData user = users.get(request.getEmail());
+            Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
             
-            if (user == null) {
+            if (userOpt.isEmpty()) {
                 return ResponseEntity.badRequest()
                     .body(Map.of("success", false, "message", "존재하지 않는 이메일입니다."));
             }
             
-            if (!user.password.equals(request.getPassword())) {
+            User user = userOpt.get();
+             
+            if (!user.getPassword().equals(request.getPassword())) {
                 return ResponseEntity.badRequest()
                     .body(Map.of("success", false, "message", "비밀번호가 올바르지 않습니다."));
             }
             
-            log.info("로그인 성공: {} (ID: {})", user.email, user.id);
+            log.info("로그인 성공: {} (ID: {})", user.getEmail(), user.getId());
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "로그인 성공",
-                "id", user.id,
-                "nickname", user.nickname,
-                "email", user.email,
-                "weightGoal", user.weightGoal,
-                "emotionMode", user.emotionMode
+                "id", user.getId(),
+                "nickname", user.getNickname(),
+                "email", user.getEmail(),
+                "weightGoal", user.getWeightGoal(),
+                "emotionMode", user.getEmotionMode()
             ));
             
         } catch (Exception e) {
@@ -119,16 +108,13 @@ public class AuthController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getUserInfo(@PathVariable Long userId) {
         try {
-            UserData user = users.values().stream()
-                .filter(u -> u.id.equals(userId))
-                .findFirst()
-                .orElse(null);
+            Optional<User> userOpt = userRepository.findById(userId);
                 
-            if (user == null) {
+            if (userOpt.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
             
-            return ResponseEntity.ok(createUserResponse(user));
+            return ResponseEntity.ok(createUserResponse(userOpt.get()));
             
         } catch (Exception e) {
             log.error("사용자 정보 조회 실패", e);
@@ -139,27 +125,18 @@ public class AuthController {
 
     @GetMapping("/users/count")
     public ResponseEntity<?> getUserCount() {
-        return ResponseEntity.ok(Map.of("count", users.size()));
+        long count = userRepository.count();
+        return ResponseEntity.ok(Map.of("count", count));
     }
 
-    private Map<String, Object> createUserResponse(UserData user) {
+    private Map<String, Object> createUserResponse(User user) {
         Map<String, Object> response = new HashMap<>();
-        response.put("id", user.id);
-        response.put("nickname", user.nickname);
-        response.put("email", user.email);
-        response.put("weightGoal", user.weightGoal);
-        response.put("emotionMode", user.emotionMode);
-        response.put("createdAt", user.createdAt);
+        response.put("id", user.getId());
+        response.put("nickname", user.getNickname());
+        response.put("email", user.getEmail());
+        response.put("weightGoal", user.getWeightGoal());
+        response.put("emotionMode", user.getEmotionMode());
+        response.put("createdAt", user.getCreatedAt());
         return response;
-    }
-
-    static class UserData {
-        Long id;
-        String nickname;
-        String email;
-        String password;
-        Double weightGoal;
-        String emotionMode;
-        LocalDateTime createdAt;
     }
 }

@@ -1,48 +1,39 @@
-package com.mydiet.entity;
+package com.mydiet.model;
 
-import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 
+import javax.persistence.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "meal_logs")
+@Table(name = "workout_logs")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class MealLog {
-    @Id
+public class WorkoutLog {
+    @Id 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(nullable = false)
-    private String description;
-
-    @Column(name = "calories_estimate")
-    private Integer caloriesEstimate;
+    private String type;
+    
+    private Integer duration; // 분 단위
+    private Integer caloriesBurned;
 
     @Column(nullable = false)
     private LocalDate date;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
+    
     @PrePersist
     protected void onCreate() {
         if (date == null) {
             date = LocalDate.now();
-        }
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
         }
     }
 }
