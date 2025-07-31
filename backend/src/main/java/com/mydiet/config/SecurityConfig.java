@@ -35,7 +35,9 @@ public class SecurityConfig {
                 .requestMatchers("/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .headers(headers -> headers.frameOptions().disable())
+            .headers(headers -> headers
+                .frameOptions().sameOrigin()  // 수정된 부분
+            )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             );
