@@ -1,10 +1,12 @@
--- 시퀀스 생성 (이미 존재하면 에러 발생하지만 무시됨)
-CREATE SEQUENCE USER_SEQ START WITH 1 INCREMENT BY 1;
+-- 테스트 사용자 추가
+INSERT INTO users (nickname, email, password, weight_goal, emotion_mode, created_at) VALUES
+('다이어터123', 'test@test.com', 'password', 60.0, '무자비', CURRENT_TIMESTAMP),
+('건강이', 'health@test.com', 'password', 55.0, '다정함', CURRENT_TIMESTAMP),
+('운동맨', 'workout@test.com', 'password', 70.0, '츤데레', CURRENT_TIMESTAMP);
 
--- 관리자 계정 생성 (단순 INSERT, 중복시 에러 발생하지만 무시됨)
-INSERT INTO MYDIET_USER (USER_ID, EMAIL, PASSWORD, NICKNAME, WEIGHT_GOAL, TARGET_CALORIES, EMOTION_MODE, USER_ROLE, CREATED_AT)
-VALUES (USER_SEQ.NEXTVAL, 'admin@mydiet.com', 'password', '관리자', 70.0, 2000.0, '무자비', 'ADMIN', SYSDATE);
-
--- 테스트 사용자
-INSERT INTO MYDIET_USER (USER_ID, EMAIL, PASSWORD, NICKNAME, WEIGHT_GOAL, TARGET_CALORIES, EMOTION_MODE, USER_ROLE, CREATED_AT)
-VALUES (USER_SEQ.NEXTVAL, 'user1@test.com', 'password', '다이어터1', 60.0, 1800.0, '츤데레', 'USER', SYSDATE);
+-- 오늘 식단 기록 추가
+INSERT INTO meal_logs (user_id, description, calories_estimate, date) VALUES
+(1, '아침: 토스트 2개', 300, CURRENT_DATE),
+(1, '점심: 치킨샐러드', 450, CURRENT_DATE),
+(2, '아침: 요거트', 150, CURRENT_DATE),
+(3, '점심: 프로틴 쉐이크', 200, CURRENT_DATE);

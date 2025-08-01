@@ -1,31 +1,17 @@
 spring:
-  application:
-    name: mydiet
-  
   datasource:
-    url: jdbc:oracle:thin:@localhost:1521/FREEPDB1
-    username: mydiet_user
-    password: mydiet_password
-    driver-class-name: oracle.jdbc.OracleDriver
-    
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-        # dialect 제거 - 자동 감지하도록 함
-
-  # 초기 데이터 스크립트 비활성화
+    defer-datasource-initialization: true  # 중요: 테이블 생성 후 data.sql 실행
   sql:
     init:
-      mode: never
-
-server:
-  port: 8080
-
-logging:
-  level:
-    com.mydiet: INFO
-    org.hibernate.SQL: DEBUG
+      mode: always

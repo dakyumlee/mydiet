@@ -1,93 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-    <title>MyDiet - 새로운 UI</title>
-    <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .container {
-            background: rgba(255,255,255,0.95);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            text-align: center;
-            max-width: 600px;
-            color: #333;
-        }
-        h1 { color: #667eea; margin-bottom: 20px; }
-        button {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
-            margin: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: transform 0.2s;
-        }
-        button:hover { transform: translateY(-2px); }
-        #result {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-            border-left: 4px solid #667eea;
-        }
-        .success { color: #28a745; }
-        .error { color: #dc3545; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mydiet - Claude 응답</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="main.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>🎯 MyDiet - Oracle 연동 성공!</h1>
-        <p>축하합니다! Spring Boot + Oracle이 성공적으로 연동되었습니다!</p>
-        
-        <button onclick="testHealth()">🔍 DB 연결 테스트</button>
-        <button onclick="testUsers()">👥 사용자 목록</button>
-        <button onclick="addTestUser()">➕ 테스트 사용자 추가</button>
-        
-        <div id="result"></div>
+  <div class="main-wrapper">
+    <div class="card">
+      <h1>🍽️ 오늘의 Claude 멘트</h1>
+      <p id="claude-response" class="response-text">로딩 중...</p>
     </div>
-
-    <script>
-        async function testHealth() {
-            try {
-                const response = await fetch('/api/health');
-                const text = await response.text();
-                document.getElementById('result').innerHTML = 
-                    `<h3 class="success">✅ DB 연결 상태</h3><p>${text}</p>`;
-            } catch (e) {
-                document.getElementById('result').innerHTML = 
-                    `<h3 class="error">❌ 오류</h3><p>${e.message}</p>`;
-            }
-        }
-
-        async function testUsers() {
-            try {
-                const response = await fetch('/api/users');
-                const json = await response.json();
-                document.getElementById('result').innerHTML = 
-                    `<h3 class="success">👥 사용자 목록</h3><pre>${JSON.stringify(json, null, 2)}</pre>`;
-            } catch (e) {
-                document.getElementById('result').innerHTML = 
-                    `<h3 class="error">❌ 오류</h3><p>${e.message}</p>`;
-            }
-        }
-
-        async function addTestUser() {
-            // 아직 구현 안됨
-            document.getElementById('result').innerHTML = 
-                `<h3>🚧 개발 중</h3><p>사용자 추가 기능은 곧 구현됩니다!</p>`;
-        }
-    </script>
+    <footer class="footer">© 2025 mydiet</footer>
+  </div>
 </body>
 </html>
