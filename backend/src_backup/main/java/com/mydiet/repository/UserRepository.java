@@ -1,0 +1,18 @@
+package com.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.mydiet.model.User;
+
+import java.util.List;
+import java.util.Optional;
+
+// public interface UserRepository extends JpaRepository<User, Long> {
+//     Optional<User> findByEmail(String email);
+//     List<User> findTop10ByOrderByCreatedAtDesc();
+// }
+
+public interface UserRepository extends JpaRepository<User, Long> {
+    long countByUserId(Long userId);
+    Optional<User> findByEmail(String email);
+}

@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: mydiet
+  
+  # H2 파일 데이터베이스 (Oracle 대안)
+  datasource:
+    url: jdbc:h2:file:./data/mydiet;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: mydiet2025!
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+  
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:data-h2.sql
+
+server:
+  port: 8080
+
+claude:
+  api:
+    key: ${CLAUDE_API_KEY:your-claude-api-key-here}
+
+logging:
+  level:
+    com.mydiet: INFO
+    org.hibernate.SQL: DEBUG
