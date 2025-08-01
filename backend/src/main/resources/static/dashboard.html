@@ -660,8 +660,7 @@
         .btn-danger:hover {
             background: #c82333;
         }
-
-        /* 채팅 모달 전용 스타일 */
+ 
         .chat-container {
             height: 500px;
             display: flex;
@@ -796,8 +795,7 @@
             border-radius: 10px;
             transition: width 0.3s ease;
         }
-
-        /* 모바일 최적화 */
+ 
         @media (max-width: 768px) {
             .container {
                 padding: 20px 15px;
@@ -1317,8 +1315,7 @@
         </div>
     </div>
 
-    <script>
-        // 다크모드 토글 함수
+    <script> 
         function toggleTheme() {
             const body = document.body;
             const isDark = body.classList.contains('dark');
@@ -1331,8 +1328,7 @@
                 localStorage.setItem('theme', 'dark');
             }
         }
-
-        // 페이지 로드 시 저장된 테마 적용
+ 
         function initTheme() {
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme === 'dark') {
