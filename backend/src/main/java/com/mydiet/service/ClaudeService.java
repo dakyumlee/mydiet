@@ -1,8 +1,16 @@
 package com.mydiet.service;
 
 import com.mydiet.config.ClaudeApiClient;
-import com.mydiet.model.*;
-import com.mydiet.repository.*;
+import com.mydiet.model.ClaudeResponse;
+import com.mydiet.model.EmotionLog;
+import com.mydiet.model.MealLog;
+import com.mydiet.model.User;
+import com.mydiet.model.WorkoutLog;
+import com.mydiet.repository.ClaudeResponseRepository;
+import com.mydiet.repository.EmotionLogRepository;
+import com.mydiet.repository.MealLogRepository;
+import com.mydiet.repository.UserRepository;
+import com.mydiet.repository.WorkoutLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,8 +38,8 @@ public class ClaudeService {
             
             Optional<User> userOpt = userRepository.findById(userId);
             if (userOpt.isEmpty()) {
-                log.error("사용자를 찾을 수 없음 - ID: {}", userId);
-                return "사용자를 찾을 수 없습니다. (ID: " + userId + ")";
+                log.info("사용자를 찾을 수 없음 - 기본 메시지 생성");
+                return generateWelcomeMessage();
             }
             
             User user = userOpt.get();
@@ -58,8 +66,33 @@ public class ClaudeService {
             
         } catch (Exception e) {
             log.error("Claude 응답 생성 중 오류 발생", e);
-            return "응답 생성 중 오류가 발생했습니다: " + e.getMessage();
+            return generateErrorMessage();
         }
+    }
+
+    private String generateWelcomeMessage() {
+        String[] welcomeMessages = {
+            "안녕하세요! MyDiet에 오신 걸 환영합니다! 🍎 회원가입하고 개인화된 다이어트 조언을 받아보세요!",
+            "반갑습니다! 😊 아직 등록된 사용자가 아니시네요. 가입하시면 매일 맞춤형 다이어트 멘트를 드릴게요!",
+            "MyDiet에 처음 오셨군요! 🌟 계정을 만들고 식단, 운동, 감정을 기록해보세요. AI가 도와드릴게요!",
+            "환영합니다! 🎉 지금 가입하시면 무자비한 다이어트 코치가 되어드릴게요. 준비 되셨나요?",
+            "안녕하세요! 👋 MyDiet은 AI가 당신의 다이어트를 도와주는 서비스예요. 시작해볼까요?"
+        };
+        
+        int randomIndex = (int) (Math.random() * welcomeMessages.length);
+        return welcomeMessages[randomIndex];
+    }
+
+    private String generateErrorMessage() {
+        String[] errorMessages = {
+            "앗! 잠시 문제가 생겼네요. 😅 다시 시도해주세요!",
+            "시스템이 살짝 삐걱거리고 있어요. 🔧 곧 돌아올게요!",
+            "으악! 뭔가 잘못됐어요. 😱 기술팀이 열심히 고치고 있으니 잠시만 기다려주세요!",
+            "에러가 발생했지만 걱정 마세요! 💪 다시 한 번 시도해보세요!"
+        };
+        
+        int randomIndex = (int) (Math.random() * errorMessages.length);
+        return errorMessages[randomIndex];
     }
 
     private String buildPrompt(User user, List<MealLog> meals, List<EmotionLog> emotions, List<WorkoutLog> workouts) {
