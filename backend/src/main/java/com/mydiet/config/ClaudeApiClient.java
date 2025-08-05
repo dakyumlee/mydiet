@@ -24,7 +24,7 @@ public class ClaudeApiClient {
         headers.set("anthropic-version", "2023-06-01");
 
         Map<String, Object> requestBody = Map.of(
-            "model", "claude-3-sonnet-20240229",
+            "model", "claude-3-5-sonnet-20240620", 
             "max_tokens", 1000,
             "messages", List.of(Map.of("role", "user", "content", prompt))
         );

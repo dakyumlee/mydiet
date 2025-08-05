@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/claude")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class ClaudeController {
 
     private final ClaudeService claudeService;
