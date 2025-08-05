@@ -21,6 +21,16 @@ public class RedirectController {
         return "redirect:/dashboard.html";
     }
     
+    @GetMapping("/welcome")
+    public String welcome() {
+        return "redirect:/dashboard.html";
+    }
+    
+    @GetMapping("/success")
+    public String success() {
+        return "redirect:/dashboard.html";
+    }
+    
     @GetMapping("/admin")
     public String admin() {
         return "redirect:/admin-login.html";
