@@ -74,7 +74,7 @@ public class AdminController {
         if (userOpt.isEmpty()) {
             Map<String, Object> error = new HashMap<>();
             error.put("error", "사용자를 찾을 수 없습니다.");
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(404).body(error);
         }
         
         User user = userOpt.get();
@@ -143,7 +143,7 @@ public class AdminController {
                 Map<String, Object> error = new HashMap<>();
                 error.put("success", false);
                 error.put("message", "사용자를 찾을 수 없습니다.");
-                return ResponseEntity.notFound().body(error);
+                return ResponseEntity.status(404).body(error);
             }
             
             User user = userOpt.get();
@@ -185,17 +185,16 @@ public class AdminController {
             error.put("success", false);
             error.put("message", "사용자 삭제 중 오류가 발생했습니다: " + e.getMessage());
             
-            return ResponseEntity.internalServerError().body(error);
+            return ResponseEntity.status(500).body(error);
         }
     }
 
     @PostMapping("/users/{userId}/restore")
     public ResponseEntity<Map<String, Object>> restoreUser(@PathVariable Long userId) {
-
         Map<String, Object> response = new HashMap<>();
         response.put("success", false);
         response.put("message", "복구 기능은 아직 구현되지 않았습니다.");
-        return ResponseEntity.notImplemented().body(response);
+        return ResponseEntity.status(501).body(response);
     }
 
     private String getActivityStatus(User user) {
