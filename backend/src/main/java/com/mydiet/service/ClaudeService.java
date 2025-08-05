@@ -1,10 +1,19 @@
 package com.mydiet.service;
 
 import com.mydiet.config.ClaudeApiClient;
-import com.mydiet.model.*;
-import com.mydiet.repository.*;
+import com.mydiet.model.ClaudeResponse;
+import com.mydiet.model.EmotionLog;
+import com.mydiet.model.MealLog;
+import com.mydiet.model.User;
+import com.mydiet.model.WorkoutLog;
+import com.mydiet.repository.ClaudeResponseRepository;
+import com.mydiet.repository.EmotionLogRepository;
+import com.mydiet.repository.MealLogRepository;
+import com.mydiet.repository.UserRepository;
+import com.mydiet.repository.WorkoutLogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,7 +28,7 @@ public class ClaudeService {
     private final WorkoutLogRepository workoutLogRepository;
     private final ClaudeResponseRepository claudeResponseRepository;
     private final ClaudeApiClient claudeApiClient;
-
+ 
     public String generateResponse(Long userId) {
         User user = userRepository.findById(userId).orElseThrow();
         LocalDate today = LocalDate.now();
@@ -40,7 +49,30 @@ public class ClaudeService {
 
         return response;
     }
+ 
+    public String generateResponseByUserIdentifier(String userIdentifier) {
+        User user = userRepository.findByEmail(userIdentifier)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userIdentifier));
+        
+        LocalDate today = LocalDate.now();
 
+        List<MealLog> meals = mealLogRepository.findByUserIdAndDate(user.getId(), today);
+        List<EmotionLog> emotions = emotionLogRepository.findByUserIdAndDate(user.getId(), today);
+        List<WorkoutLog> workouts = workoutLogRepository.findByUserIdAndDate(user.getId(), today);
+
+        String prompt = buildPrompt(user, meals, emotions, workouts);
+        String response = claudeApiClient.askClaude(prompt);
+
+        ClaudeResponse log = new ClaudeResponse();
+        log.setUser(user);
+        log.setType("daily");
+        log.setContent(response);
+        log.setCreatedAt(LocalDateTime.now());
+        claudeResponseRepository.save(log);
+
+        return response;
+    }
+ 
     private String buildPrompt(User user, List<MealLog> meals, List<EmotionLog> emotions, List<WorkoutLog> workouts) {
         StringBuilder prompt = new StringBuilder();
     
@@ -51,8 +83,7 @@ public class ClaudeService {
         prompt.append("🥗 오늘 먹은 음식:\n");
         if (meals.isEmpty()) prompt.append("- 없음\n");
         for (MealLog meal : meals) {
-            prompt.append("- ").append(meal.getDescription())
-                  .append(" (예상 칼로리: ").append(meal.getCaloriesEstimate()).append(" kcal)\n");
+            prompt.append("- ").append(meal.getDescription()).append(" (예상 칼로리: ").append(meal.getCaloriesEstimate()).append(" kcal)\n");
         }
     
         prompt.append("\n😵 오늘 감정:\n");
@@ -64,8 +95,7 @@ public class ClaudeService {
         prompt.append("\n🏃 운동 기록:\n");
         if (workouts.isEmpty()) prompt.append("- 없음\n");
         for (WorkoutLog w : workouts) {
-            prompt.append("- ").append(w.getType()).append(" ").append(w.getDuration())
-                  .append("분 (칼로리: ").append(w.getCaloriesBurned()).append(" kcal)\n");
+            prompt.append("- ").append(w.getType()).append(" ").append(w.getDuration()).append("분 ").append("(칼로리: ").append(w.getCaloriesBurned()).append(" kcal)\n");
         }
     
         prompt.append("\n\n이 유저에게 감정 모드에 맞춰 한 마디 해줘. 짧고 강렬하게. 욕 가능.\n");
