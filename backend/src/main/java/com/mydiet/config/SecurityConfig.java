@@ -25,8 +25,8 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/index.html", "/static/**", "/css/**", "/js/**", "/images/**").permitAll()
-                .requestMatchers("/oauth2/**", "/login/**").permitAll()  // OAuth 경로 허용
+                .requestMatchers("/", "/welcome", "/index.html", "/static/**", "/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers("/oauth2/**", "/login/**").permitAll()
                 .requestMatchers("/dashboard.html", "/profile-settings.html").authenticated()
                 .requestMatchers("/api/claude/**", "/api/meals/**", "/api/workouts/**", "/api/emotions/**", "/api/profile/**").authenticated()
                 .anyRequest().permitAll()
