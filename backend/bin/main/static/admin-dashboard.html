@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyDiet - 관리자 대시보드</title>
+    <title>MyDiet Admin Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -11,76 +12,230 @@
             box-sizing: border-box;
         }
 
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f8fafc;
-            color: #1a202c;
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .header {
+            font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 20px;
-            margin-bottom: 2rem;
-            text-align: center;
+            min-height: 100vh;
+            color: #333;
         }
 
-        .header h1 {
-            font-size: 2.5rem;
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+ 
+        .sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2rem 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .logo {
+            padding: 0 2rem 2rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0 1rem;
+        }
+
+        .nav-item {
             margin-bottom: 0.5rem;
         }
 
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            color: #666;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .nav-link i {
+            font-size: 1.2rem;
+            width: 20px;
+        }
+ 
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+ 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
         }
 
         .stat-card {
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
             padding: 2rem;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .stat-icon {
-            font-size: 2.5rem;
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             margin-bottom: 1rem;
         }
 
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .stat-icon.users { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .stat-icon.messages { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .stat-icon.active { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .stat-icon.goals { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+
         .stat-value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #667eea;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #333;
             margin-bottom: 0.5rem;
         }
 
         .stat-label {
-            color: #64748b;
-            font-size: 1rem;
+            color: #666;
+            font-weight: 500;
         }
 
-        .users-section {
-            background: white;
+        .stat-change {
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            margin-top: 1rem;
+        }
+
+        .stat-change.positive {
+            background: rgba(67, 233, 123, 0.1);
+            color: #43e97b;
+        }
+
+        .stat-change.negative {
+            background: rgba(245, 87, 108, 0.1);
+            color: #f5576c;
+        }
+ 
+        .content-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 2rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 2rem;
         }
 
         .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            font-weight: 600;
             color: #333;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            border-radius: 15px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .filter-select {
+            padding: 1rem 1.5rem;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            border-radius: 15px;
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
         }
 
         .users-table {
@@ -91,195 +246,670 @@
 
         .users-table th,
         .users-table td {
-            padding: 12px 15px;
             text-align: left;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         .users-table th {
-            background: #f8fafc;
+            background: rgba(102, 126, 234, 0.05);
             font-weight: 600;
-            color: #4a5568;
+            color: #333;
         }
 
         .users-table tr:hover {
-            background: #f7fafc;
+            background: rgba(102, 126, 234, 0.02);
         }
 
-        .refresh-btn {
-            background: #667eea;
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: white;
+            font-weight: 600;
+            margin-right: 1rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-details h4 {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.2rem;
+        }
+
+        .user-details p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .status-badge {
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: rgba(67, 233, 123, 0.1);
+            color: #43e97b;
+        }
+
+        .status-inactive {
+            background: rgba(245, 87, 108, 0.1);
+            color: #f5576c;
+        }
+
+        .action-btn {
+            background: none;
             border: none;
-            padding: 10px 20px;
+            padding: 0.5rem;
+            margin: 0 0.2rem;
             border-radius: 8px;
             cursor: pointer;
-            margin-bottom: 1rem;
-            font-weight: 600;
-        }
-
-        .refresh-btn:hover {
-            background: #5a67d8;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 2rem;
+            transition: all 0.3s ease;
             color: #666;
         }
 
-        .emotion-mode {
-            padding: 4px 8px;
-            border-radius: 12px;
+        .action-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            transform: scale(1.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 2rem;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+
+        .close:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .conversation-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .conversation-item {
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #667eea;
+        }
+
+        .conversation-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .conversation-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .conversation-type {
+            background: #667eea;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
             font-size: 0.8rem;
             font-weight: 600;
         }
 
-        .mode-무자비 { background: #fed7d7; color: #c53030; }
-        .mode-츤데레 { background: #fbb6ce; color: #b83280; }
-        .mode-다정함 { background: #c6f6d5; color: #38a169; }
-        .mode-코치 { background: #bee3f8; color: #3182ce; }
-        .mode-친구 { background: #faf089; color: #d69e2e; }
-        .mode-유머 { background: #e9d8fd; color: #805ad5; }
-
-        .nav-buttons {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+        .conversation-content {
+            color: #333;
+            line-height: 1.6;
+            font-size: 1rem;
         }
 
-        .nav-btn {
-            padding: 10px 20px;
-            background: white;
+        .user-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .user-stat-item {
+            background: rgba(102, 126, 234, 0.05);
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .user-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
             color: #667eea;
-            border: 2px solid #667eea;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
         }
 
-        .nav-btn:hover {
-            background: #667eea;
-            color: white;
+        .user-stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+
+            .users-table {
+                font-size: 0.9rem;
+            }
+
+            .users-table th,
+            .users-table td {
+                padding: 1rem 0.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="nav-buttons">
-            <a href="/dashboard.html" class="nav-btn">📊 사용자 Dashboard</a>
-            <a href="/welcome" class="nav-btn">🏠 홈으로</a>
-        </div>
+    <div class="dashboard-container">
+        <nav class="sidebar">
+            <div class="logo">
+                <h1><i class="fas fa-utensils"></i> MyDiet Admin</h1>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#dashboard" class="nav-link active" data-section="dashboard">
+                        <i class="fas fa-chart-pie"></i>
+                        대시보드
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#users" class="nav-link" data-section="users">
+                        <i class="fas fa-users"></i>
+                        사용자 관리
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#conversations" class="nav-link" data-section="conversations">
+                        <i class="fas fa-comments"></i>
+                        AI 대화 내역
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#analytics" class="nav-link" data-section="analytics">
+                        <i class="fas fa-chart-line"></i>
+                        분석 리포트
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#settings" class="nav-link" data-section="settings">
+                        <i class="fas fa-cog"></i>
+                        시스템 설정
+                    </a>
+                </li>
+            </ul>
+        </nav>
 
-        <div class="header">
-            <h1>🛡️ 관리자 대시보드</h1>
-            <p>MyDiet 사용자 관리</p>
-        </div>
+        <main class="main-content">
+            <div id="dashboard-section" class="content-section">
+                <div class="header">
+                    <h2>관리자 대시보드</h2>
+                    <p>MyDiet 앱의 전반적인 현황을 확인하세요</p>
+                </div>
+ 
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value">1,247</div>
+                                <div class="stat-label">총 사용자</div>
+                            </div>
+                            <div class="stat-icon users">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i> +12% 이번 달
+                        </div>
+                    </div>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">👥</div>
-                <div class="stat-value" id="total-users">0</div>
-                <div class="stat-label">총 사용자 수</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">✅</div>
-                <div class="stat-value" id="active-users">0</div>
-                <div class="stat-label">활성 사용자</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">📈</div>
-                <div class="stat-value" id="growth-rate">+0%</div>
-                <div class="stat-label">성장률 (임시)</div>
-            </div>
-        </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value">8,456</div>
+                                <div class="stat-label">AI 대화 수</div>
+                            </div>
+                            <div class="stat-icon messages">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i> +28% 이번 달
+                        </div>
+                    </div>
 
-        <div class="users-section">
-            <div class="section-title">
-                📋 사용자 목록
-                <button class="refresh-btn" onclick="loadUsers()">🔄 새로고침</button>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value">892</div>
+                                <div class="stat-label">활성 사용자</div>
+                            </div>
+                            <div class="stat-icon active">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i> +5% 이번 주
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value">73%</div>
+                                <div class="stat-label">목표 달성률</div>
+                            </div>
+                            <div class="stat-icon goals">
+                                <i class="fas fa-bullseye"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change negative">
+                            <i class="fas fa-arrow-down"></i> -2% 이번 달
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <div id="loading" class="loading">로딩 중...</div>
-            
-            <table class="users-table" id="users-table" style="display: none;">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>닉네임</th>
-                        <th>이메일</th>
-                        <th>목표 체중</th>
-                        <th>감정 모드</th>
-                        <th>가입일</th>
-                    </tr>
-                </thead>
-                <tbody id="users-tbody">
-                </tbody>
-            </table>
+ 
+            <div id="users-section" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h3 class="section-title">사용자 관리</h3>
+                </div>
+
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="사용자 검색..." id="userSearch">
+                    <select class="filter-select" id="statusFilter">
+                        <option value="">전체 상태</option>
+                        <option value="active">활성</option>
+                        <option value="inactive">비활성</option>
+                    </select>
+                    <select class="filter-select" id="emotionFilter">
+                        <option value="">전체 감정모드</option>
+                        <option value="무자비">무자비</option>
+                        <option value="츤데레">츤데레</option>
+                        <option value="다정함">다정함</option>
+                    </select>
+                </div>
+
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>사용자</th>
+                            <th>가입일</th>
+                            <th>목표체중</th>
+                            <th>감정모드</th>
+                            <th>상태</th>
+                            <th>액션</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                    </tbody>
+                </table>
+            </div>
+ 
+            <div id="conversations-section" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h3 class="section-title">AI 대화 내역</h3>
+                </div>
+
+                <div class="search-bar">
+                    <input type="text" class="search-input" placeholder="대화 내용 검색..." id="conversationSearch">
+                    <select class="filter-select" id="conversationTypeFilter">
+                        <option value="">전체 타입</option>
+                        <option value="daily">일일 멘트</option>
+                        <option value="motivation">동기부여</option>
+                        <option value="insult">독설</option>
+                        <option value="praise">칭찬</option>
+                    </select>
+                </div>
+
+                <div id="conversationsContainer">
+                </div>
+            </div>
+        </main>
+    </div>
+ 
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalUserName">사용자 상세 정보</h3>
+                <button class="close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="user-stats">
+                    <div class="user-stat-item">
+                        <div class="user-stat-value" id="modalTotalMeals">0</div>
+                        <div class="user-stat-label">총 식사 기록</div>
+                    </div>
+                    <div class="user-stat-item">
+                        <div class="user-stat-value" id="modalTotalWorkouts">0</div>
+                        <div class="user-stat-label">총 운동 기록</div>
+                    </div>
+                    <div class="user-stat-item">
+                        <div class="user-stat-value" id="modalTotalEmotions">0</div>
+                        <div class="user-stat-label">감정 기록</div>
+                    </div>
+                    <div class="user-stat-item">
+                        <div class="user-stat-value" id="modalAiChats">0</div>
+                        <div class="user-stat-label">AI 대화 수</div>
+                    </div>
+                </div>
+
+                <h4 style="margin-bottom: 1rem; color: #333;">최근 AI 대화 내역</h4>
+                <div class="conversation-list" id="modalConversations">
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            loadAdminStats();
-            loadUsers();
+        let users = [];
+        let conversations = [];
+ 
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                 
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                 
+                this.classList.add('active');
+                 
+                document.querySelectorAll('.content-section').forEach(section => {
+                    section.style.display = 'none';
+                });
+                 
+                const section = this.getAttribute('data-section');
+                const targetSection = document.getElementById(section + '-section');
+                if (targetSection) {
+                    targetSection.style.display = 'block';
+                }
+                 
+                if (section === 'users') {
+                    loadUsers();
+                } else if (section === 'conversations') {
+                    loadConversations();
+                }
+            });
         });
 
-        async function loadAdminStats() {
-            try {
-                const response = await fetch('/api/admin/stats');
-                if (response.ok) {
-                    const stats = await response.json();
-                    document.getElementById('total-users').textContent = stats.totalUsers;
-                    document.getElementById('active-users').textContent = stats.activeUsers;
-                }
-            } catch (error) {
-                console.error('통계 로드 오류:', error);
+        function loadUsers() {
+            fetch('/api/admin/users')
+                .then(response => response.json())
+                .then(data => {
+                    users = data;
+                    updateUsersTable(users);
+                })
+                .catch(error => {
+                    console.error('Failed to load users:', error);
+                });
+        }
+
+        function loadConversations() {
+            fetch('/api/admin/conversations')
+                .then(response => response.json())
+                .then(data => {
+                    conversations = data;
+                    updateConversationsContainer(conversations);
+                })
+                .catch(error => {
+                    console.error('Failed to load conversations:', error);
+                });
+        }
+
+        function getTypeLabel(type) {
+            const labels = {
+                'daily': '일일 멘트',
+                'motivation': '동기부여',
+                'insult': '독설',
+                'praise': '칭찬'
+            };
+            return labels[type] || type;
+        }
+
+        function viewUserDetail(userId) {
+            fetch(`/api/admin/users/${userId}/detail`)
+                .then(response => response.json())
+                .then(user => {
+                    document.getElementById('modalUserName').textContent = user.nickname + ' 상세 정보';
+                    document.getElementById('modalTotalMeals').textContent = user.totalMeals || 0;
+                    document.getElementById('modalTotalWorkouts').textContent = user.totalWorkouts || 0;
+                    document.getElementById('modalTotalEmotions').textContent = user.totalEmotions || 0;
+                    document.getElementById('modalAiChats').textContent = user.aiChats || 0;
+                    
+                    return fetch(`/api/admin/users/${userId}/conversations`);
+                })
+                .then(response => response.json())
+                .then(userConversations => {
+                    const conversationsContainer = document.getElementById('modalConversations');
+                    conversationsContainer.innerHTML = '';
+                    
+                    if (userConversations.length === 0) {
+                        conversationsContainer.innerHTML = '<p style="text-align: center; color: #666;">대화 내역이 없습니다.</p>';
+                    } else {
+                        userConversations.forEach(conv => {
+                            const item = document.createElement('div');
+                            item.className = 'conversation-item';
+                            item.innerHTML = `
+                                <div class="conversation-meta">
+                                    <span class="conversation-date">${conv.createdAt}</span>
+                                    <span class="conversation-type">${getTypeLabel(conv.type)}</span>
+                                </div>
+                                <div class="conversation-content">
+                                    "${conv.content}"
+                                </div>
+                            `;
+                            conversationsContainer.appendChild(item);
+                        });
+                    }
+                    
+                    document.getElementById('userModal').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Failed to load user detail:', error);
+                    alert('사용자 정보를 불러오는데 실패했습니다.');
+                });
+        }
+
+        function closeModal() {
+            document.getElementById('userModal').style.display = 'none';
+        }
+
+        function editUser(userId) {
+            alert(`사용자 ${userId} 편집 기능 (구현 예정)`);
+        }
+
+        function deleteUser(userId) {
+            if (confirm('정말로 이 사용자를 삭제하시겠습니까?')) {
+                users = users.filter(u => u.id !== userId);
+                loadUsers();
+                alert('사용자가 삭제되었습니다.');
             }
         }
 
-        async function loadUsers() {
-            const loading = document.getElementById('loading');
-            const table = document.getElementById('users-table');
-            const tbody = document.getElementById('users-tbody');
+        // Search functionality
+        document.getElementById('userSearch').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const filteredUsers = users.filter(user => 
+                user.nickname.toLowerCase().includes(searchTerm) || 
+                user.email.toLowerCase().includes(searchTerm)
+            );
+            updateUsersTable(filteredUsers);
+        });
+
+        document.getElementById('conversationSearch').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const filteredConversations = conversations.filter(conv => 
+                conv.content.toLowerCase().includes(searchTerm) || 
+                conv.userName.toLowerCase().includes(searchTerm)
+            );
+            updateConversationsContainer(filteredConversations);
+        });
+
+        function updateUsersTable(userList) {
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = '';
             
-            loading.style.display = 'block';
-            table.style.display = 'none';
-            
-            try {
-                const response = await fetch('/api/admin/users');
-                if (response.ok) {
-                    const users = await response.json();
-                    
-                    tbody.innerHTML = '';
-                    users.forEach(user => {
-                        const row = document.createElement('tr');
-                        const createdAt = user.createdAt ? new Date(user.createdAt).toLocaleDateString('ko-KR') : '없음';
-                        
-                        row.innerHTML = `
-                            <td>${user.id}</td>
-                            <td>${user.nickname || '없음'}</td>
-                            <td>${user.email || '없음'}</td>
-                            <td>${user.weightGoal || '없음'}kg</td>
-                            <td><span class="emotion-mode mode-${user.emotionMode || '다정함'}">${user.emotionMode || '다정함'}</span></td>
-                            <td>${createdAt}</td>
-                        `;
-                        tbody.appendChild(row);
-                    });
-                    
-                    loading.style.display = 'none';
-                    table.style.display = 'table';
-                     
-                    document.getElementById('total-users').textContent = users.length;
-                    document.getElementById('active-users').textContent = users.length;
-                } else {
-                    throw new Error('사용자 목록 로드 실패');
-                }
-            } catch (error) {
-                console.error('사용자 로드 오류:', error);
-                loading.innerHTML = '❌ 사용자 목록을 불러올 수 없습니다.';
-            }
+            userList.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div class="user-info">
+                            <div class="user-avatar">${user.nickname.charAt(0)}</div>
+                            <div class="user-details">
+                                <h4>${user.nickname}</h4>
+                                <p>${user.email}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${user.createdAt}</td>
+                    <td>${user.weightGoal}kg</td>
+                    <td>${user.emotionMode}</td>
+                    <td>
+                        <span class="status-badge status-${user.status}">
+                            ${user.status === 'active' ? '활성' : '비활성'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="action-btn" onclick="viewUserDetail(${user.id})" title="상세보기">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn" onclick="editUser(${user.id})" title="편집">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn" onclick="deleteUser(${user.id})" title="삭제">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
         }
+
+        function updateConversationsContainer(convList) {
+            const container = document.getElementById('conversationsContainer');
+            container.innerHTML = '';
+            
+            convList.forEach(conv => {
+                const item = document.createElement('div');
+                item.className = 'conversation-item';
+                item.innerHTML = `
+                    <div class="conversation-meta">
+                        <div>
+                            <strong>${conv.userName}</strong>
+                            <span class="conversation-date">${conv.createdAt}</span>
+                        </div>
+                        <span class="conversation-type">${getTypeLabel(conv.type)}</span>
+                    </div>
+                    <div class="conversation-content">
+                        "${conv.content}"
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+ 
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('userModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+ 
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUsers();
+        });
     </script>
 </body>
 </html>
