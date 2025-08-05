@@ -33,10 +33,6 @@
             z-index: 100;
         }
 
-        body.dark .header {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-        }
-
         .header-content {
             max-width: 1400px;
             margin: 0 auto;
@@ -44,12 +40,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 16px;
         }
 
         .header h1 {
@@ -102,7 +92,6 @@
 
         .logout-btn {
             background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px);
             color: white;
             border: 1px solid rgba(255,255,255,0.2);
             padding: 10px 20px;
@@ -157,7 +146,6 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: var(--accent-color, #667eea);
         }
 
         .stat-card.users::before { background: #10b981; }
@@ -168,10 +156,6 @@
         .stat-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-        }
-
-        body.dark .stat-card:hover {
-            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
         }
 
         .stat-header {
@@ -286,10 +270,6 @@
             border-color: #cbd5e0;
         }
 
-        body.dark .refresh-btn:hover {
-            background: #475569;
-        }
-
         .data-table {
             width: 100%;
             border-collapse: collapse;
@@ -335,35 +315,6 @@
             background: #334155;
         }
 
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .status-active {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .status-inactive {
-            background: #fef2f2;
-            color: #991b1b;
-        }
-
-        body.dark .status-active {
-            background: #14532d;
-            color: #4ade80;
-        }
-
-        body.dark .status-inactive {
-            background: #7f1d1d;
-            color: #fca5a5;
-        }
-
         .action-btn {
             background: #667eea;
             color: white;
@@ -376,6 +327,7 @@
             transition: all 0.2s ease;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin-right: 8px;
         }
 
         .action-btn:hover {
@@ -383,14 +335,18 @@
             transform: translateY(-1px);
         }
 
+        .delete-btn {
+            background: #ef4444;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+
         .loading {
             text-align: center;
             padding: 60px;
             color: #64748b;
-        }
-
-        body.dark .loading {
-            color: #94a3b8;
         }
 
         .loading-spinner {
@@ -408,35 +364,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        .error {
-            text-align: center;
-            padding: 40px;
-            color: #dc2626;
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            border-radius: 12px;
-            margin: 20px 0;
-        }
-
-        body.dark .error {
-            background: #7f1d1d;
-            border-color: #991b1b;
-            color: #fca5a5;
-        }
-
-        .no-data {
-            text-align: center;
-            padding: 60px;
-            color: #94a3b8;
-        }
-
-        .no-data-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-
-        /* 모달 스타일 */
         .modal {
             display: none;
             position: fixed;
@@ -517,19 +444,9 @@
             transition: all 0.2s ease;
         }
 
-        body.dark .close-btn {
-            background: #334155;
-            border-color: #475569;
-            color: #94a3b8;
-        }
-
         .close-btn:hover {
             background: #e2e8f0;
             transform: rotate(90deg);
-        }
-
-        body.dark .close-btn:hover {
-            background: #475569;
         }
 
         .modal-body {
@@ -603,57 +520,26 @@
             color: #f1f5f9;
         }
 
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                gap: 16px;
-                padding: 16px 20px;
-            }
-            
-            .container {
-                padding: 20px 16px;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-            
-            .section {
-                padding: 20px;
-            }
-            
-            .data-table th,
-            .data-table td {
-                padding: 12px 16px;
-                font-size: 13px;
-            }
+        .no-data {
+            text-align: center;
+            padding: 60px;
+            color: #94a3b8;
+        }
 
-            .modal-content {
-                width: 95%;
-                margin: 20px;
-            }
-
-            .modal-header,
-            .modal-body {
-                padding: 20px;
-            }
-
-            .user-detail-grid {
-                grid-template-columns: 1fr;
-            }
+        .no-data-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
         }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="header-content">
-            <div class="header-left">
-                <h1>
-                    <span>🛡️</span>
-                    MyDiet 관리자
-                </h1>
-            </div>
+            <h1>
+                <span>🛡️</span>
+                MyDiet 관리자
+            </h1>
             <div class="header-right">
                 <div class="theme-toggle" onclick="toggleTheme()"></div>
                 <button class="logout-btn" onclick="logout()">
@@ -721,8 +607,6 @@
                 <p>회원 정보를 불러오는 중...</p>
             </div>
             
-            <div id="usersError" class="error" style="display: none;"></div>
-            
             <div id="usersContent" style="display: none;">
                 <table class="data-table">
                     <thead>
@@ -733,7 +617,6 @@
                             <th>목표체중</th>
                             <th>감정모드</th>
                             <th>가입일</th>
-                            <th>상태</th>
                             <th>액션</th>
                         </tr>
                     </thead>
@@ -748,53 +631,12 @@
                 <p>첫 번째 회원을 기다리고 있어요!</p>
             </div>
         </div>
- 
-        <div class="section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <span>🤖</span>
-                    Claude 응답 기록
-                </h2>
-                <button class="refresh-btn" onclick="loadClaudeResponses()">
-                    <span>🔄</span>
-                    새로고침
-                </button>
-            </div>
-            
-            <div id="claudeLoading" class="loading">
-                <div class="loading-spinner"></div>
-                <p>Claude 응답 기록을 불러오는 중...</p>
-            </div>
-            
-            <div id="claudeError" class="error" style="display: none;"></div>
-            
-            <div id="claudeContent" style="display: none;">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>사용자</th>
-                            <th>응답 내용</th>
-                            <th>타입</th>
-                            <th>생성일시</th>
-                        </tr>
-                    </thead>
-                    <tbody id="claudeTableBody">
-                    </tbody>
-                </table>
-            </div>
-
-            <div id="claudeNoData" class="no-data" style="display: none;">
-                <div class="no-data-icon">🤖</div>
-                <h3>Claude 응답 기록이 없습니다</h3>
-                <p>아직 생성된 응답이 없어요!</p>
-            </div>
-        </div>
     </div>
 
     <div class="modal" id="userDetailModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title" id="modalTitle">
+                <h3 class="modal-title">
                     <span>👤</span>
                     사용자 상세 정보
                 </h3>
@@ -832,10 +674,6 @@
                             <span class="detail-label">감정 모드</span>
                             <span class="detail-value" id="detailEmotionMode">-</span>
                         </div>
-                        <div class="detail-item">
-                            <span class="detail-label">계정 상태</span>
-                            <span class="detail-value" id="detailStatus">-</span>
-                        </div>
                     </div>
                 </div>
 
@@ -865,7 +703,7 @@
     </div>
 
     <script>
-        const API_BASE_URL = 'http://localhost:8080/api';
+        const API_BASE_URL = '/api';
 
         function toggleTheme() {
             document.body.classList.toggle('dark');
@@ -888,17 +726,30 @@
             document.body.style.overflow = 'auto';
         }
 
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('modal')) {
-                closeModal();
+        function deleteUser(userId, nickname) {
+            if (confirm(`정말로 ${nickname} 회원을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) {
+                deleteUserConfirm(userId);
             }
-        });
+        }
 
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeModal();
+        async function deleteUserConfirm(userId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/users/${userId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('회원이 성공적으로 삭제되었습니다.');
+                    loadUsers();
+                    loadStats();
+                } else {
+                    throw new Error('삭제 실패');
+                }
+            } catch (error) {
+                console.error('회원 삭제 실패:', error);
+                alert('회원 삭제에 실패했습니다.');
             }
-        });
+        }
 
         async function loadStats() {
             try {
@@ -958,10 +809,8 @@
                         <td>${user.emotionMode || '-'}</td>
                         <td>${formatDate(user.createdAt)}</td>
                         <td>
-                            <span class="status-badge status-active">활성</span>
-                        </td>
-                        <td>
                             <button class="action-btn" onclick="openUserDetail(${user.id})">상세보기</button>
+                            <button class="action-btn delete-btn" onclick="deleteUser(${user.id}, '${user.nickname || '사용자'}')">삭제</button>
                         </td>
                     `;
                     tbody.appendChild(row);
@@ -972,45 +821,6 @@
             } catch (error) {
                 console.error('사용자 로드 실패:', error);
                 showError('users', '사용자 목록을 불러오는데 실패했습니다.');
-            }
-        }
-
-        async function loadClaudeResponses() {
-            showLoading('claude');
-            
-            try {
-                const response = await fetch(`${API_BASE_URL}/admin/claude-responses`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const responses = await response.json();
-                
-                if (responses.length === 0) {
-                    showNoData('claude');
-                    return;
-                }
-
-                const tbody = document.getElementById('claudeTableBody');
-                tbody.innerHTML = '';
-
-                responses.forEach(response => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${response.user?.nickname || '알 수 없음'}</td>
-                        <td style="max-width: 300px; word-wrap: break-word;">${response.content}</td>
-                        <td>${response.type || 'daily'}</td>
-                        <td>${formatDateTime(response.createdAt)}</td>
-                    `;
-                    tbody.appendChild(row);
-                });
-
-                showContent('claude');
-
-            } catch (error) {
-                console.error('Claude 응답 로드 실패:', error);
-                showError('claude', 'Claude 응답 기록을 불러오는데 실패했습니다.');
             }
         }
 
@@ -1030,7 +840,6 @@
                 document.getElementById('detailCreatedAt').textContent = formatDate(user.createdAt);
                 document.getElementById('detailWeightGoal').textContent = user.weightGoal ? user.weightGoal + 'kg' : '-';
                 document.getElementById('detailEmotionMode').textContent = user.emotionMode || '-';
-                document.getElementById('detailStatus').textContent = '활성';
                 
                 loadUserStats(userId);
 
@@ -1063,29 +872,25 @@
 
         function showLoading(section) {
             document.getElementById(`${section}Loading`).style.display = 'block';
-            document.getElementById(`${section}Error`).style.display = 'none';
             document.getElementById(`${section}Content`).style.display = 'none';
             document.getElementById(`${section}NoData`).style.display = 'none';
         }
 
         function showError(section, message) {
             document.getElementById(`${section}Loading`).style.display = 'none';
-            document.getElementById(`${section}Error`).style.display = 'block';
-            document.getElementById(`${section}Error`).textContent = message;
             document.getElementById(`${section}Content`).style.display = 'none';
             document.getElementById(`${section}NoData`).style.display = 'none';
+            alert(message);
         }
 
         function showContent(section) {
             document.getElementById(`${section}Loading`).style.display = 'none';
-            document.getElementById(`${section}Error`).style.display = 'none';
             document.getElementById(`${section}Content`).style.display = 'block';
             document.getElementById(`${section}NoData`).style.display = 'none';
         }
 
         function showNoData(section) {
             document.getElementById(`${section}Loading`).style.display = 'none';
-            document.getElementById(`${section}Error`).style.display = 'none';
             document.getElementById(`${section}Content`).style.display = 'none';
             document.getElementById(`${section}NoData`).style.display = 'block';
         }
@@ -1096,11 +901,17 @@
             return date.toLocaleDateString('ko-KR');
         }
 
-        function formatDateTime(dateString) {
-            if (!dateString) return '-';
-            const date = new Date(dateString);
-            return date.toLocaleString('ko-KR');
-        }
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', function() {
             if (localStorage.getItem('theme') === 'dark') {
@@ -1109,7 +920,6 @@
 
             loadStats();
             loadUsers();
-            loadClaudeResponses();
         });
     </script>
 </body>
