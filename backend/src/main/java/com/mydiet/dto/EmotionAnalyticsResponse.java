@@ -1,8 +1,12 @@
 package com.mydiet.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.NotBlank;
+import lombok.NoArgsConstructor;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -10,10 +14,9 @@ import jakarta.validation.constraints.NotBlank;
 @AllArgsConstructor
 public class EmotionAnalyticsResponse {
     private double averageMood;
-    private int totalEntries;
+    private String moodTrend;
     private Map<String, Long> moodDistribution;
     private Map<LocalDate, Double> dailyMoodTrend;
-    private String moodTrend;
+    private int totalEntries;
     private List<String> suggestions;
-    private int period;
 }

@@ -1,40 +1,37 @@
 package com.mydiet.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "MEAL_LOGS")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
+@Table(name = "meal_logs")
 public class MealLog {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "meal_seq")
-    @SequenceGenerator(name = "meal_seq", sequenceName = "MEAL_SEQ", allocationSize = 1)
+    @Id 
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
-    
-    @Column(length = 500)
+
+    @Column(nullable = false)
     private String description;
     
-    @Column(name = "photo_url", length = 500)
+    @Column(name = "photo_url")
     private String photoUrl;
     
     @Column(name = "calories_estimate")
     private Integer caloriesEstimate;
-    
-    @Column(name = "meal_date")
+
+    @Column(nullable = false)
     private LocalDate date;
-    
+
     @PrePersist
     protected void onCreate() {
         if (date == null) {

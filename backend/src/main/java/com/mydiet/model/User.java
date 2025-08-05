@@ -1,37 +1,35 @@
 package com.mydiet.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "USERS")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
+@Table(name = "users")
 public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
-    @SequenceGenerator(name = "user_seq", sequenceName = "USER_SEQ", allocationSize = 1)
+    @Id 
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    @Column(length = 50)
+
+    @Column(nullable = false)
     private String nickname;
     
-    @Column(unique = true, length = 100)
+    @Column(nullable = false, unique = true)
     private String email;
-    
-    @Column(name = "weight_goal")
+
     private Double weightGoal;
     
-    @Column(name = "emotion_mode", length = 20)
-    private String emotionMode;
-    
+    @Column(name = "emotion_mode")
+    private String emotionMode; // 예: 무자비, 츤데레, 다정함
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-    
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

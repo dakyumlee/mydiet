@@ -1,3 +1,11 @@
+package com.mydiet.controller;
+
+import com.mydiet.dto.WorkoutRequest;
+import com.mydiet.service.WorkoutService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 @RestController
 @RequestMapping("/api/workouts")
 @RequiredArgsConstructor
@@ -7,8 +15,7 @@ public class WorkoutController {
 
     @PostMapping
     public ResponseEntity<?> saveWorkout(@RequestBody WorkoutRequest request) {
-        WorkoutLog saved = workoutService.saveWorkout(request);
-        return ResponseEntity.ok(saved);
+        return ResponseEntity.ok(workoutService.saveWorkout(request));
     }
 
     @GetMapping("/today")

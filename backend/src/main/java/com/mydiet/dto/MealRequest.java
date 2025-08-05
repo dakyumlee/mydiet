@@ -1,15 +1,19 @@
 package com.mydiet.dto;
 
-import lombok.Data;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
-@Data
+import java.time.LocalDate;
+
+@Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class MealRequest {
     private Long userId;
     private String description;
-    private String photoUrl;
     private Integer caloriesEstimate;
+    private String photoUrl;
+    private LocalDate date;
 }

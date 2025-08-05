@@ -1,37 +1,33 @@
 package com.mydiet.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "EMOTION_LOGS")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
+@Table(name = "emotion_logs")
 public class EmotionLog {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "emotion_seq")
-    @SequenceGenerator(name = "emotion_seq", sequenceName = "EMOTION_SEQ", allocationSize = 1)
+    @Id 
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Column(nullable = false)
+    private String mood; // ex: 우울, 짜증, 행복, 분노
     
-    @Column(length = 50)
-    private String mood;
-    
-    @Column(length = 1000)
     private String note;
-    
-    @Column(name = "emotion_date")
+
+    @Column(nullable = false)
     private LocalDate date;
-    
+
     @PrePersist
     protected void onCreate() {
         if (date == null) {

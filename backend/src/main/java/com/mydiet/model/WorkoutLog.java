@@ -1,39 +1,36 @@
 package com.mydiet.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "WORKOUT_LOGS")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
+@Table(name = "workout_logs")
 public class WorkoutLog {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "workout_seq")
-    @SequenceGenerator(name = "workout_seq", sequenceName = "WORKOUT_SEQ", allocationSize = 1)
+    @Id 
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Column(nullable = false)
+    private String type; // 걷기, 뛰기 등
     
-    @Column(length = 100)
-    private String type;
-    
-    private Integer duration;
+    private Integer duration; // 분 단위
     
     @Column(name = "calories_burned")
     private Integer caloriesBurned;
-    
-    @Column(name = "workout_date")
+
+    @Column(nullable = false)
     private LocalDate date;
-    
+
     @PrePersist
     protected void onCreate() {
         if (date == null) {

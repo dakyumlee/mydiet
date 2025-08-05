@@ -1,8 +1,9 @@
 package com.mydiet.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.NotBlank;
+import lombok.NoArgsConstructor;
+import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor

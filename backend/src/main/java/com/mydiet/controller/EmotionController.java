@@ -1,3 +1,11 @@
+package com.mydiet.controller;
+
+import com.mydiet.dto.EmotionRequest;
+import com.mydiet.service.EmotionService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 @RestController
 @RequestMapping("/api/emotions")
 @RequiredArgsConstructor
@@ -7,8 +15,7 @@ public class EmotionController {
 
     @PostMapping
     public ResponseEntity<?> saveEmotion(@RequestBody EmotionRequest request) {
-        EmotionLog saved = emotionService.saveEmotion(request);
-        return ResponseEntity.ok(saved);
+        return ResponseEntity.ok(emotionService.saveEmotion(request));
     }
 
     @GetMapping("/today")
