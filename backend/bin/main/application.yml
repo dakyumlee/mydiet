@@ -19,7 +19,7 @@ spring:
   
   sql:
     init:
-      mode: never  # data.sql 비활성화
+      mode: never
   
   security:
     oauth2:
