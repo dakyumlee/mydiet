@@ -1,11 +1,20 @@
 spring:
-  # PostgreSQL 데이터베이스 설정
-  datasource:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: "your-actual-google-client-id"
+            client-secret: "your-actual-google-client-secret"
+          kakao:
+            client-id: "your-actual-kakao-rest-api-key"
+            client-secret: "your-actual-kakao-client-secret"
+datasource:
     url: jdbc:postgresql://localhost:5432/mydiet
     username: mydiet
     password: mydiet123
     driver-class-name: org.postgresql.Driver
-  
+
   # JPA 설정
   jpa:
     hibernate:
