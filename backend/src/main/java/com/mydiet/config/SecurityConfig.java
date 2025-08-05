@@ -32,7 +32,7 @@ public class SecurityConfig {
                 .anyRequest().permitAll()
             )
             .oauth2Login(oauth2 -> oauth2
-                .defaultSuccessUrl("/dashboard.html", true)  // 강제 리다이렉트
+                .defaultSuccessUrl("/dashboard.html", true)
                 .successHandler(oAuth2LoginSuccessHandler)
                 .userInfoEndpoint(userInfo -> userInfo
                     .userService(customOAuth2UserService)
