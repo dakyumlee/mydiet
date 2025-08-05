@@ -27,7 +27,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         Map<String, Object> attributes = oAuth2User.getAttributes();
- 
+
         String email = (String) attributes.get("email");
         String name = (String) attributes.get("name");
         String oauthId = String.valueOf(attributes.get("id"));
@@ -48,7 +48,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
         System.out.println("사용자 저장 완료: " + user.getNickname());
  
-        getRedirectStrategy().sendRedirect(request, response, "/frontend/src/pages/index.html");
+        getRedirectStrategy().sendRedirect(request, response, "/dashboard.html");
     }
 
     private String determineProvider(HttpServletRequest request) {
@@ -62,8 +62,8 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         User user = new User();
         user.setEmail(email != null ? email : oauthId + "@" + provider + ".local");
         user.setNickname(name != null ? name : provider + "유저");
-        user.setWeightGoal(65.0);
-        user.setEmotionMode("다정함");
+        user.setWeightGoal(65.0); // 기본 목표 체중
+        user.setEmotionMode("다정함"); // 기본 감정 모드
         user.setCreatedAt(LocalDateTime.now());
         
         System.out.println("새 사용자 생성: " + user.getNickname());
