@@ -1,0 +1,76 @@
+*.log
+*.class
+/target/
+/.idea/
+.env.env
+backend/build/
+
+# Environment variables
+.env
+backend/.env
+frontend/.env
+
+# API Keys and Secrets
+*.key
+**/application-*.yml
+**/application-*.properties
+
+# Database
+*.db
+*.sqlite
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Build outputs
+backend/build/
+backend/target/
+frontend/build/
+frontend/dist/
+node_modules/
+
+# Environment variables
+.env
+backend/.env
+frontend/.env
+
+# API Keys and Secrets
+*.key
+
+# Database
+*.db
+*.sqlite
+
+# OS generated files
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+logs/
+*.log
+
+# Build outputs
+backend/build/
+backend/target/
+frontend/build/
+frontend/dist/
+node_modules/

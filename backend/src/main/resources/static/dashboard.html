@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyDiet - 진행 분석</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1a202c;
+            transition: all 0.3s ease;
+        }
+
+        body.dark {
+            background: #0f172a;
+            color: #f1f5f9;
+        }
+
+        .navbar {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        body.dark .navbar {
+            background: #1e293b;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-brand span {
+            margin-right: 8px;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .theme-toggle {
+            width: 40px;
+            height: 20px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle::before {
+            content: '☀️';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        body.dark .theme-toggle {
+            background: #475569;
+        }
+
+        body.dark .theme-toggle::before {
+            content: '🌙';
+            transform: translateX(20px);
+            background: #334155;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 8px;
+            color: #64748b;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        body.dark .back-btn {
+            background: #334155;
+            color: #94a3b8;
+        }
+
+        .back-btn:hover {
+            background: #e2e8f0;
+            transform: translateX(-2px);
+        }
+
+        body.dark .back-btn:hover {
+            background: #475569;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .page-header {
+            margin-bottom: 40px;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #1a202c;
+        }
+
+        body.dark .page-title {
+            color: #f1f5f9;
+        }
+
+        .page-subtitle {
+            color: #64748b;
+            font-size: 1.125rem;
+        }
+
+        body.dark .page-subtitle {
+            color: #94a3b8;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        body.dark .loading {
+            color: #94a3b8;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #dc2626;
+        }
+
+        body.dark .error {
+            background: #7f1d1d;
+            color: #fca5a5;
+        }
+
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body.dark .stat-card {
+            background: #1e293b;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-color, #667eea);
+        }
+
+        .stat-card.food::before { background: #10b981; }
+        .stat-card.workout::before { background: #3b82f6; }
+        .stat-card.emotion::before { background: #f59e0b; }
+        .stat-card.goal::before { background: #8b5cf6; }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .stat-icon.food { background: #dcfce7; color: #16a34a; }
+        .stat-icon.workout { background: #dbeafe; color: #2563eb; }
+        .stat-icon.emotion { background: #fef3c7; color: #d97706; }
+        .stat-icon.goal { background: #f3e8ff; color: #7c3aed; }
+
+        body.dark .stat-icon.food { background: #14532d; color: #4ade80; }
+        body.dark .stat-icon.workout { background: #1e3a8a; color: #60a5fa; }
+        body.dark .stat-icon.emotion { background: #451a03; color: #fbbf24; }
+        body.dark .stat-icon.goal { background: #4c1d95; color: #a855f7; }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1a202c;
+            margin-bottom: 4px;
+        }
+
+        body.dark .stat-value {
+            color: #f1f5f9;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        body.dark .stat-label {
+            color: #94a3b8;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        body.dark .empty-state {
+            color: #94a3b8;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .insights-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 40px;
+        }
+
+        .insights-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        body.dark .insights-card {
+            background: #1e293b;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .insights-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        body.dark .insights-title {
+            color: #f1f5f9;
+        }
+
+        @media (max-width: 768px) {
+            .insights-section {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .stats-overview {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+
+            .container {
+                padding: 20px 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-overview {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="index.html" class="nav-brand">
+                <span>🍎</span>
+                MyDiet
+            </a>
+            <div class="nav-actions">
+                <a href="dashboard.html" class="back-btn">
+                    ← 대시보드로
+                </a>
+                <div class="theme-toggle" onclick="toggleTheme()"></div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">📊 진행 분석</h1>
+            <p class="page-subtitle">건강 관리 진행 상황을 종합적으로 분석하고 개선점을 찾아보세요</p>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>데이터를 불러오는 중...</p>
+        </div>
+
+        <div id="error" class="error" style="display: none;">
+            <h3>데이터 로딩 오류</h3>
+            <p id="error-message"></p>
+            <button onclick="loadData()" style="margin-top: 10px; padding: 8px 16px; background: #dc2626; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                다시 시도
+            </button>
+        </div>
+
+        <div id="content" style="display: none;">
+            <div class="stats-overview" id="stats-overview">
+            </div>
+
+            <div class="insights-section">
+                <div class="insights-card">
+                    <h3 class="insights-title">💡 주요 인사이트</h3>
+                    <div id="insights-content">
+                        <div class="empty-state">
+                            <div class="empty-icon">💭</div>
+                            <p>분석할 데이터가 충분하지 않습니다.<br>더 많은 기록을 남겨보세요!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="insights-card">
+                    <h3 class="insights-title">🚀 개선 제안</h3>
+                    <div id="recommendations-content">
+                        <div class="empty-state">
+                            <div class="empty-icon">🎯</div>
+                            <p>개선 제안을 생성하려면<br>더 많은 데이터가 필요합니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let currentUserId = 1;
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+
+        async function loadData() {
+            showLoading();
+            
+            try {
+                const [userStats, insights, recommendations] = await Promise.all([
+                    fetchUserStats(),
+                    fetchInsights(),
+                    fetchRecommendations()
+                ]);
+
+                renderStats(userStats);
+                renderInsights(insights);
+                renderRecommendations(recommendations);
+                
+                showContent();
+            } catch (error) {
+                console.error('데이터 로딩 오류:', error);
+                showError(error.message);
+            }
+        }
+
+        async function fetchUserStats() {
+            const today = new Date().toISOString().split('T')[0];
+            const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            
+            try {
+                const [meals, workouts, emotions] = await Promise.all([
+                    fetch(`${API_BASE}/meals/today?userId=${currentUserId}`).then(r => r.ok ? r.json() : []),
+                    fetch(`${API_BASE}/workouts/today?userId=${currentUserId}`).then(r => r.ok ? r.json() : []),
+                    fetch(`${API_BASE}/emotions/today?userId=${currentUserId}`).then(r => r.ok ? r.json() : [])
+                ]);
+
+                const totalCalories = meals.reduce((sum, meal) => sum + (meal.caloriesEstimate || 0), 0);
+                const totalWorkouts = workouts.length;
+                const avgMood = emotions.length > 0 
+                    ? emotions.reduce((sum, emotion) => sum + (emotion.score || 5), 0) / emotions.length 
+                    : 0;
+                
+                return {
+                    calories: totalCalories,
+                    workouts: totalWorkouts,
+                    mood: avgMood,
+                    goalAchievement: calculateGoalAchievement(totalCalories, totalWorkouts, avgMood)
+                };
+            } catch (error) {
+                throw new Error('사용자 통계를 불러올 수 없습니다.');
+            }
+        }
+
+        async function fetchInsights() {
+            return [];
+        }
+
+        async function fetchRecommendations() {
+            return [];
+        }
+
+        function calculateGoalAchievement(calories, workouts, mood) {
+            let score = 0;
+            
+            if (calories > 0) {
+                score += Math.min(calories / 1500, 1) * 30;
+            }
+            
+            if (workouts > 0) {
+                score += Math.min(workouts / 1, 1) * 30;
+            }
+            
+            if (mood > 0) {
+                score += Math.min(mood / 7, 1) * 40;
+            }
+            
+            return Math.round(score);
+        }
+
+        function renderStats(stats) {
+            const container = document.getElementById('stats-overview');
+            container.innerHTML = '';
+
+            const statCards = [
+                {
+                    type: 'food',
+                    icon: '🍽️',
+                    value: stats.calories || 0,
+                    label: '오늘 섭취 칼로리',
+                    unit: 'kcal'
+                },
+                {
+                    type: 'workout',
+                    icon: '🏃‍♂️',
+                    value: stats.workouts || 0,
+                    label: '오늘 운동 횟수',
+                    unit: '회'
+                },
+                {
+                    type: 'emotion',
+                    icon: '😊',
+                    value: stats.mood ? stats.mood.toFixed(1) : '0.0',
+                    label: '평균 기분 점수',
+                    unit: '/10'
+                },
+                {
+                    type: 'goal',
+                    icon: '🎯',
+                    value: stats.goalAchievement || 0,
+                    label: '오늘 목표 달성률',
+                    unit: '%'
+                }
+            ];
+
+            statCards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `stat-card ${card.type}`;
+                cardElement.innerHTML = `
+                    <div class="stat-header">
+                        <div class="stat-icon ${card.type}">${card.icon}</div>
+                    </div>
+                    <div class="stat-value">${card.value}</div>
+                    <div class="stat-label">${card.label} ${card.unit}</div>
+                `;
+                container.appendChild(cardElement);
+            });
+        }
+
+        function renderInsights(insights) {
+            const container = document.getElementById('insights-content');
+            
+            if (insights.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">💭</div>
+                        <p>분석할 데이터가 충분하지 않습니다.<br>더 많은 기록을 남겨보세요!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = insights.map(insight => `
+                <div class="insight-item">
+                    <div class="insight-icon ${insight.type}">
+                        ${insight.icon}
+                    </div>
+                    <div class="insight-content">
+                        <div class="insight-title">${insight.title}</div>
+                        <div class="insight-description">${insight.description}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderRecommendations(recommendations) {
+            const container = document.getElementById('recommendations-content');
+            
+            if (recommendations.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🎯</div>
+                        <p>개선 제안을 생성하려면<br>더 많은 데이터가 필요합니다.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = recommendations.map(rec => `
+                <div class="insight-item">
+                    <div class="insight-icon ${rec.type}">
+                        ${rec.icon}
+                    </div>
+                    <div class="insight-content">
+                        <div class="insight-title">${rec.title}</div>
+                        <div class="insight-description">${rec.description}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('content').style.display = 'none';
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('content').style.display = 'none';
+        }
+
+        function showContent() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark');
+            }
+            
+            loadData();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyDiet - 관리자 대시보드</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1a202c;
+            transition: all 0.3s ease;
+        }
+
+        body.dark {
+            background: #0f172a;
+            color: #f1f5f9;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        body.dark .header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .theme-toggle {
+            width: 44px;
+            height: 24px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle::before {
+            content: '☀️';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        body.dark .theme-toggle::before {
+            content: '🌙';
+            transform: translateX(20px);
+            background: #334155;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-1px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 28px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body.dark .stat-card {
+            background: #1e293b;
+            border-color: #334155;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-color, #667eea);
+        }
+
+        .stat-card.users::before { background: #10b981; }
+        .stat-card.meals::before { background: #f59e0b; }
+        .stat-card.emotions::before { background: #ef4444; }
+        .stat-card.workouts::before { background: #8b5cf6; }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+
+        body.dark .stat-card:hover {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .stat-icon.users { background: linear-gradient(135deg, #10b981, #059669); }
+        .stat-icon.meals { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .stat-icon.emotions { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .stat-icon.workouts { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #1a202c;
+            margin-bottom: 4px;
+            line-height: 1;
+        }
+
+        body.dark .stat-number {
+            color: #f1f5f9;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        body.dark .stat-label {
+            color: #94a3b8;
+        }
+
+        .section {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        body.dark .section {
+            background: #1e293b;
+            border-color: #334155;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        body.dark .section-header {
+            border-bottom-color: #334155;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a202c;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        body.dark .section-title {
+            color: #f1f5f9;
+        }
+
+        .refresh-btn {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+            padding: 8px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        body.dark .refresh-btn {
+            background: #334155;
+            border-color: #475569;
+            color: #94a3b8;
+        }
+
+        .refresh-btn:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e0;
+        }
+
+        body.dark .refresh-btn:hover {
+            background: #475569;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .data-table th {
+            background: #f8fafc;
+            padding: 16px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        body.dark .data-table th {
+            background: #334155;
+            color: #d1d5db;
+            border-bottom-color: #475569;
+        }
+
+        .data-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        body.dark .data-table td {
+            border-bottom-color: #334155;
+            color: #d1d5db;
+        }
+
+        .data-table tr:hover {
+            background: #f8fafc;
+        }
+
+        body.dark .data-table tr:hover {
+            background: #334155;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-inactive {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        body.dark .status-active {
+            background: #14532d;
+            color: #4ade80;
+        }
+
+        body.dark .status-inactive {
+            background: #7f1d1d;
+            color: #fca5a5;
+        }
+
+        .action-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .action-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #64748b;
+        }
+
+        body.dark .loading {
+            color: #94a3b8;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #dc2626;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        body.dark .error {
+            background: #7f1d1d;
+            border-color: #991b1b;
+            color: #fca5a5;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 60px;
+            color: #94a3b8;
+        }
+
+        .no-data-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        body.dark .modal-content {
+            background: #1e293b;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal-header {
+            padding: 32px 32px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a202c;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        body.dark .modal-title {
+            color: #f1f5f9;
+        }
+
+        .close-btn {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 18px;
+            transition: all 0.2s ease;
+        }
+
+        body.dark .close-btn {
+            background: #334155;
+            border-color: #475569;
+            color: #94a3b8;
+        }
+
+        .close-btn:hover {
+            background: #e2e8f0;
+            transform: rotate(90deg);
+        }
+
+        body.dark .close-btn:hover {
+            background: #475569;
+        }
+
+        .modal-body {
+            padding: 0 32px 32px;
+        }
+
+        .user-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .detail-section {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.dark .detail-section {
+            background: #334155;
+            border-color: #475569;
+        }
+
+        .detail-section h4 {
+            color: #374151;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        body.dark .detail-section h4 {
+            color: #d1d5db;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        body.dark .detail-item {
+            border-bottom-color: #475569;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        body.dark .detail-label {
+            color: #94a3b8;
+        }
+
+        .detail-value {
+            color: #1a202c;
+            font-weight: 600;
+        }
+
+        body.dark .detail-value {
+            color: #f1f5f9;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+                padding: 16px 20px;
+            }
+            
+            .container {
+                padding: 20px 16px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .section {
+                padding: 20px;
+            }
+            
+            .data-table th,
+            .data-table td {
+                padding: 12px 16px;
+                font-size: 13px;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 20px;
+            }
+
+            .modal-header,
+            .modal-body {
+                padding: 20px;
+            }
+
+            .user-detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1>
+                    <span>🛡️</span>
+                    MyDiet 관리자
+                </h1>
+            </div>
+            <div class="header-right">
+                <div class="theme-toggle" onclick="toggleTheme()"></div>
+                <button class="logout-btn" onclick="logout()">
+                    <span>👋</span>
+                    로그아웃
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container"> 
+        <div class="stats-grid">
+            <div class="stat-card users">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-number" id="totalUsers">-</div>
+                        <div class="stat-label">총 회원수</div>
+                    </div>
+                    <div class="stat-icon users">👥</div>
+                </div>
+            </div>
+            <div class="stat-card meals">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-number" id="totalMeals">-</div>
+                        <div class="stat-label">총 식단 기록</div>
+                    </div>
+                    <div class="stat-icon meals">🍽️</div>
+                </div>
+            </div>
+            <div class="stat-card emotions">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-number" id="totalEmotions">-</div>
+                        <div class="stat-label">총 감정 기록</div>
+                    </div>
+                    <div class="stat-icon emotions">😊</div>
+                </div>
+            </div>
+            <div class="stat-card workouts">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-number" id="totalWorkouts">-</div>
+                        <div class="stat-label">총 운동 기록</div>
+                    </div>
+                    <div class="stat-icon workouts">🏃</div>
+                </div>
+            </div>
+        </div>
+ 
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span>👥</span>
+                    회원 관리
+                </h2>
+                <button class="refresh-btn" onclick="loadUsers()">
+                    <span>🔄</span>
+                    새로고침
+                </button>
+            </div>
+            
+            <div id="usersLoading" class="loading">
+                <div class="loading-spinner"></div>
+                <p>회원 정보를 불러오는 중...</p>
+            </div>
+            
+            <div id="usersError" class="error" style="display: none;"></div>
+            
+            <div id="usersContent" style="display: none;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>닉네임</th>
+                            <th>이메일</th>
+                            <th>목표체중</th>
+                            <th>감정모드</th>
+                            <th>가입일</th>
+                            <th>상태</th>
+                            <th>액션</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="usersNoData" class="no-data" style="display: none;">
+                <div class="no-data-icon">👤</div>
+                <h3>등록된 회원이 없습니다</h3>
+                <p>첫 번째 회원을 기다리고 있어요!</p>
+            </div>
+        </div>
+ 
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span>🤖</span>
+                    Claude 응답 기록
+                </h2>
+                <button class="refresh-btn" onclick="loadClaudeResponses()">
+                    <span>🔄</span>
+                    새로고침
+                </button>
+            </div>
+            
+            <div id="claudeLoading" class="loading">
+                <div class="loading-spinner"></div>
+                <p>Claude 응답 기록을 불러오는 중...</p>
+            </div>
+            
+            <div id="claudeError" class="error" style="display: none;"></div>
+            
+            <div id="claudeContent" style="display: none;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>사용자</th>
+                            <th>응답 내용</th>
+                            <th>타입</th>
+                            <th>생성일시</th>
+                        </tr>
+                    </thead>
+                    <tbody id="claudeTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="claudeNoData" class="no-data" style="display: none;">
+                <div class="no-data-icon">🤖</div>
+                <h3>Claude 응답 기록이 없습니다</h3>
+                <p>아직 생성된 응답이 없어요!</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="userDetailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">
+                    <span>👤</span>
+                    사용자 상세 정보
+                </h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="user-detail-grid">
+                    <div class="detail-section">
+                        <h4>기본 정보</h4>
+                        <div class="detail-item">
+                            <span class="detail-label">사용자 ID</span>
+                            <span class="detail-value" id="detailUserId">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">닉네임</span>
+                            <span class="detail-value" id="detailNickname">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">이메일</span>
+                            <span class="detail-value" id="detailEmail">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">가입일</span>
+                            <span class="detail-value" id="detailCreatedAt">-</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>건강 정보</h4>
+                        <div class="detail-item">
+                            <span class="detail-label">목표 체중</span>
+                            <span class="detail-value" id="detailWeightGoal">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">감정 모드</span>
+                            <span class="detail-value" id="detailEmotionMode">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">계정 상태</span>
+                            <span class="detail-value" id="detailStatus">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4>활동 통계</h4>
+                    <div class="user-detail-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">식단 기록 수</span>
+                            <span class="detail-value" id="detailMealCount">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">감정 기록 수</span>
+                            <span class="detail-value" id="detailEmotionCount">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">운동 기록 수</span>
+                            <span class="detail-value" id="detailWorkoutCount">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">마지막 활동</span>
+                            <span class="detail-value" id="detailLastActivity">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8080/api';
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        }
+
+        function logout() {
+            sessionStorage.removeItem('adminAuth');
+            window.location.href = '/index.html';
+        }
+
+        function openUserDetail(userId) {
+            loadUserDetail(userId);
+            document.getElementById('userDetailModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('userDetailModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        async function loadStats() {
+            try {
+                const [usersRes, mealsRes, emotionsRes, workoutsRes] = await Promise.all([
+                    fetch(`${API_BASE_URL}/admin/stats/users`),
+                    fetch(`${API_BASE_URL}/admin/stats/meals`),
+                    fetch(`${API_BASE_URL}/admin/stats/emotions`), 
+                    fetch(`${API_BASE_URL}/admin/stats/workouts`)
+                ]);
+
+                const users = await usersRes.json();
+                const meals = await mealsRes.json();
+                const emotions = await emotionsRes.json();
+                const workouts = await workoutsRes.json();
+
+                document.getElementById('totalUsers').textContent = users.count || 0;
+                document.getElementById('totalMeals').textContent = meals.count || 0;
+                document.getElementById('totalEmotions').textContent = emotions.count || 0;
+                document.getElementById('totalWorkouts').textContent = workouts.count || 0;
+
+            } catch (error) {
+                console.error('통계 로드 실패:', error);
+                document.getElementById('totalUsers').textContent = '0';
+                document.getElementById('totalMeals').textContent = '0';
+                document.getElementById('totalEmotions').textContent = '0';
+                document.getElementById('totalWorkouts').textContent = '0';
+            }
+        }
+
+        async function loadUsers() {
+            showLoading('users');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/users`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const users = await response.json();
+                
+                if (users.length === 0) {
+                    showNoData('users');
+                    return;
+                }
+
+                const tbody = document.getElementById('usersTableBody');
+                tbody.innerHTML = '';
+
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.id}</td>
+                        <td>${user.nickname || '-'}</td>
+                        <td>${user.email || '-'}</td>
+                        <td>${user.weightGoal ? user.weightGoal + 'kg' : '-'}</td>
+                        <td>${user.emotionMode || '-'}</td>
+                        <td>${formatDate(user.createdAt)}</td>
+                        <td>
+                            <span class="status-badge status-active">활성</span>
+                        </td>
+                        <td>
+                            <button class="action-btn" onclick="openUserDetail(${user.id})">상세보기</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                showContent('users');
+
+            } catch (error) {
+                console.error('사용자 로드 실패:', error);
+                showError('users', '사용자 목록을 불러오는데 실패했습니다.');
+            }
+        }
+
+        async function loadClaudeResponses() {
+            showLoading('claude');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/claude-responses`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const responses = await response.json();
+                
+                if (responses.length === 0) {
+                    showNoData('claude');
+                    return;
+                }
+
+                const tbody = document.getElementById('claudeTableBody');
+                tbody.innerHTML = '';
+
+                responses.forEach(response => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${response.user?.nickname || '알 수 없음'}</td>
+                        <td style="max-width: 300px; word-wrap: break-word;">${response.content}</td>
+                        <td>${response.type || 'daily'}</td>
+                        <td>${formatDateTime(response.createdAt)}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                showContent('claude');
+
+            } catch (error) {
+                console.error('Claude 응답 로드 실패:', error);
+                showError('claude', 'Claude 응답 기록을 불러오는데 실패했습니다.');
+            }
+        }
+
+        async function loadUserDetail(userId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/users/${userId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const user = await response.json();
+
+                document.getElementById('detailUserId').textContent = user.id;
+                document.getElementById('detailNickname').textContent = user.nickname || '-';
+                document.getElementById('detailEmail').textContent = user.email || '-';
+                document.getElementById('detailCreatedAt').textContent = formatDate(user.createdAt);
+                document.getElementById('detailWeightGoal').textContent = user.weightGoal ? user.weightGoal + 'kg' : '-';
+                document.getElementById('detailEmotionMode').textContent = user.emotionMode || '-';
+                document.getElementById('detailStatus').textContent = '활성';
+                
+                loadUserStats(userId);
+
+            } catch (error) {
+                console.error('사용자 상세 정보 로드 실패:', error);
+                alert('사용자 상세 정보를 불러오는데 실패했습니다.');
+            }
+        }
+
+        async function loadUserStats(userId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/stats`);
+                
+                if (response.ok) {
+                    const stats = await response.json();
+                    document.getElementById('detailMealCount').textContent = stats.mealCount || 0;
+                    document.getElementById('detailEmotionCount').textContent = stats.emotionCount || 0;
+                    document.getElementById('detailWorkoutCount').textContent = stats.workoutCount || 0;
+                    document.getElementById('detailLastActivity').textContent = formatDate(stats.lastActivity) || '-';
+                } else {
+                    document.getElementById('detailMealCount').textContent = '-';
+                    document.getElementById('detailEmotionCount').textContent = '-';
+                    document.getElementById('detailWorkoutCount').textContent = '-';
+                    document.getElementById('detailLastActivity').textContent = '-';
+                }
+            } catch (error) {
+                console.error('사용자 통계 로드 실패:', error);
+            }
+        }
+
+        function showLoading(section) {
+            document.getElementById(`${section}Loading`).style.display = 'block';
+            document.getElementById(`${section}Error`).style.display = 'none';
+            document.getElementById(`${section}Content`).style.display = 'none';
+            document.getElementById(`${section}NoData`).style.display = 'none';
+        }
+
+        function showError(section, message) {
+            document.getElementById(`${section}Loading`).style.display = 'none';
+            document.getElementById(`${section}Error`).style.display = 'block';
+            document.getElementById(`${section}Error`).textContent = message;
+            document.getElementById(`${section}Content`).style.display = 'none';
+            document.getElementById(`${section}NoData`).style.display = 'none';
+        }
+
+        function showContent(section) {
+            document.getElementById(`${section}Loading`).style.display = 'none';
+            document.getElementById(`${section}Error`).style.display = 'none';
+            document.getElementById(`${section}Content`).style.display = 'block';
+            document.getElementById(`${section}NoData`).style.display = 'none';
+        }
+
+        function showNoData(section) {
+            document.getElementById(`${section}Loading`).style.display = 'none';
+            document.getElementById(`${section}Error`).style.display = 'none';
+            document.getElementById(`${section}Content`).style.display = 'none';
+            document.getElementById(`${section}NoData`).style.display = 'block';
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR');
+        }
+
+        function formatDateTime(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleString('ko-KR');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark');
+            }
+
+            loadStats();
+            loadUsers();
+            loadClaudeResponses();
+        });
+    </script>
+</body>
+</html>
