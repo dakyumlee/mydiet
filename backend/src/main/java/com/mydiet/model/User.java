@@ -25,7 +25,7 @@ public class User {
     private Double weightGoal;
     
     @Column(name = "emotion_mode")
-    private String emotionMode; // 예: 무자비, 츤데레, 다정함
+    private String emotionMode;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
