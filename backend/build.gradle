@@ -22,17 +22,14 @@ repositories {
 }
 
 dependencies {
-    // Spring Boot Starters
-    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     
-    // Database - PostgreSQL
+    // PostgreSQL
     runtimeOnly 'org.postgresql:postgresql'
-    // 개발용 H2 (테스트용)
-    runtimeOnly 'com.h2database:h2'
     
     // Lombok
     compileOnly 'org.projectlombok:lombok'
@@ -40,12 +37,7 @@ dependencies {
     
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    
-    // JSON 처리
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    
-    // HTTP 클라이언트 (Claude API 호출용)
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    testImplementation 'org.springframework.security:spring-security-test'
 }
 
 tasks.named('test') {
