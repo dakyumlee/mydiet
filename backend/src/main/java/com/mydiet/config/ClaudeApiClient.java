@@ -30,12 +30,12 @@ public class ClaudeApiClient {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("x-api-key", apiKey);
-            headers.set("anthropic-version", "2023-06-01");
+            headers.set("x-api-key", apiKey);  // Bearer 대신 x-api-key 사용
+            headers.set("anthropic-version", "2023-06-01");  // 필수 헤더 추가
 
             Map<String, Object> requestBody = Map.of(
-                "model", "claude-3-5-sonnet-20241022",
-                "max_tokens", 1024,
+                "model", "claude-3-5-sonnet-20241022",  // 최신 모델
+                "max_tokens", 1024,  // 필수 파라미터 추가
                 "messages", List.of(Map.of("role", "user", "content", prompt))
             );
 

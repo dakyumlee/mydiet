@@ -10,12 +10,16 @@ spring:
   
   jpa:
     hibernate:
-      ddl-auto: ${DDL_AUTO:update}  # Heroku에서는 create-drop 대신 update 사용
-    show-sql: ${SHOW_SQL:false}     # 프로덕션에서는 false
+      ddl-auto: ${DDL_AUTO:update}
+    show-sql: ${SHOW_SQL:true}
     properties:
       hibernate:
         dialect: ${DB_DIALECT:org.hibernate.dialect.PostgreSQLDialect}
         format_sql: true
+  
+  sql:
+    init:
+      mode: never  # data.sql 비활성화
   
   security:
     oauth2:
@@ -54,6 +58,6 @@ claude:
 
 logging:
   level:
-    com.config.ClaudeApiClient: ${LOG_LEVEL:INFO}
-    org.springframework.security: ${LOG_LEVEL:INFO}
-    org.springframework.web.client: ${LOG_LEVEL:INFO}
+    com.mydiet.config.ClaudeApiClient: DEBUG
+    com.mydiet.service.ClaudeService: DEBUG
+    org.springframework.web.client: DEBUG
