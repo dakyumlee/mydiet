@@ -2,21 +2,23 @@ package com.mydiet.config;
 
 import com.mydiet.model.User;
 import com.mydiet.repository.UserRepository;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Map;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final UserRepository userRepository;
@@ -24,60 +26,63 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
-
-        System.out.println("=== OAuth2LoginSuccessHandler 실행 ===");
         
-        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-        Map<String, Object> attributes = oAuth2User.getAttributes();
- 
-        String email = (String) attributes.get("email");
-        String name = (String) attributes.get("name");
-        String oauthId = String.valueOf(attributes.get("id"));
-         
-        String provider = determineProvider(request);
+        OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+        
+        try {
+            String email = null;
+            String nickname = null;
+            String provider = null;
 
-        System.out.println("Provider: " + provider);
-        System.out.println("Email: " + email);
-        System.out.println("Name: " + name);
-        System.out.println("OAuth ID: " + oauthId);
- 
-        String userIdentifier = email != null ? email : oauthId + "@" + provider + ".local";
+            if (oauth2User.getAttributes().containsKey("email")) {
+                email = oauth2User.getAttribute("email");
+                nickname = oauth2User.getAttribute("name");
+                provider = "Google";
+            }
+            else if (oauth2User.getAttributes().containsKey("kakao_account")) {
+                Object kakaoAccount = oauth2User.getAttribute("kakao_account");
+                if (kakaoAccount instanceof java.util.Map) {
+                    java.util.Map<String, Object> account = (java.util.Map<String, Object>) kakaoAccount;
+                    email = (String) account.get("email");
+                    
+                    Object profile = account.get("profile");
+                    if (profile instanceof java.util.Map) {
+                        java.util.Map<String, Object> profileMap = (java.util.Map<String, Object>) profile;
+                        nickname = (String) profileMap.get("nickname");
+                    }
+                }
+                provider = "Kakao";
+            }
 
-        try { 
-            User user = userRepository.findByEmail(userIdentifier)
-                    .orElseGet(() -> createNewUser(userIdentifier, name, oauthId, provider));
- 
-            user.setCreatedAt(LocalDateTime.now());
-            userRepository.save(user);
+            log.info("OAuth 로그인 성공 - Provider: {}, Email: {}, Nickname: {}", provider, email, nickname);
 
-            System.out.println("사용자 저장 완료: " + user.getNickname());
-            System.out.println("Dashboard로 강제 리다이렉트 실행!");
- 
-            response.sendRedirect("/dashboard.html");
+            if (email != null) {
+                Optional<User> existingUser = userRepository.findByEmail(email);
+                
+                if (existingUser.isEmpty()) {
+                    User newUser = new User();
+                    newUser.setEmail(email);
+                    newUser.setNickname(nickname != null ? nickname : "익명사용자");
+                    newUser.setWeightGoal(70.0);
+                    newUser.setEmotionMode("다정함");
+                    newUser.setCreatedAt(LocalDateTime.now());
+                    
+                    userRepository.save(newUser);
+                    log.info("새 사용자 생성 완료 - {}", email);
+                    
+                    response.sendRedirect("/welcome?new=true");
+                } else {
+                    log.info("기존 사용자 로그인 - {}", email);
+                    response.sendRedirect("/dashboard");
+                }
+            } else {
+                log.error("OAuth 로그인에서 이메일을 가져올 수 없음");
+                response.sendRedirect("/login?error=email_missing");
+            }
             
         } catch (Exception e) {
-            System.err.println("사용자 처리 중 오류: " + e.getMessage());
-            e.printStackTrace();
-            response.sendRedirect("/welcome");
+            log.error("OAuth 로그인 처리 중 오류 발생", e);
+            response.sendRedirect("/login?error=oauth_error");
         }
-    }
-
-    private String determineProvider(HttpServletRequest request) {
-        String uri = request.getRequestURI();
-        if (uri.contains("google")) return "google";
-        if (uri.contains("kakao")) return "kakao";
-        return "unknown";
-    }
-
-    private User createNewUser(String email, String name, String oauthId, String provider) {
-        User user = new User();
-        user.setEmail(email);
-        user.setNickname(name != null ? name : provider + "유저");
-        user.setWeightGoal(65.0); // 기본 목표 체중
-        user.setEmotionMode("다정함"); // 기본 감정 모드
-        user.setCreatedAt(LocalDateTime.now());
-        
-        System.out.println("새 사용자 생성: " + user.getNickname());
-        return user;
     }
 }
