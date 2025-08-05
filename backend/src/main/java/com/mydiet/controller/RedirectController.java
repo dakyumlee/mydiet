@@ -12,11 +12,6 @@ public class RedirectController {
         if (authentication != null && authentication.isAuthenticated()) {
             return "redirect:/dashboard.html";
         }
-        return "forward:/index.html";
-    }
-    
-    @GetMapping("/login/success")
-    public String loginSuccess() {
-        return "redirect:/dashboard.html";
+        return "index.html";
     }
 }
