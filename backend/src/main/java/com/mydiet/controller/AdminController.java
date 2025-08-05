@@ -1,70 +1,46 @@
 package com.mydiet.controller;
 
-import com.mydiet.service.AdminService;
+import com.mydiet.model.User;
+import com.mydiet.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
 public class AdminController {
 
-    private final AdminService adminService;
-
-    @GetMapping("/stats")
-    public ResponseEntity<?> getAdminStats() {
-        return ResponseEntity.ok(adminService.getAdminStats());
-    }
+    private final UserRepository userRepository;
 
     @GetMapping("/users")
-    public ResponseEntity<?> getAllUsers() {
-        return ResponseEntity.ok(adminService.getAllUsers());
+    public ResponseEntity<List<User>> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return ResponseEntity.ok(users);
     }
-
-    @GetMapping("/users/count")
-    public ResponseEntity<Long> getUserCount() {
-        return ResponseEntity.ok(adminService.getUserCount());
+    
+    @GetMapping("/stats")
+    public ResponseEntity<AdminStats> getAdminStats() {
+        long totalUsers = userRepository.count();
+        
+        AdminStats stats = new AdminStats();
+        stats.setTotalUsers(totalUsers);
+        stats.setActiveUsers(totalUsers);
+        
+        return ResponseEntity.ok(stats);
     }
-
-    @GetMapping("/users/{userId}")
-    public ResponseEntity<?> getUserDetail(@PathVariable Long userId) {
-        return ResponseEntity.ok(adminService.getUserDetail(userId));
-    }
-
-    @GetMapping("/users/{userId}/stats")
-    public ResponseEntity<?> getUserStats(@PathVariable Long userId) {
-        return ResponseEntity.ok(adminService.getUserStats(userId));
-    }
-
-    @DeleteMapping("/users/{userId}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
-        adminService.deleteUser(userId);
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/claude-responses")
-    public ResponseEntity<?> getClaudeResponses() {
-        return ResponseEntity.ok(adminService.getClaudeResponses());
-    }
-
-    @GetMapping("/stats/users")
-    public ResponseEntity<?> getUserStats() {
-        return ResponseEntity.ok(adminService.getUserCountStats());
-    }
-
-    @GetMapping("/stats/meals")
-    public ResponseEntity<?> getMealStats() {
-        return ResponseEntity.ok(adminService.getMealCountStats());
-    }
-
-    @GetMapping("/stats/emotions")
-    public ResponseEntity<?> getEmotionStats() {
-        return ResponseEntity.ok(adminService.getEmotionCountStats());
-    }
-
-    @GetMapping("/stats/workouts")
-    public ResponseEntity<?> getWorkoutStats() {
-        return ResponseEntity.ok(adminService.getWorkoutCountStats());
+    
+    public static class AdminStats {
+        private long totalUsers;
+        private long activeUsers;
+        
+        public long getTotalUsers() { return totalUsers; }
+        public void setTotalUsers(long totalUsers) { this.totalUsers = totalUsers; }
+        public long getActiveUsers() { return activeUsers; }
+        public void setActiveUsers(long activeUsers) { this.activeUsers = activeUsers; }
     }
 }
