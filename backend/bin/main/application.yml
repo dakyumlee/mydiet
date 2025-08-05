@@ -1,8 +1,8 @@
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/mydiet
-    username: ${DB_USERNAME:mydiet_user}
-    password: ${DB_PASSWORD:mydiet_password}
+    username: ${DB_USERNAME:mydiet}
+    password: ${DB_PASSWORD:mydiet123}
     driver-class-name: org.postgresql.Driver
   
   jpa:
