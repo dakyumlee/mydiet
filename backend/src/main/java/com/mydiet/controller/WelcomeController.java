@@ -76,6 +76,12 @@ public class WelcomeController {
                             Kakao로 시작하기
                         </a>
                     </div>
+                    
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                        <a href="/dashboard.html" style="color: #666; text-decoration: none; font-size: 0.9rem;">
+                            🔧 Dashboard 직접 접근 (테스트용)
+                        </a>
+                    </div>
                 </div>
             </body>
             </html>
