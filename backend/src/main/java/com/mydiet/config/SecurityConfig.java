@@ -15,7 +15,13 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/", "/frontend/**", "/css/**", "/js/**", "/static/**").permitAll()
+                .requestMatchers("/api/claude/**").authenticated()
                 .anyRequest().permitAll()
+            )
+            .oauth2Login(oauth2 -> oauth2
+                .loginPage("/oauth2/authorization/google")
+                .defaultSuccessUrl("/", true)
             );
         
         return http.build();
