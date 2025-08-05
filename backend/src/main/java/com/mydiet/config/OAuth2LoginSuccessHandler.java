@@ -31,7 +31,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         String email = (String) attributes.get("email");
         String name = (String) attributes.get("name");
         String oauthId = String.valueOf(attributes.get("id"));
-         
+        
         String provider = determineProvider(request);
 
         System.out.println("=== OAuth 로그인 성공 ===");
@@ -39,16 +39,19 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         System.out.println("Email: " + email);
         System.out.println("Name: " + name);
         System.out.println("OAuth ID: " + oauthId);
- 
-        User user = userRepository.findByEmail(email)
-                .orElseGet(() -> createNewUser(email, name, oauthId, provider));
- 
+
+        String userIdentifier = email != null ? email : oauthId + "@" + provider + ".local";
+
+        User user = userRepository.findByEmail(userIdentifier)
+                .orElseGet(() -> createNewUser(userIdentifier, name, oauthId, provider));
+
         user.setCreatedAt(LocalDateTime.now());
         userRepository.save(user);
 
         System.out.println("사용자 저장 완료: " + user.getNickname());
- 
-        getRedirectStrategy().sendRedirect(request, response, "/dashboard.html");
+        System.out.println("Dashboard로 리다이렉트: /dashboard.html");
+
+        response.sendRedirect("/dashboard.html");
     }
 
     private String determineProvider(HttpServletRequest request) {
@@ -60,10 +63,10 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
     private User createNewUser(String email, String name, String oauthId, String provider) {
         User user = new User();
-        user.setEmail(email != null ? email : oauthId + "@" + provider + ".local");
+        user.setEmail(email);
         user.setNickname(name != null ? name : provider + "유저");
-        user.setWeightGoal(65.0); // 기본 목표 체중
-        user.setEmotionMode("다정함"); // 기본 감정 모드
+        user.setWeightGoal(65.0);
+        user.setEmotionMode("다정함");
         user.setCreatedAt(LocalDateTime.now());
         
         System.out.println("새 사용자 생성: " + user.getNickname());
