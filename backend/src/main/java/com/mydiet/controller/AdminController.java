@@ -8,7 +8,9 @@ import com.mydiet.repository.MealLogRepository;
 import com.mydiet.repository.UserRepository;
 import com.mydiet.repository.WorkoutLogRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -16,12 +18,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
 @CrossOrigin(originPatterns = "*", allowCredentials = "true")
+@Slf4j
 public class AdminController {
 
     private final UserRepository userRepository;
@@ -66,8 +70,14 @@ public class AdminController {
 
     @GetMapping("/users/{userId}/detail")
     public ResponseEntity<Map<String, Object>> getUserDetail(@PathVariable Long userId) {
-        User user = userRepository.findById(userId).orElseThrow();
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "사용자를 찾을 수 없습니다.");
+            return ResponseEntity.notFound().build();
+        }
         
+        User user = userOpt.get();
         Map<String, Object> userDetail = new HashMap<>();
         userDetail.put("id", user.getId());
         userDetail.put("nickname", user.getNickname());
@@ -123,11 +133,69 @@ public class AdminController {
     }
 
     @DeleteMapping("/users/{userId}")
-    public ResponseEntity<Map<String, String>> deleteUser(@PathVariable Long userId) {
-        userRepository.deleteById(userId);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "사용자가 삭제되었습니다.");
-        return ResponseEntity.ok(response);
+    @Transactional
+    public ResponseEntity<Map<String, Object>> deleteUser(@PathVariable Long userId) {
+        try {
+            log.info("사용자 삭제 요청 - ID: {}", userId);
+            
+            Optional<User> userOpt = userRepository.findById(userId);
+            if (userOpt.isEmpty()) {
+                Map<String, Object> error = new HashMap<>();
+                error.put("success", false);
+                error.put("message", "사용자를 찾을 수 없습니다.");
+                return ResponseEntity.notFound().body(error);
+            }
+            
+            User user = userOpt.get();
+            String userName = user.getNickname();
+            
+            long mealCount = mealLogRepository.countByUserId(userId);
+            long workoutCount = workoutLogRepository.countByUserId(userId);
+            long emotionCount = emotionLogRepository.countByUserId(userId);
+            long claudeCount = claudeResponseRepository.countByUserId(userId);
+            
+            log.info("삭제할 데이터 - 식사: {}, 운동: {}, 감정: {}, Claude: {}", 
+                    mealCount, workoutCount, emotionCount, claudeCount);
+            
+            mealLogRepository.deleteByUserId(userId);
+            workoutLogRepository.deleteByUserId(userId);
+            emotionLogRepository.deleteByUserId(userId);
+            claudeResponseRepository.deleteByUserId(userId);
+            
+            userRepository.deleteById(userId);
+            
+            log.info("사용자 삭제 완료 - {}", userName);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", String.format("사용자 '%s'와 관련 데이터가 모두 삭제되었습니다.", userName));
+            response.put("deletedData", Map.of(
+                "meals", mealCount,
+                "workouts", workoutCount,
+                "emotions", emotionCount,
+                "claudeResponses", claudeCount
+            ));
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("사용자 삭제 중 오류 발생 - ID: {}, Error: {}", userId, e.getMessage(), e);
+            
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", "사용자 삭제 중 오류가 발생했습니다: " + e.getMessage());
+            
+            return ResponseEntity.internalServerError().body(error);
+        }
+    }
+
+    @PostMapping("/users/{userId}/restore")
+    public ResponseEntity<Map<String, Object>> restoreUser(@PathVariable Long userId) {
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", false);
+        response.put("message", "복구 기능은 아직 구현되지 않았습니다.");
+        return ResponseEntity.notImplemented().body(response);
     }
 
     private String getActivityStatus(User user) {
