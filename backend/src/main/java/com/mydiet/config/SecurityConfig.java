@@ -27,11 +27,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/welcome", "/index.html", "/static/**", "/css/**", "/js/**", "/images/**").permitAll()
                 .requestMatchers("/oauth2/**", "/login/**").permitAll()
-                .requestMatchers("/dashboard.html", "/profile-settings.html").authenticated()
-                .requestMatchers("/api/claude/**", "/api/meals/**", "/api/workouts/**", "/api/emotions/**", "/api/profile/**").authenticated()
+                .requestMatchers("/dashboard.html", "/profile-settings.html").permitAll()
+                .requestMatchers("/api/claude/**", "/api/meals/**", "/api/workouts/**", "/api/emotions/**", "/api/profile/**").permitAll()
                 .anyRequest().permitAll()
             )
             .oauth2Login(oauth2 -> oauth2
+                .defaultSuccessUrl("/dashboard.html", true)
                 .successHandler(oAuth2LoginSuccessHandler)
                 .userInfoEndpoint(userInfo -> userInfo
                     .userService(customOAuth2UserService)
