@@ -29,34 +29,28 @@ public class MealController {
     public ResponseEntity<?> saveMeal(@RequestBody Map<String, Object> request, HttpSession session) {
         log.info("Saving meal: {}", request);
         
-        try {
-            // 사용자 ID 가져오기
+        try { 
             Long userId = (Long) session.getAttribute("userId");
             if (userId == null) {
-                // 세션에 없으면 기본값 사용
                 userId = 1L;
                 log.info("Using default userId: 1");
             }
             
-            // 사용자가 없으면 생성
-
             final Long finalUserId = userId;
-            
-            User user = userRepository.findById(userId).orElseGet(() -> {
+             
+            User user = userRepository.findById(finalUserId).orElseGet(() -> {
                 User newUser = new User();
-                newUser.setId(userId);
-                newUser.setEmail("user" + userId + "@mydiet.com");
-                newUser.setNickname("사용자" + userId);
+                newUser.setId(finalUserId);
+                newUser.setEmail("user" + finalUserId + "@mydiet.com");
+                newUser.setNickname("사용자" + finalUserId);
                 return userRepository.save(newUser);
             });
-            
-            // MealLog 생성
+             
             MealLog meal = new MealLog();
             meal.setUser(user);
             meal.setDescription((String) request.get("description"));
             meal.setCaloriesEstimate(Integer.valueOf(request.getOrDefault("calories", 0).toString()));
             
-            // 사진 처리
             if (request.containsKey("photoData")) {
                 meal.setPhotoUrl((String) request.get("photoData"));
             }
