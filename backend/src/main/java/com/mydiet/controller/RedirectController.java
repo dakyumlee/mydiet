@@ -13,12 +13,12 @@ public class RedirectController {
 
     @GetMapping("/")
     public String home() {
-        return "index";
+        return "forward:/index.html";
     }
 
     @GetMapping("/auth")
     public String auth() {
-        return "auth";
+        return "forward:/auth.html";
     }
 
     @GetMapping("/dashboard")
@@ -35,41 +35,41 @@ public class RedirectController {
         model.addAttribute("email", principal.getEmail());
         model.addAttribute("userId", principal.getUserId());
         
-        return "dashboard";
+        return "forward:/dashboard.html";
     }
 
     @GetMapping("/meal-management")
     public String mealManagement(@AuthenticationPrincipal OAuth2UserPrincipal principal, Model model) {
         if (principal == null) return "redirect:/auth";
         model.addAttribute("user", principal.getUser());
-        return "meal-management";
+        return "forward:/meal-management.html";
     }
 
     @GetMapping("/workout-management") 
     public String workoutManagement(@AuthenticationPrincipal OAuth2UserPrincipal principal, Model model) {
         if (principal == null) return "redirect:/auth";
         model.addAttribute("user", principal.getUser());
-        return "workout-management";
+        return "forward:/workout-management.html";
     }
 
     @GetMapping("/emotion-diary")
     public String emotionDiary(@AuthenticationPrincipal OAuth2UserPrincipal principal, Model model) {
         if (principal == null) return "redirect:/auth";
         model.addAttribute("user", principal.getUser());
-        return "emotion-diary";
+        return "forward:/emotion-diary.html";
     }
 
     @GetMapping("/analytics")
     public String analytics(@AuthenticationPrincipal OAuth2UserPrincipal principal, Model model) {
         if (principal == null) return "redirect:/auth";
         model.addAttribute("user", principal.getUser());
-        return "analytics";
+        return "forward:/analytics.html";
     }
 
     @GetMapping("/profile-settings")
     public String profileSettings(@AuthenticationPrincipal OAuth2UserPrincipal principal, Model model) {
         if (principal == null) return "redirect:/auth";
         model.addAttribute("user", principal.getUser());
-        return "profile-settings";
+        return "forward:/profile-settings.html";
     }
 }
