@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 
 @Configuration
 @EnableWebSecurity
@@ -46,14 +45,12 @@ public class SecurityConfig {
                 .deleteCookies("JSESSIONID")
             )
             .headers(headers -> headers
-                .httpStrictTransportSecurity(hstsConfig -> hstsConfig
+                .httpStrictTransportSecurity(hsts -> hsts
                     .maxAgeInSeconds(31536000)
-                    .includeSubdomains(true)
+                    .includeSubDomains(true)
                 )
-                .contentTypeOptions(contentTypeOptionsConfig -> {})
-                .referrerPolicy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
-                // frameOptions() deprecated 메소드 제거하고 새로운 방식 사용
-                .frameOptions(frameOptionsConfig -> frameOptionsConfig.sameOrigin())
+                .contentTypeOptions(contentType -> {})
+                .frameOptions(frame -> frame.sameOrigin())
             );
 
         return http.build();

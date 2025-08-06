@@ -46,6 +46,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
                                      @Param("maxWeight") Double maxWeight);
     
     /**
+     * 감정 모드별 사용자 개수 조회
+     */
+    long countByEmotionMode(String emotionMode);
+    
+    /**
      * 감정 모드별 사용자 조회
      */
     List<User> findByEmotionMode(String emotionMode);
