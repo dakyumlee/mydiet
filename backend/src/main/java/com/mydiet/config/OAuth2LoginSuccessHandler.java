@@ -25,11 +25,6 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         log.debug("사용자 이메일: {}", oAuth2User.getEmail());
         log.debug("사용자 닉네임: {}", oAuth2User.getNickname());
         
-        if (oAuth2User.getUser() != null) {
-            getRedirectStrategy().sendRedirect(request, response, "/dashboard.html");
-        } else {
-            log.error("OAuth2 사용자 정보 저장 실패");
-            getRedirectStrategy().sendRedirect(request, response, "/auth.html?error=save_failed");
-        }
+        getRedirectStrategy().sendRedirect(request, response, "/dashboard.html");
     }
 }
