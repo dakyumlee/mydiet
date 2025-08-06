@@ -94,10 +94,10 @@ public class UserDashboardController {
     }
 
     /**
-     * 사용자 프로필 조회
+     * 사용자 프로필 조회 (경로 변경)
      */
-    @GetMapping("/profile")
-    public ResponseEntity<Map<String, Object>> getUserProfile(HttpSession session) {
+    @GetMapping("/dashboard-profile")
+    public ResponseEntity<Map<String, Object>> getDashboardProfile(HttpSession session) {
         log.info("=== 사용자 프로필 조회 ===");
         
         try {
