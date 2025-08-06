@@ -1,76 +1,85 @@
 package com.mydiet.service;
 
+import com.mydiet.model.User;
+import com.mydiet.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+
+    private final UserRepository userRepository;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        try {
-            OAuth2User oAuth2User = super.loadUser(userRequest);
+        OAuth2User oauth2User = super.loadUser(userRequest);
+        
+        String registrationId = userRequest.getClientRegistration().getRegistrationId();
+        log.debug("OAuth2 로그인 제공자: {}", registrationId);
+        log.debug("OAuth2 사용자 정보: {}", oauth2User.getAttributes());
+        
+        String email = null;
+        String nickname = null;
+        String providerId = null;
+        
+        if ("kakao".equals(registrationId)) {
+            Map<String, Object> kakaoAccount = (Map<String, Object>) oauth2User.getAttributes().get("kakao_account");
+            Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
             
-            String registrationId = userRequest.getClientRegistration().getRegistrationId();
-            Map<String, Object> attributes = new HashMap<>(oAuth2User.getAttributes());
+            email = (String) kakaoAccount.get("email");
+            nickname = (String) profile.get("nickname");
+            providerId = oauth2User.getName();
             
-            System.out.println("=== OAuth2 Debug Info ===");
-            System.out.println("Registration ID: " + registrationId);
-            System.out.println("Attributes: " + attributes);
-            
-            if ("kakao".equals(registrationId)) {
-                try {
-                    Object kakaoAccountObj = attributes.get("kakao_account");
-                    String email = null;
-                    String nickname = "Unknown";
-                    
-                    if (kakaoAccountObj instanceof Map) {
-                        Map<String, Object> kakaoAccount = (Map<String, Object>) kakaoAccountObj;
-                        
-                        email = (String) kakaoAccount.get("email");
-                        
-                        Object profileObj = kakaoAccount.get("profile");
-                        if (profileObj instanceof Map) {
-                            Map<String, Object> profile = (Map<String, Object>) profileObj;
-                            nickname = (String) profile.get("nickname");
-                        }
-                    }
-                    
-                    String id = String.valueOf(attributes.get("id"));
-                    attributes.put("email", email != null ? email : id + "@kakao.local"); // 이메일이 없으면 임시 이메일
-                    attributes.put("name", nickname != null ? nickname : "카카오유저");
-                    attributes.put("id", id);
-                    
-                    System.out.println("카카오 처리 완료 - ID: " + id + ", 닉네임: " + nickname + ", 이메일: " + attributes.get("email"));
-                    
-                } catch (Exception e) {
-                    System.err.println("카카오 정보 처리 중 에러: " + e.getMessage());
-                    String id = String.valueOf(attributes.get("id"));
-                    attributes.put("email", id + "@kakao.local");
-                    attributes.put("name", "카카오유저");
-                    attributes.put("id", id);
-                }
-                
-                return new DefaultOAuth2User(
-                    oAuth2User.getAuthorities(),
-                    attributes,
-                    "id"
-                );
-            }
+        } else if ("google".equals(registrationId)) {
+            email = (String) oauth2User.getAttributes().get("email");
+            nickname = (String) oauth2User.getAttributes().get("name");
+            providerId = oauth2User.getName();
+        }
+        
+        log.debug("추출된 정보 - 이메일: {}, 닉네임: {}, 제공자ID: {}", email, nickname, providerId);
+         
+        User user = processOAuthPostLogin(email, nickname, registrationId, providerId);
+        
+        return new OAuth2UserPrincipal(oauth2User, user);
+    }
+    
+    private User processOAuthPostLogin(String email, String nickname, String provider, String providerId) {
+        Optional<User> existingUser = userRepository.findByEmail(email);
+        
+        if (existingUser.isPresent()) {
+            User user = existingUser.get();
+            log.debug("기존 사용자 로그인: {}", email);
              
-            return oAuth2User;
+            if (nickname != null && !nickname.equals(user.getNickname())) {
+                user.setNickname(nickname);
+                user = userRepository.save(user);
+                log.debug("사용자 닉네임 업데이트: {}", nickname);
+            }
             
-        } catch (Exception e) {
-            System.err.println("OAuth2 처리 중 에러: " + e.getMessage());
-            e.printStackTrace();
-            throw new OAuth2AuthenticationException("OAuth2 처리 실패: " + e.getMessage());
+            return user;
+        } else { 
+            User newUser = new User();
+            newUser.setEmail(email);
+            newUser.setNickname(nickname != null ? nickname : "사용자");
+            newUser.setEmotionMode("다정함"); 
+            newUser.setWeightGoal(60.0);  
+            newUser.setCreatedAt(LocalDateTime.now());
+            
+            User savedUser = userRepository.save(newUser);
+            log.debug("새 사용자 생성: {}", email);
+            
+            return savedUser;
         }
     }
 }
