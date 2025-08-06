@@ -39,12 +39,43 @@ public class UserDashboardController {
             Long userId = (Long) session.getAttribute("userId");
             if (userId == null) userId = 1L; // 기본값
             
+            log.info("대시보드 통계 요청 - 사용자 ID: {}", userId);
+            
             LocalDate today = LocalDate.now();
+            log.info("오늘 날짜: {}", today);
             
             // 오늘 데이터 조회
             List<MealLog> todayMeals = mealLogRepository.findByUserIdAndDate(userId, today);
             List<WorkoutLog> todayWorkouts = workoutLogRepository.findByUserIdAndDate(userId, today);
             List<EmotionLog> todayEmotions = emotionLogRepository.findByUserIdAndDate(userId, today);
+            
+            log.info("조회된 데이터 - 식단: {}개, 운동: {}개, 감정: {}개", 
+                todayMeals.size(), todayWorkouts.size(), todayEmotions.size());
+            
+            // 만약 오늘 데이터가 없다면, 전체 데이터에서 오늘 날짜 데이터 찾기
+            if (todayMeals.isEmpty() && todayWorkouts.isEmpty() && todayEmotions.isEmpty()) {
+                log.info("오늘 데이터가 없음. 전체 데이터에서 오늘 날짜 찾기...");
+                
+                List<MealLog> allMeals = mealLogRepository.findAll();
+                List<WorkoutLog> allWorkouts = workoutLogRepository.findAll();
+                List<EmotionLog> allEmotions = emotionLogRepository.findAll();
+                
+                // 수동으로 오늘 날짜 필터링
+                todayMeals = allMeals.stream()
+                    .filter(meal -> meal.getUser().getId().equals(userId) && today.equals(meal.getDate()))
+                    .collect(java.util.stream.Collectors.toList());
+                    
+                todayWorkouts = allWorkouts.stream()
+                    .filter(workout -> workout.getUser().getId().equals(userId) && today.equals(workout.getDate()))
+                    .collect(java.util.stream.Collectors.toList());
+                    
+                todayEmotions = allEmotions.stream()
+                    .filter(emotion -> emotion.getUser().getId().equals(userId) && today.equals(emotion.getDate()))
+                    .collect(java.util.stream.Collectors.toList());
+                    
+                log.info("수동 필터링 결과 - 식단: {}개, 운동: {}개, 감정: {}개", 
+                    todayMeals.size(), todayWorkouts.size(), todayEmotions.size());
+            }
             
             // 통계 계산
             int mealCount = todayMeals.size();
@@ -73,7 +104,8 @@ public class UserDashboardController {
             stats.put("goalAchievement", Math.round(goalAchievement));
             stats.put("netCalories", totalCalories - burnedCalories); // 순 칼로리
             
-            log.info("Dashboard stats for user {}: {}", userId, stats);
+            log.info("계산된 통계: {}", stats);
+            
             return ResponseEntity.ok(stats);
             
         } catch (Exception e) {
@@ -182,10 +214,38 @@ public class UserDashboardController {
             if (userId == null) userId = 1L;
             
             LocalDate today = LocalDate.now();
+            log.info("오늘 데이터 조회 - 사용자 ID: {}, 날짜: {}", userId, today);
             
             List<MealLog> meals = mealLogRepository.findByUserIdAndDate(userId, today);
             List<WorkoutLog> workouts = workoutLogRepository.findByUserIdAndDate(userId, today);
             List<EmotionLog> emotions = emotionLogRepository.findByUserIdAndDate(userId, today);
+            
+            log.info("Repository 조회 결과 - 식단: {}개, 운동: {}개, 감정: {}개", 
+                meals.size(), workouts.size(), emotions.size());
+            
+            // 만약 Repository 쿼리가 제대로 작동하지 않으면 수동 필터링
+            if (meals.isEmpty() && workouts.isEmpty() && emotions.isEmpty()) {
+                log.info("Repository 쿼리 결과가 없음. 수동 필터링 시도...");
+                
+                List<MealLog> allMeals = mealLogRepository.findAll();
+                List<WorkoutLog> allWorkouts = workoutLogRepository.findAll();
+                List<EmotionLog> allEmotions = emotionLogRepository.findAll();
+                
+                meals = allMeals.stream()
+                    .filter(meal -> meal.getUser().getId().equals(userId) && today.equals(meal.getDate()))
+                    .collect(java.util.stream.Collectors.toList());
+                    
+                workouts = allWorkouts.stream()
+                    .filter(workout -> workout.getUser().getId().equals(userId) && today.equals(workout.getDate()))
+                    .collect(java.util.stream.Collectors.toList());
+                    
+                emotions = allEmotions.stream()
+                    .filter(emotion -> emotion.getUser().getId().equals(userId) && today.equals(emotion.getDate()))
+                    .collect(java.util.stream.Collectors.toList());
+                    
+                log.info("수동 필터링 결과 - 식단: {}개, 운동: {}개, 감정: {}개", 
+                    meals.size(), workouts.size(), emotions.size());
+            }
             
             Map<String, Object> todayData = new HashMap<>();
             todayData.put("meals", meals);
