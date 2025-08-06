@@ -34,6 +34,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByNicknameContainingIgnoreCase(String nickname);
     
     /**
+     * 특정 날짜 이후 가입한 사용자들 개수
+     */
+    long countByCreatedAtAfter(LocalDateTime date);
+    
+    /**
      * 특정 날짜 이후 가입한 사용자들
      */
     List<User> findByCreatedAtAfter(LocalDateTime date);
@@ -44,6 +49,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.weightGoal BETWEEN :minWeight AND :maxWeight")
     List<User> findByWeightGoalBetween(@Param("minWeight") Double minWeight, 
                                      @Param("maxWeight") Double maxWeight);
+    
+    /**
+     * 목표 체중 범위별 사용자 개수
+     */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.weightGoal BETWEEN :minWeight AND :maxWeight")
+    long countByWeightGoalBetween(@Param("minWeight") Double minWeight, 
+                                @Param("maxWeight") Double maxWeight);
     
     /**
      * 감정 모드별 사용자 개수 조회
