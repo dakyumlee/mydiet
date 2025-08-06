@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 
 @Slf4j
 @RestController
@@ -55,12 +56,12 @@ public class MealController {
     @GetMapping("/today")
     public ResponseEntity<?> getTodayMeals(@RequestParam(required = false) Long userId) {
         try {
-            if (userId == null) userId = 1L; // 기본값
+            if (userId == null) userId = 1L;
             List<MealLog> meals = mealLogRepository.findByUserIdAndDate(userId, LocalDate.now());
             return ResponseEntity.ok(meals);
         } catch (Exception e) {
             log.error("Error fetching meals: ", e);
-            return ResponseEntity.ok(List.of()); // 빈 리스트 반환
+            return ResponseEntity.ok(new ArrayList<>());
         }
     }
 }
