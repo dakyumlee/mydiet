@@ -44,14 +44,14 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         Map<String, Object> attributes = oAuth2User.getAttributes();
         
         Long kakaoId = ((Number) attributes.get("id")).longValue();
-        
+         
         Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-        
+         
         String email = kakaoAccount != null ? (String) kakaoAccount.get("email") : null;
         if (email == null) {
-            email = kakaoId + "@kakao.user";
+            email = kakaoId + "@kakao.user"; 
         }
-        
+         
         String nickname = "카카오유저";
         if (kakaoAccount != null) {
             Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
@@ -62,20 +62,23 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         }
         
         log.info("Kakao user - ID: {}, Email: {}, Nickname: {}", kakaoId, email, nickname);
-
-        User user = userRepository.findByEmail(email)
+ 
+        final String finalEmail = email;
+        final String finalNickname = nickname;
+         
+        User user = userRepository.findByEmail(finalEmail)
                 .orElseGet(() -> {
                     User newUser = new User();
-                    newUser.setEmail(email);
-                    newUser.setNickname(nickname != null ? nickname : "카카오유저");
+                    newUser.setEmail(finalEmail);
+                    newUser.setNickname(finalNickname);
                     newUser.setSocialId(String.valueOf(kakaoId));
                     newUser.setSocialProvider("kakao");
                     newUser.setCreatedAt(LocalDateTime.now());
                     
-                    log.info("Creating new user: {}", email);
+                    log.info("Creating new user: {}", finalEmail);
                     return userRepository.save(newUser);
                 });
-
+ 
         user.setLastLoginAt(LocalDateTime.now());
         userRepository.save(user);
 
