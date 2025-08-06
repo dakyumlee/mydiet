@@ -1,946 +1,985 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyDiet - 메인 대시보드</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>MyDiet - 메인 대시보드</title>
+   <style>
+       * {
+           margin: 0;
+           padding: 0;
+           box-sizing: border-box;
+       }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f8fafc;
-            color: #1a202c;
-            line-height: 1.6;
-        }
+       body {
+           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+           background: #f8fafc;
+           color: #1a202c;
+           line-height: 1.6;
+       }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+       .container {
+           max-width: 1200px;
+           margin: 0 auto;
+           padding: 20px;
+       }
 
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 20px;
-            margin-bottom: 2rem;
-            text-align: center;
-        }
+       .header {
+           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+           color: white;
+           padding: 2rem;
+           border-radius: 20px;
+           margin-bottom: 2rem;
+           text-align: center;
+       }
 
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
+       .header h1 {
+           font-size: 2.5rem;
+           margin-bottom: 0.5rem;
+       }
 
-        .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
+       .header p {
+           font-size: 1.2rem;
+           opacity: 0.9;
+       }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 2rem;
-        }
+       .stats-grid {
+           display: grid;
+           grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+           gap: 20px;
+           margin-bottom: 2rem;
+       }
 
-        .stat-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            text-align: center;
-            transition: transform 0.2s ease;
-        }
+       .stat-card {
+           background: white;
+           padding: 2rem;
+           border-radius: 16px;
+           box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+           text-align: center;
+           transition: transform 0.2s ease;
+       }
 
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
+       .stat-card:hover {
+           transform: translateY(-5px);
+       }
 
-        .stat-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
+       .stat-icon {
+           font-size: 2.5rem;
+           margin-bottom: 1rem;
+       }
 
-        .stat-value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 0.5rem;
-        }
+       .stat-value {
+           font-size: 2rem;
+           font-weight: bold;
+           color: #667eea;
+           margin-bottom: 0.5rem;
+       }
 
-        .stat-label {
-            color: #64748b;
-            font-size: 1rem;
-        }
+       .stat-label {
+           color: #64748b;
+           font-size: 1rem;
+       }
 
-        .claude-section {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 20px;
-            text-align: center;
-            margin-bottom: 2rem;
-        }
+       .claude-section {
+           background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+           color: white;
+           padding: 2rem;
+           border-radius: 20px;
+           text-align: center;
+           margin-bottom: 2rem;
+       }
 
-        .claude-response {
-            font-size: 1.5rem;
-            font-weight: bold;
-            background: rgba(255,255,255,0.2);
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin-top: 1rem;
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+       .claude-response {
+           font-size: 1.5rem;
+           font-weight: bold;
+           background: rgba(255,255,255,0.2);
+           padding: 1.5rem;
+           border-radius: 12px;
+           margin-top: 1rem;
+           min-height: 60px;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+       }
 
-        .actions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 2rem;
-        }
+       .actions-grid {
+           display: grid;
+           grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+           gap: 20px;
+           margin-bottom: 2rem;
+       }
 
-        .action-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
+       .action-card {
+           background: white;
+           padding: 2rem;
+           border-radius: 16px;
+           box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+       }
 
-        .action-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: #1a202c;
-        }
+       .action-card h3 {
+           font-size: 1.5rem;
+           margin-bottom: 1rem;
+           color: #1a202c;
+       }
 
-        .action-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+       .action-buttons {
+           display: flex;
+           flex-direction: column;
+           gap: 12px;
+       }
 
-        .btn {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
+       .btn {
+           padding: 12px 20px;
+           border: none;
+           border-radius: 8px;
+           font-size: 16px;
+           font-weight: 600;
+           cursor: pointer;
+           transition: all 0.2s ease;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           gap: 8px;
+       }
 
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
+       .btn-primary {
+           background: #667eea;
+           color: white;
+       }
 
-        .btn-primary:hover {
-            background: #5a67d8;
-            transform: translateY(-2px);
-        }
+       .btn-primary:hover {
+           background: #5a67d8;
+           transform: translateY(-2px);
+       }
 
-        .btn-success {
-            background: #10b981;
-            color: white;
-        }
+       .btn-success {
+           background: #10b981;
+           color: white;
+       }
 
-        .btn-success:hover {
-            background: #059669;
-            transform: translateY(-2px);
-        }
+       .btn-success:hover {
+           background: #059669;
+           transform: translateY(-2px);
+       }
 
-        .btn-warning {
-            background: #f59e0b;
-            color: white;
-        }
+       .btn-warning {
+           background: #f59e0b;
+           color: white;
+       }
 
-        .btn-warning:hover {
-            background: #d97706;
-            transform: translateY(-2px);
-        }
+       .btn-warning:hover {
+           background: #d97706;
+           transform: translateY(-2px);
+       }
 
-        .btn-info {
-            background: #06b6d4;
-            color: white;
-        }
+       .btn-info {
+           background: #06b6d4;
+           color: white;
+       }
 
-        .btn-info:hover {
-            background: #0891b2;
-            transform: translateY(-2px);
-        }
+       .btn-info:hover {
+           background: #0891b2;
+           transform: translateY(-2px);
+       }
 
-        .ai-question-section {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 20px;
-            margin-bottom: 2rem;
-        }
+       .ai-question-section {
+           background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+           color: white;
+           padding: 2rem;
+           border-radius: 20px;
+           margin-bottom: 2rem;
+       }
 
-        .ai-question-form {
-            background: rgba(255,255,255,0.1);
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin-top: 1rem;
-        }
+       .ai-question-form {
+           background: rgba(255,255,255,0.1);
+           padding: 1.5rem;
+           border-radius: 12px;
+           margin-top: 1rem;
+       }
 
-        .question-input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 8px;
-            font-size: 16px;
-            background: rgba(255,255,255,0.9);
-            color: #1a202c;
-            margin-bottom: 12px;
-        }
+       .question-input {
+           width: 100%;
+           padding: 12px 16px;
+           border: 2px solid rgba(255,255,255,0.3);
+           border-radius: 8px;
+           font-size: 16px;
+           background: rgba(255,255,255,0.9);
+           color: #1a202c;
+           margin-bottom: 12px;
+       }
 
-        .question-input:focus {
-            outline: none;
-            border-color: rgba(255,255,255,0.8);
-            background: white;
-        }
+       .question-input:focus {
+           outline: none;
+           border-color: rgba(255,255,255,0.8);
+           background: white;
+       }
 
-        .question-input::placeholder {
-            color: #64748b;
-        }
+       .question-input::placeholder {
+           color: #64748b;
+       }
 
-        .ask-btn {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 2px solid rgba(255,255,255,0.3);
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            width: 100%;
-        }
+       .ask-btn {
+           background: rgba(255,255,255,0.2);
+           color: white;
+           border: 2px solid rgba(255,255,255,0.3);
+           padding: 12px 24px;
+           border-radius: 8px;
+           font-size: 16px;
+           font-weight: 600;
+           cursor: pointer;
+           transition: all 0.2s ease;
+           width: 100%;
+       }
 
-        .ask-btn:hover {
-            background: rgba(255,255,255,0.3);
-            border-color: rgba(255,255,255,0.5);
-        }
+       .ask-btn:hover {
+           background: rgba(255,255,255,0.3);
+           border-color: rgba(255,255,255,0.5);
+       }
 
-        .ask-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
+       .ask-btn:disabled {
+           opacity: 0.6;
+           cursor: not-allowed;
+       }
 
-        .ai-response {
-            background: rgba(255,255,255,0.1);
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin-top: 1rem;
-            min-height: 60px;
-            white-space: pre-wrap;
-            line-height: 1.6;
-            font-size: 1rem;
-        }
+       .ai-response {
+           background: rgba(255,255,255,0.1);
+           padding: 1.5rem;
+           border-radius: 12px;
+           margin-top: 1rem;
+           min-height: 60px;
+           white-space: pre-wrap;
+           line-height: 1.6;
+           font-size: 1rem;
+       }
 
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            backdrop-filter: blur(4px);
-        }
+       .modal {
+           display: none;
+           position: fixed;
+           z-index: 1000;
+           left: 0;
+           top: 0;
+           width: 100%;
+           height: 100%;
+           background-color: rgba(0,0,0,0.5);
+           backdrop-filter: blur(4px);
+       }
 
-        .modal.show {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+       .modal.show {
+           display: flex;
+           align-items: center;
+           justify-content: center;
+       }
 
-        .modal-content {
-            background: white;
-            border-radius: 20px;
-            padding: 0;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: modalSlideIn 0.3s ease;
-        }
+       .modal-content {
+           background: white;
+           border-radius: 20px;
+           padding: 0;
+           width: 90%;
+           max-width: 500px;
+           max-height: 90vh;
+           overflow-y: auto;
+           animation: modalSlideIn 0.3s ease;
+       }
 
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: scale(0.9) translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
+       @keyframes modalSlideIn {
+           from {
+               opacity: 0;
+               transform: scale(0.9) translateY(-20px);
+           }
+           to {
+               opacity: 1;
+               transform: scale(1) translateY(0);
+           }
+       }
 
-        .modal-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 20px 20px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+       .modal-header {
+           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+           color: white;
+           padding: 20px;
+           border-radius: 20px 20px 0 0;
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+       }
 
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
+       .modal-title {
+           font-size: 1.5rem;
+           font-weight: bold;
+       }
 
-        .close-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 0;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s ease;
-        }
+       .close-btn {
+           background: none;
+           border: none;
+           color: white;
+           font-size: 24px;
+           cursor: pointer;
+           padding: 0;
+           width: 30px;
+           height: 30px;
+           border-radius: 50%;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           transition: background 0.2s ease;
+       }
 
-        .close-btn:hover {
-            background: rgba(255,255,255,0.2);
-        }
+       .close-btn:hover {
+           background: rgba(255,255,255,0.2);
+       }
 
-        .modal-body {
-            padding: 20px;
-        }
+       .modal-body {
+           padding: 20px;
+       }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+       .form-group {
+           margin-bottom: 20px;
+       }
 
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #374151;
-        }
+       .form-label {
+           display: block;
+           margin-bottom: 8px;
+           font-weight: 600;
+           color: #374151;
+       }
 
-        .form-input, .form-select, .form-textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.2s ease;
-            font-family: inherit;
-        }
+       .form-input, .form-select, .form-textarea {
+           width: 100%;
+           padding: 12px 16px;
+           border: 2px solid #e5e7eb;
+           border-radius: 8px;
+           font-size: 16px;
+           transition: border-color 0.2s ease;
+           font-family: inherit;
+       }
 
-        .form-input:focus, .form-select:focus, .form-textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
+       .form-input:focus, .form-select:focus, .form-textarea:focus {
+           outline: none;
+           border-color: #667eea;
+           box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+       }
 
-        .form-textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
+       .form-textarea {
+           resize: vertical;
+           min-height: 100px;
+       }
 
-        .modal-footer {
-            padding: 20px;
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            border-top: 1px solid #e5e7eb;
-        }
+       .modal-footer {
+           padding: 20px;
+           display: flex;
+           gap: 12px;
+           justify-content: flex-end;
+           border-top: 1px solid #e5e7eb;
+       }
 
-        .btn-secondary {
-            background: #6b7280;
-            color: white;
-        }
+       .btn-secondary {
+           background: #6b7280;
+           color: white;
+       }
 
-        .btn-secondary:hover {
-            background: #4b5563;
-        }
+       .btn-secondary:hover {
+           background: #4b5563;
+       }
 
-        .emotion-selector {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            margin-top: 8px;
-        }
+       .emotion-selector {
+           display: grid;
+           grid-template-columns: repeat(5, 1fr);
+           gap: 8px;
+           margin-top: 8px;
+       }
 
-        .emotion-btn {
-            padding: 10px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
-            font-size: 24px;
-        }
+       .emotion-btn {
+           padding: 10px;
+           border: 2px solid #e5e7eb;
+           border-radius: 8px;
+           background: white;
+           cursor: pointer;
+           transition: all 0.2s ease;
+           text-align: center;
+           font-size: 24px;
+       }
 
-        .emotion-btn.selected {
-            border-color: #667eea;
-            background: #667eea;
-            color: white;
-        }
+       .emotion-btn.selected {
+           border-color: #667eea;
+           background: #667eea;
+           color: white;
+       }
 
-        .emotion-btn:hover:not(.selected) {
-            border-color: #cbd5e0;
-            background: #f9fafb;
-        }
+       .emotion-btn:hover:not(.selected) {
+           border-color: #cbd5e0;
+           background: #f9fafb;
+       }
 
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #10b981;
-            color: white;
-            padding: 16px 24px;
-            border-radius: 8px;
-            font-weight: 600;
-            z-index: 1001;
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
-        }
+       .toast {
+           position: fixed;
+           top: 20px;
+           right: 20px;
+           background: #10b981;
+           color: white;
+           padding: 16px 24px;
+           border-radius: 8px;
+           font-weight: 600;
+           z-index: 1001;
+           transform: translateX(400px);
+           transition: transform 0.3s ease;
+       }
 
-        .toast.show {
-            transform: translateX(0);
-        }
+       .toast.show {
+           transform: translateX(0);
+       }
 
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-        }
+       .loading {
+           display: inline-block;
+           width: 20px;
+           height: 20px;
+           border: 3px solid rgba(255,255,255,.3);
+           border-radius: 50%;
+           border-top-color: #fff;
+           animation: spin 1s ease-in-out infinite;
+       }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+       @keyframes spin {
+           to { transform: rotate(360deg); }
+       }
 
-        @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .actions-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .emotion-selector {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-    </style>
+       @media (max-width: 768px) {
+           .stats-grid {
+               grid-template-columns: repeat(2, 1fr);
+           }
+           
+           .actions-grid {
+               grid-template-columns: 1fr;
+           }
+           
+           .emotion-selector {
+               grid-template-columns: repeat(3, 1fr);
+           }
+       }
+   </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🍎 MyDiet</h1>
-            <p>AI와 함께하는 스마트한 건강 관리</p>
-        </div>
- 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">🍽️</div>
-                <div class="stat-value" id="total-calories">0</div>
-                <div class="stat-label">오늘 섭취 칼로리</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🏃‍♂️</div>
-                <div class="stat-value" id="total-workouts">0</div>
-                <div class="stat-label">오늘 운동 횟수</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">😊</div>
-                <div class="stat-value" id="mood-score">0</div>
-                <div class="stat-label">평균 기분 점수</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🎯</div>
-                <div class="stat-value" id="goal-progress">0%</div>
-                <div class="stat-label">오늘 목표 달성률</div>
-            </div>
-        </div>
- 
-        <div class="claude-section">
-            <h2>🤖 오늘의 Claude 멘트</h2>
-            <div class="claude-response" id="claude-response">
-                로딩 중...
-            </div>
-        </div>
+   <div class="container">
+       <div class="header">
+           <h1>🍎 MyDiet</h1>
+           <p>AI와 함께하는 스마트한 건강 관리</p>
+       </div>
 
-        <div class="ai-question-section">
-            <h2>🧠 AI에게 질문하세요</h2>
-            <p style="margin-bottom: 1rem; opacity: 0.9;">건강, 다이어트, 운동에 대해 궁금한 것이 있으시나요? AI가 도움을 드릴게요!</p>
-            <div class="ai-question-form">
-                <input 
-                    type="text" 
-                    id="ai-question-input" 
-                    class="question-input" 
-                    placeholder="예: 체중 감량을 위한 효과적인 운동 방법이 뭔가요?"
-                    maxlength="200"
-                >
-                <button id="ask-ai-btn" class="ask-btn" onclick="askAI()">
-                    💬 AI에게 질문하기
-                </button>
-            </div>
-            <div id="ai-response" class="ai-response" style="display: none;">
-                
-            </div>
-        </div>
- 
-        <div class="actions-grid">
-            <div class="action-card">
-                <h3>📝 기록하기</h3>
-                <div class="action-buttons">
-                    <button class="btn btn-success" onclick="openModal('meal')">
-                        🥗 식단 기록
-                    </button>
-                    <button class="btn btn-primary" onclick="openModal('workout')">
-                        💪 운동 기록
-                    </button>
-                    <button class="btn btn-warning" onclick="openModal('emotion')">
-                        😊 감정 기록
-                    </button>
-                </div>
-            </div>
+       <div class="stats-grid">
+           <div class="stat-card">
+               <div class="stat-icon">🍽️</div>
+               <div class="stat-value" id="total-calories">0</div>
+               <div class="stat-label">오늘 섭취 칼로리</div>
+           </div>
+           <div class="stat-card">
+               <div class="stat-icon">🏃‍♂️</div>
+               <div class="stat-value" id="total-workouts">0</div>
+               <div class="stat-label">오늘 운동 횟수</div>
+           </div>
+           <div class="stat-card">
+               <div class="stat-icon">😊</div>
+               <div class="stat-value" id="mood-score">0</div>
+               <div class="stat-label">평균 기분 점수</div>
+           </div>
+           <div class="stat-card">
+               <div class="stat-icon">🎯</div>
+               <div class="stat-value" id="goal-progress">0%</div>
+               <div class="stat-label">오늘 목표 달성률</div>
+           </div>
+       </div>
 
-            <div class="action-card">
-                <h3>⚙️ 설정</h3>
-                <div class="action-buttons">
-                    <a href="/profile-settings.html" class="btn btn-info" style="text-decoration: none;">
-                        👤 프로필 설정
-                    </a>
-                    <button class="btn btn-secondary" onclick="logout()">
-                        🚪 로그아웃
-                    </button>
-                </div>
-            </div>
+       <div class="claude-section">
+           <h2>🤖 오늘의 Claude 멘트</h2>
+           <div class="claude-response" id="claude-response">
+               로딩 중...
+           </div>
+       </div>
 
-            <div class="action-card">
-                <h3>📊 주요 인사이트</h3>
-                <div id="insights-content">
-                    <div class="empty-state">
-                        <div style="text-align: center; color: #64748b; padding: 20px;">
-                            <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">💭</div>
-                            <p>분석할 데이터가 충분하지 않습니다.<br>더 많은 기록을 남겨보세요!</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
- 
-    <div id="meal-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">🥗 식단 기록</h3>
-                <button class="close-btn" onclick="closeModal('meal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="meal-form" onsubmit="saveMeal(event)">
-                    <div class="form-group">
-                        <label class="form-label">음식명 *</label>
-                        <input type="text" id="meal-description" class="form-input" placeholder="예: 현미밥, 치킨샐러드" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">예상 칼로리 *</label>
-                        <input type="number" id="meal-calories" class="form-input" placeholder="예: 300" required min="0">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">사진 URL (선택)</label>
-                        <input type="url" id="meal-photo" class="form-input" placeholder="https://example.com/photo.jpg">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('meal')">취소</button>
-                <button type="submit" form="meal-form" class="btn btn-success">저장</button>
-            </div>
-        </div>
-    </div>
- 
-    <div id="workout-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">💪 운동 기록</h3>
-                <button class="close-btn" onclick="closeModal('workout')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="workout-form" onsubmit="saveWorkout(event)">
-                    <div class="form-group">
-                        <label class="form-label">운동 종류 *</label>
-                        <select id="workout-type" class="form-select" required>
-                            <option value="">선택하세요</option>
-                            <option value="걷기">걷기</option>
-                            <option value="달리기">달리기</option>
-                            <option value="자전거">자전거</option>
-                            <option value="수영">수영</option>
-                            <option value="웨이트">웨이트 트레이닝</option>
-                            <option value="요가">요가</option>
-                            <option value="필라테스">필라테스</option>
-                            <option value="기타">기타</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">운동 시간 (분) *</label>
-                        <input type="number" id="workout-duration" class="form-input" placeholder="예: 30" required min="1">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">소모 칼로리 (예상)</label>
-                        <input type="number" id="workout-calories" class="form-input" placeholder="예: 200" min="0">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('workout')">취소</button>
-                <button type="submit" form="workout-form" class="btn btn-primary">저장</button>
-            </div>
-        </div>
-    </div>
- 
-    <div id="emotion-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">😊 감정 기록</h3>
-                <button class="close-btn" onclick="closeModal('emotion')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="emotion-form" onsubmit="saveEmotion(event)">
-                    <div class="form-group">
-                        <label class="form-label">오늘 기분은? *</label>
-                        <div class="emotion-selector">
-                            <button type="button" class="emotion-btn" data-mood="매우좋음" onclick="selectEmotion(this)">😍</button>
-                            <button type="button" class="emotion-btn" data-mood="좋음" onclick="selectEmotion(this)">😊</button>
-                            <button type="button" class="emotion-btn" data-mood="보통" onclick="selectEmotion(this)">😐</button>
-                            <button type="button" class="emotion-btn" data-mood="나쁨" onclick="selectEmotion(this)">😔</button>
-                            <button type="button" class="emotion-btn" data-mood="매우나쁨" onclick="selectEmotion(this)">😭</button>
-                        </div>
-                        <input type="hidden" id="selected-mood" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">메모</label>
-                        <textarea id="emotion-note" class="form-textarea" placeholder="오늘 하루 어땠는지 간단히 적어보세요..."></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('emotion')">취소</button>
-                <button type="submit" form="emotion-form" class="btn btn-warning">저장</button>
-            </div>
-        </div>
-    </div>
+       <div class="ai-question-section">
+           <h2>🧠 AI에게 질문하세요</h2>
+           <p style="margin-bottom: 1rem; opacity: 0.9;">건강, 다이어트, 운동에 대해 궁금한 것이 있으시나요? AI가 도움을 드릴게요!</p>
+           <div class="ai-question-form">
+               <input 
+                   type="text" 
+                   id="ai-question-input" 
+                   class="question-input" 
+                   placeholder="예: 체중 감량을 위한 효과적인 운동 방법이 뭔가요?"
+                   maxlength="200"
+               >
+               <button id="ask-ai-btn" class="ask-btn" onclick="askAI()">
+                   💬 AI에게 질문하기
+               </button>
+           </div>
+           <div id="ai-response" class="ai-response" style="display: none;">
+               
+           </div>
+       </div>
 
-    <script>
-        let selectedMood = '';
- 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadTodayStats();
-            loadClaudeResponse();
+       <div class="actions-grid">
+           <div class="action-card">
+               <h3>📝 기록하기</h3>
+               <div class="action-buttons">
+                   <button class="btn btn-success" onclick="openModal('meal')">
+                       🥗 식단 기록
+                   </button>
+                   <button class="btn btn-primary" onclick="openModal('workout')">
+                       💪 운동 기록
+                   </button>
+                   <button class="btn btn-warning" onclick="openModal('emotion')">
+                       😊 감정 기록
+                   </button>
+               </div>
+           </div>
+
+           <div class="action-card">
+               <h3>⚙️ 설정</h3>
+               <div class="action-buttons">
+                   <a href="/profile-settings.html" class="btn btn-info" style="text-decoration: none;">
+                       👤 프로필 설정
+                   </a>
+                   <button class="btn btn-secondary" onclick="logout()">
+                       🚪 로그아웃
+                   </button>
+               </div>
+           </div>
+
+           <div class="action-card">
+               <h3>📊 주요 인사이트</h3>
+               <div id="insights-content">
+                   <div class="empty-state">
+                       <div style="text-align: center; color: #64748b; padding: 20px;">
+                           <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">💭</div>
+                           <p>분석할 데이터가 충분하지 않습니다.<br>더 많은 기록을 남겨보세요!</p>
+                       </div>
+                   </div>
+               </div>
+           </div>
+       </div>
+   </div>
+
+   <div id="meal-modal" class="modal">
+       <div class="modal-content">
+           <div class="modal-header">
+               <h3 class="modal-title">🥗 식단 기록</h3>
+               <button class="close-btn" onclick="closeModal('meal')">&times;</button>
+           </div>
+           <div class="modal-body">
+               <form id="meal-form" onsubmit="saveMeal(event)">
+                   <div class="form-group">
+                       <label class="form-label">음식명 *</label>
+                       <input type="text" id="meal-description" class="form-input" placeholder="예: 현미밥, 치킨샐러드" required>
+                   </div>
+                   <div class="form-group">
+                       <label class="form-label">예상 칼로리 *</label>
+                       <input type="number" id="meal-calories" class="form-input" placeholder="예: 300" required min="0">
+                   </div>
+                   <div class="form-group">
+                       <label class="form-label">사진 URL (선택)</label>
+                       <input type="url" id="meal-photo" class="form-input" placeholder="https://example.com/photo.jpg">
+                   </div>
+               </form>
+           </div>
+           <div class="modal-footer">
+               <button type="button" class="btn btn-secondary" onclick="closeModal('meal')">취소</button>
+               <button type="submit" form="meal-form" class="btn btn-success">저장</button>
+           </div>
+       </div>
+   </div>
+
+   <div id="workout-modal" class="modal">
+       <div class="modal-content">
+           <div class="modal-header">
+               <h3 class="modal-title">💪 운동 기록</h3>
+               <button class="close-btn" onclick="closeModal('workout')">&times;</button>
+           </div>
+           <div class="modal-body">
+               <form id="workout-form" onsubmit="saveWorkout(event)">
+                   <div class="form-group">
+                       <label class="form-label">운동 종류 *</label>
+                       <select id="workout-type" class="form-select" required>
+                           <option value="">선택하세요</option>
+                           <option value="걷기">걷기</option>
+                           <option value="달리기">달리기</option>
+                           <option value="자전거">자전거</option>
+                           <option value="수영">수영</option>
+                           <option value="웨이트">웨이트 트레이닝</option>
+                           <option value="요가">요가</option>
+                           <option value="필라테스">필라테스</option>
+                           <option value="기타">기타</option>
+                       </select>
+                   </div>
+                   <div class="form-group">
+                       <label class="form-label">운동 시간 (분) *</label>
+                       <input type="number" id="workout-duration" class="form-input" placeholder="예: 30" required min="1">
+                   </div>
+                   <div class="form-group">
+                       <label class="form-label">소모 칼로리 (예상)</label>
+                       <input type="number" id="workout-calories" class="form-input" placeholder="예: 200" min="0">
+                   </div>
+               </form>
+           </div>
+           <div class="modal-footer">
+               <button type="button" class="btn btn-secondary" onclick="closeModal('workout')">취소</button>
+               <button type="submit" form="workout-form" class="btn btn-primary">저장</button>
+           </div>
+       </div>
+   </div>
+
+   <div id="emotion-modal" class="modal">
+       <div class="modal-content">
+           <div class="modal-header">
+               <h3 class="modal-title">😊 감정 기록</h3>
+               <button class="close-btn" onclick="closeModal('emotion')">&times;</button>
+           </div>
+           <div class="modal-body">
+               <form id="emotion-form" onsubmit="saveEmotion(event)">
+                   <div class="form-group">
+                       <label class="form-label">오늘 기분은? *</label>
+                       <div class="emotion-selector">
+                           <button type="button" class="emotion-btn" data-mood="매우좋음" onclick="selectEmotion(this)">😍</button>
+                           <button type="button" class="emotion-btn" data-mood="좋음" onclick="selectEmotion(this)">😊</button>
+                           <button type="button" class="emotion-btn" data-mood="보통" onclick="selectEmotion(this)">😐</button>
+                           <button type="button" class="emotion-btn" data-mood="나쁨" onclick="selectEmotion(this)">😔</button>
+                           <button type="button" class="emotion-btn" data-mood="매우나쁨" onclick="selectEmotion(this)">😭</button>
+                       </div>
+                       <input type="hidden" id="selected-mood" required>
+                   </div>
+                   <div class="form-group">
+                       <label class="form-label">메모</label>
+                       <textarea id="emotion-note" class="form-textarea" placeholder="오늘 하루 어땠는지 간단히 적어보세요..."></textarea>
+                   </div>
+               </form>
+           </div>
+           <div class="modal-footer">
+               <button type="button" class="btn btn-secondary" onclick="closeModal('emotion')">취소</button>
+               <button type="submit" form="emotion-form" class="btn btn-warning">저장</button>
+           </div>
+       </div>
+   </div>
+
+   <script>
+       let selectedMood = '';
+       let currentUser = null;
+
+       document.addEventListener('DOMContentLoaded', async function() {
+           await loadUserInfo();
+           
+           if (currentUser) {
+               loadTodayStats();
+               loadClaudeResponse();
+           } else {
+               window.location.href = '/auth.html';
+           }
+           
+           document.getElementById('ai-question-input').addEventListener('keypress', function(e) {
+               if (e.key === 'Enter') {
+                   askAI();
+               }
+           });
+       });
+
+       async function loadUserInfo() {
+           try {
+               const response = await fetch('/api/user/me');
+               if (response.ok) {
+                   currentUser = await response.json();
+                   console.log('Current user:', currentUser);
+               } else {
+                   console.error('Failed to load user info');
+                   currentUser = null;
+               }
+           } catch (error) {
+               console.error('Error loading user info:', error);
+               currentUser = null;
+           }
+       }
+
+       async function askAI() {
+           const input = document.getElementById('ai-question-input');
+           const question = input.value.trim();
+           
+           if (!question) {
+               showToast('질문을 입력해주세요.');
+               return;
+           }
+
+           const responseDiv = document.getElementById('ai-response');
+           const askBtn = document.getElementById('ask-ai-btn');
+           
+           askBtn.disabled = true;
+           askBtn.innerHTML = '<span class="loading"></span> AI가 답변 중...';
+           
+           responseDiv.style.display = 'block';
+           responseDiv.textContent = '답변을 생성하고 있습니다...';
+
+           try {
+               const response = await fetch('/api/ai/question', {
+                   method: 'POST',
+                   headers: {
+                       'Content-Type': 'application/json',
+                   },
+                   body: JSON.stringify({
+                       question: question
+                   })
+               });
+
+               if (response.ok) {
+                   const result = await response.text();
+                   responseDiv.textContent = result;
+                   input.value = '';
+               } else {
+                   throw new Error('AI 응답 실패');
+               }
+           } catch (error) {
+               console.error('AI 질문 오류:', error);
+               responseDiv.textContent = 'AI 응답을 가져오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+           } finally {
+               askBtn.disabled = false;
+               askBtn.innerHTML = '💬 AI에게 질문하기';
+           }
+       }
+
+       function openModal(type) {
+           const modal = document.getElementById(`${type}-modal`);
+           modal.classList.add('show');
+           document.body.style.overflow = 'hidden';
+       }
+
+       function closeModal(type) {
+           const modal = document.getElementById(`${type}-modal`);
+           modal.classList.remove('show');
+           document.body.style.overflow = 'auto';
             
-            document.getElementById('ai-question-input').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    askAI();
-                }
-            });
-        });
+           const form = document.getElementById(`${type}-form`);
+           if (form) form.reset();
+           
+           if (type === 'emotion') {
+               selectedMood = '';
+               document.querySelectorAll('.emotion-btn').forEach(btn => {
+                   btn.classList.remove('selected');
+               });
+           }
+       }
 
-        async function askAI() {
-            const input = document.getElementById('ai-question-input');
-            const question = input.value.trim();
-            
-            if (!question) {
-                showToast('질문을 입력해주세요.');
-                return;
-            }
+       document.addEventListener('click', function(e) {
+           if (e.target.classList.contains('modal')) {
+               const modalId = e.target.id.replace('-modal', '');
+               closeModal(modalId);
+           }
+       });
 
-            const responseDiv = document.getElementById('ai-response');
-            const askBtn = document.getElementById('ask-ai-btn');
-            
-            askBtn.disabled = true;
-            askBtn.innerHTML = '<span class="loading"></span> AI가 답변 중...';
-            
-            responseDiv.style.display = 'block';
-            responseDiv.textContent = '답변을 생성하고 있습니다...';
+       document.addEventListener('keydown', function(e) {
+           if (e.key === 'Escape') {
+               document.querySelectorAll('.modal.show').forEach(modal => {
+                   const modalId = modal.id.replace('-modal', '');
+                   closeModal(modalId);
+               });
+           }
+       });
 
-            try {
-                const response = await fetch('/api/ai/question', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        question: question,
-                        userId: 1
-                    })
-                });
+       function selectEmotion(btn) {
+           document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('selected'));
+           btn.classList.add('selected');
+           selectedMood = btn.dataset.mood;
+           document.getElementById('selected-mood').value = selectedMood;
+       }
 
-                if (response.ok) {
-                    const result = await response.text();
-                    responseDiv.textContent = result;
-                    input.value = '';
-                } else {
-                    throw new Error('AI 응답 실패');
-                }
-            } catch (error) {
-                console.error('AI 질문 오류:', error);
-                responseDiv.textContent = 'AI 응답을 가져오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-            } finally {
-                askBtn.disabled = false;
-                askBtn.innerHTML = '💬 AI에게 질문하기';
-            }
-        }
- 
-        function openModal(type) {
-            const modal = document.getElementById(`${type}-modal`);
-            modal.classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
- 
-        function closeModal(type) {
-            const modal = document.getElementById(`${type}-modal`);
-            modal.classList.remove('show');
-            document.body.style.overflow = 'auto';
-             
-            const form = document.getElementById(`${type}-form`);
-            if (form) form.reset();
-            
-            if (type === 'emotion') {
-                selectedMood = '';
-                document.querySelectorAll('.emotion-btn').forEach(btn => {
-                    btn.classList.remove('selected');
-                });
-            }
-        }
- 
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('modal')) {
-                const modalId = e.target.id.replace('-modal', '');
-                closeModal(modalId);
-            }
-        });
- 
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                document.querySelectorAll('.modal.show').forEach(modal => {
-                    const modalId = modal.id.replace('-modal', '');
-                    closeModal(modalId);
-                });
-            }
-        });
- 
-        function selectEmotion(btn) {
-            document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-            selectedMood = btn.dataset.mood;
-            document.getElementById('selected-mood').value = selectedMood;
-        }
- 
-        function showToast(message) {
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            
-            setTimeout(() => toast.classList.add('show'), 100);
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
- 
-        async function saveMeal(e) {
-            e.preventDefault();
-            
-            const mealData = {
-                description: document.getElementById('meal-description').value,
-                caloriesEstimate: parseInt(document.getElementById('meal-calories').value),
-                photoUrl: document.getElementById('meal-photo').value || null,
-                date: new Date().toISOString().split('T')[0]
-            };
+       function showToast(message) {
+           const toast = document.createElement('div');
+           toast.className = 'toast';
+           toast.textContent = message;
+           document.body.appendChild(toast);
+           
+           setTimeout(() => toast.classList.add('show'), 100);
+           setTimeout(() => {
+               toast.classList.remove('show');
+               setTimeout(() => toast.remove(), 300);
+           }, 3000);
+       }
 
-            try {
-                const response = await fetch('/api/meals', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        userId: 1,  
-                        ...mealData
-                    })
-                });
+       async function saveMeal(e) {
+           e.preventDefault();
+           
+           if (!currentUser) {
+               showToast('로그인이 필요합니다.');
+               window.location.href = '/auth.html';
+               return;
+           }
+           
+           const mealData = {
+               description: document.getElementById('meal-description').value,
+               calories: parseInt(document.getElementById('meal-calories').value),
+               photoUrl: document.getElementById('meal-photo').value || null
+           };
 
-                if (response.ok) {
-                    showToast('식단이 기록되었습니다! 🥗');
-                    closeModal('meal');
-                    loadTodayStats();
-                    loadClaudeResponse();
-                } else {
-                    throw new Error('저장 실패');
-                }
-            } catch (error) {
-                console.error('식단 저장 오류:', error);
-                showToast('저장 중 오류가 발생했습니다.');
-            }
-        }
- 
-        async function saveWorkout(e) {
-            e.preventDefault();
-            
-            const workoutData = {
-                type: document.getElementById('workout-type').value,
-                duration: parseInt(document.getElementById('workout-duration').value),
-                caloriesBurned: parseInt(document.getElementById('workout-calories').value) || 0,
-                date: new Date().toISOString().split('T')[0]
-            };
+           try {
+               const response = await fetch('/api/meals', {
+                   method: 'POST',
+                   headers: {
+                       'Content-Type': 'application/json',
+                   },
+                   body: JSON.stringify(mealData)
+               });
 
-            try {
-                const response = await fetch('/api/workouts', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        userId: 1,  
-                        ...workoutData
-                    })
-                });
+               if (response.ok) {
+                   showToast('식단이 기록되었습니다! 🥗');
+                   closeModal('meal');
+                   loadTodayStats();
+                   loadClaudeResponse();
+               } else {
+                   const error = await response.json();
+                   throw new Error(error.error || '저장 실패');
+               }
+           } catch (error) {
+               console.error('식단 저장 오류:', error);
+               showToast('저장 중 오류가 발생했습니다: ' + error.message);
+           }
+       }
 
-                if (response.ok) {
-                    showToast('운동이 기록되었습니다! 💪');
-                    closeModal('workout');
-                    loadTodayStats();
-                    loadClaudeResponse();
-                } else {
-                    throw new Error('저장 실패');
-                }
-            } catch (error) {
-                console.error('운동 저장 오류:', error);
-                showToast('저장 중 오류가 발생했습니다.');
-            }
-        }
- 
-        async function saveEmotion(e) {
-            e.preventDefault();
-            
-            const emotionData = {
-                mood: selectedMood,
-                note: document.getElementById('emotion-note').value || '',
-                date: new Date().toISOString().split('T')[0]
-            };
+       async function saveWorkout(e) {
+           e.preventDefault();
+           
+           if (!currentUser) {
+               showToast('로그인이 필요합니다.');
+               window.location.href = '/auth.html';
+               return;
+           }
+           
+           const workoutData = {
+               type: document.getElementById('workout-type').value,
+               duration: parseInt(document.getElementById('workout-duration').value),
+               caloriesBurned: parseInt(document.getElementById('workout-calories').value) || 0
+           };
 
-            try {
-                const response = await fetch('/api/emotions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        userId: 1,  
-                        ...emotionData
-                    })
-                });
+           try {
+               const response = await fetch('/api/workouts', {
+                   method: 'POST',
+                   headers: {
+                       'Content-Type': 'application/json',
+                   },
+                   body: JSON.stringify(workoutData)
+               });
 
-                if (response.ok) {
-                    showToast('감정이 기록되었습니다! 😊');
-                    closeModal('emotion');
-                    loadTodayStats();
-                    loadClaudeResponse();
-                } else {
-                    throw new Error('저장 실패');
-                }
-            } catch (error) {
-                console.error('감정 저장 오류:', error);
-                showToast('저장 중 오류가 발생했습니다.');
-            }
-        }
- 
-        async function loadTodayStats() {
-            try {
-                const userId = 1; 
-                const today = new Date().toISOString().split('T')[0];
- 
-                const [mealsRes, workoutsRes, emotionsRes] = await Promise.all([
-                    fetch(`/api/meals/today?userId=${userId}`).catch(() => ({ok: false})),
-                    fetch(`/api/workouts/today?userId=${userId}`).catch(() => ({ok: false})),
-                    fetch(`/api/emotions/today?userId=${userId}`).catch(() => ({ok: false}))
-                ]);
+               if (response.ok) {
+                   showToast('운동이 기록되었습니다! 💪');
+                   closeModal('workout');
+                   loadTodayStats();
+                   loadClaudeResponse();
+               } else {
+                   const error = await response.json();
+                   throw new Error(error.error || '저장 실패');
+               }
+           } catch (error) {
+               console.error('운동 저장 오류:', error);
+               showToast('저장 중 오류가 발생했습니다: ' + error.message);
+           }
+       }
 
-                let totalCalories = 0;
-                let totalWorkouts = 0;
-                let avgMood = 0;
+       async function saveEmotion(e) {
+           e.preventDefault();
+           
+           if (!currentUser) {
+               showToast('로그인이 필요합니다.');
+               window.location.href = '/auth.html';
+               return;
+           }
+           
+           const emotionData = {
+               mood: selectedMood,
+               note: document.getElementById('emotion-note').value || ''
+           };
 
-                if (mealsRes.ok) {
-                    const meals = await mealsRes.json();
-                    totalCalories = meals.reduce((sum, meal) => sum + (meal.caloriesEstimate || 0), 0);
-                }
+           try {
+               const response = await fetch('/api/emotions', {
+                   method: 'POST',
+                   headers: {
+                       'Content-Type': 'application/json',
+                   },
+                   body: JSON.stringify(emotionData)
+               });
 
-                if (workoutsRes.ok) {
-                    const workouts = await workoutsRes.json();
-                    totalWorkouts = workouts.length;
-                }
+               if (response.ok) {
+                   showToast('감정이 기록되었습니다! 😊');
+                   closeModal('emotion');
+                   loadTodayStats();
+                   loadClaudeResponse();
+               } else {
+                   const error = await response.json();
+                   throw new Error(error.error || '저장 실패');
+               }
+           } catch (error) {
+               console.error('감정 저장 오류:', error);
+               showToast('저장 중 오류가 발생했습니다: ' + error.message);
+           }
+       }
 
-                if (emotionsRes.ok) {
-                    const emotions = await emotionsRes.json();
-                    if (emotions.length > 0) {
-                        const moodValues = { '매우나쁨': 1, '나쁨': 2, '보통': 3, '좋음': 4, '매우좋음': 5 };
-                        const avgValue = emotions.reduce((sum, emotion) => sum + (moodValues[emotion.mood] || 3), 0) / emotions.length;
-                        avgMood = Math.round(avgValue * 10) / 10;
-                    }
-                }
- 
-                const calorieGoal = 1500;
-                const workoutGoal = 1;
-                const goalProgress = Math.min(
-                    ((totalCalories / calorieGoal) * 50 + (totalWorkouts / workoutGoal) * 50), 
-                    100
-                );
- 
-                document.getElementById('total-calories').textContent = totalCalories;
-                document.getElementById('total-workouts').textContent = totalWorkouts;
-                document.getElementById('mood-score').textContent = avgMood || '-';
-                document.getElementById('goal-progress').textContent = Math.round(goalProgress) + '%';
+       async function loadTodayStats() {
+           try {
+               const [mealsRes, workoutsRes, emotionsRes] = await Promise.all([
+                   fetch('/api/meals/today').catch(() => ({ok: false})),
+                   fetch('/api/workouts/today').catch(() => ({ok: false})),
+                   fetch('/api/emotions/today').catch(() => ({ok: false}))
+               ]);
 
-            } catch (error) {
-                console.error('통계 로드 오류:', error);
-            }
-        }
- 
-        async function loadClaudeResponse() {
-            try {
-                const response = await fetch('/api/claude/message?userId=1');
-                const message = await response.text();
-                document.getElementById('claude-response').textContent = message;
-            } catch (error) {
-                console.error('Claude 응답 오류:', error);
-                document.getElementById('claude-response').textContent = 'Claude 응답을 불러올 수 없습니다.';
-            }
-        }
-    </script>
+               let totalCalories = 0;
+               let totalWorkouts = 0;
+               let avgMood = 0;
+
+               if (mealsRes.ok) {
+                   const meals = await mealsRes.json();
+                   totalCalories = meals.reduce((sum, meal) => sum + (meal.caloriesEstimate || 0), 0);
+               }
+
+               if (workoutsRes.ok) {
+                   const workouts = await workoutsRes.json();
+                   totalWorkouts = workouts.length;
+               }
+
+               if (emotionsRes.ok) {
+                   const emotions = await emotionsRes.json();
+                   if (emotions.length > 0) {
+                       const moodValues = { '매우나쁨': 1, '나쁨': 2, '보통': 3, '좋음': 4, '매우좋음': 5 };
+                       const avgValue = emotions.reduce((sum, emotion) => sum + (moodValues[emotion.mood] || 3), 0) / emotions.length;
+                       avgMood = Math.round(avgValue * 10) / 10;
+                   }
+               }
+
+               const calorieGoal = 1500;
+               const workoutGoal = 1;
+               const goalProgress = Math.min(
+                   ((totalCalories / calorieGoal) * 50 + (totalWorkouts / workoutGoal) * 50), 
+                   100
+               );
+
+               document.getElementById('total-calories').textContent = totalCalories;
+               document.getElementById('total-workouts').textContent = totalWorkouts;
+               document.getElementById('mood-score').textContent = avgMood || '-';
+               document.getElementById('goal-progress').textContent = Math.round(goalProgress) + '%';
+
+           } catch (error) {
+               console.error('통계 로드 오류:', error);
+           }
+       }
+
+       async function loadClaudeResponse() {
+           try {
+               const response = await fetch('/api/claude/message');
+               const message = await response.text();
+               document.getElementById('claude-response').textContent = message;
+           } catch (error) {
+               console.error('Claude 응답 오류:', error);
+               document.getElementById('claude-response').textContent = 'Claude 응답을 불러올 수 없습니다.';
+           }
+       }
+
+       function logout() {
+           fetch('/logout', { method: 'POST' })
+               .then(() => {
+                   window.location.href = '/auth.html';
+               })
+               .catch(error => {
+                   console.error('Logout error:', error);
+                   window.location.href = '/auth.html';
+               });
+       }
+   </script>
 </body>
 </html>
