@@ -555,34 +555,37 @@
        </div>
    </div>
 
-   <div id="meal-modal" class="modal">
-       <div class="modal-content">
-           <div class="modal-header">
-               <h3 class="modal-title">🥗 식단 기록</h3>
-               <button class="close-btn" onclick="closeModal('meal')">&times;</button>
-           </div>
-           <div class="modal-body">
-               <form id="meal-form" onsubmit="saveMeal(event)">
-                   <div class="form-group">
-                       <label class="form-label">음식명 *</label>
-                       <input type="text" id="meal-description" class="form-input" placeholder="예: 현미밥, 치킨샐러드" required>
-                   </div>
-                   <div class="form-group">
-                       <label class="form-label">예상 칼로리 *</label>
-                       <input type="number" id="meal-calories" class="form-input" placeholder="예: 300" required min="0">
-                   </div>
-                   <div class="form-group">
-                       <label class="form-label">사진 URL (선택)</label>
-                       <input type="url" id="meal-photo" class="form-input" placeholder="https://example.com/photo.jpg">
-                   </div>
-               </form>
-           </div>
-           <div class="modal-footer">
-               <button type="button" class="btn btn-secondary" onclick="closeModal('meal')">취소</button>
-               <button type="submit" form="meal-form" class="btn btn-success">저장</button>
-           </div>
-       </div>
-   </div>
+<div id="meal-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">🥗 식단 기록</h3>
+            <button class="close-btn" onclick="closeModal('meal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="meal-form" onsubmit="saveMeal(event)">
+                <div class="form-group">
+                    <label class="form-label">음식명 *</label>
+                    <input type="text" id="meal-description" class="form-input" placeholder="예: 현미밥, 치킨샐러드" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">예상 칼로리 *</label>
+                    <input type="number" id="meal-calories" class="form-input" placeholder="예: 300" required min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">사진 업로드</label>
+                    <input type="file" id="meal-photo-file" class="form-input" accept="image/*" onchange="previewImage(event)">
+                    <div id="image-preview" style="margin-top: 10px; display: none;">
+                        <img id="preview-img" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('meal')">취소</button>
+            <button type="submit" form="meal-form" class="btn btn-success">저장</button>
+        </div>
+    </div>
+</div>
 
    <div id="workout-modal" class="modal">
        <div class="modal-content">
@@ -795,44 +798,79 @@
            }, 3000);
        }
 
-       async function saveMeal(e) {
-           e.preventDefault();
-           
-           if (!currentUser) {
-               showToast('로그인이 필요합니다.');
-               window.location.href = '/auth.html';
-               return;
-           }
-           
-           const mealData = {
-               description: document.getElementById('meal-description').value,
-               calories: parseInt(document.getElementById('meal-calories').value),
-               photoUrl: document.getElementById('meal-photo').value || null
-           };
+       function previewImage(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('preview-img').src = e.target.result;
+                document.getElementById('image-preview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
 
-           try {
-               const response = await fetch('/api/meals', {
-                   method: 'POST',
-                   headers: {
-                       'Content-Type': 'application/json',
-                   },
-                   body: JSON.stringify(mealData)
-               });
-
-               if (response.ok) {
-                   showToast('식단이 기록되었습니다! 🥗');
-                   closeModal('meal');
-                   loadTodayStats();
-                   loadClaudeResponse();
-               } else {
-                   const error = await response.json();
-                   throw new Error(error.error || '저장 실패');
-               }
-           } catch (error) {
-               console.error('식단 저장 오류:', error);
-               showToast('저장 중 오류가 발생했습니다: ' + error.message);
-           }
-       }
+    async function saveMeal(e) {
+        e.preventDefault();
+        
+        const fileInput = document.getElementById('meal-photo-file');
+        const file = fileInput.files[0];
+        
+        if (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('description', document.getElementById('meal-description').value);
+            formData.append('calories', document.getElementById('meal-calories').value);
+            
+            try {
+                const response = await fetch('/api/meals/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    showToast('사진과 함께 저장되었습니다! 📸');
+                    closeModal('meal');
+                    loadTodayStats();
+                    loadClaudeResponse();
+                } else {
+                    throw new Error('저장 실패');
+                }
+            } catch (error) {
+                console.error('식단 저장 오류:', error);
+                showToast('저장 중 오류가 발생했습니다.');
+            }
+        } else {
+            const mealData = {
+                description: document.getElementById('meal-description').value,
+                calories: parseInt(document.getElementById('meal-calories').value)
+            };
+            
+            try {
+                const response = await fetch('/api/meals', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(mealData)
+                });
+                
+                if (response.ok) {
+                    showToast('식단이 기록되었습니다! 🥗');
+                    closeModal('meal');
+                    loadTodayStats();
+                    loadClaudeResponse();
+                } else {
+                    throw new Error('저장 실패');
+                }
+            } catch (error) {
+                console.error('식단 저장 오류:', error);
+                showToast('저장 중 오류가 발생했습니다.');
+            }
+        }
+    }
+           
+    
 
        async function saveWorkout(e) {
            e.preventDefault();
