@@ -557,7 +557,7 @@
         // 사용자 프로필 로드
         async function loadUserProfile() {
             try {
-                const response = await fetch('/api/dashboard/profile');
+                const response = await fetch('/api/user/profile'); // 경로 변경
                 if (response.ok) {
                     const profile = await response.json();
                     
@@ -577,7 +577,7 @@
         // 대시보드 통계 로드
         async function loadDashboardStats() {
             try {
-                const response = await fetch('/api/dashboard/stats');
+                const response = await fetch('/api/user/stats'); // 경로 변경
                 if (response.ok) {
                     const stats = await response.json();
                     
@@ -614,7 +614,7 @@
         // 오늘의 데이터 로드
         async function loadTodayData() {
             try {
-                const response = await fetch('/api/dashboard/today-data');
+                const response = await fetch('/api/user/today-data'); // 경로 변경
                 if (response.ok) {
                     const data = await response.json();
                     

@@ -22,7 +22,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/dashboard")
+@RequestMapping("/api/user") // 경로 변경하여 충돌 방지
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class UserDashboardController {
@@ -99,7 +99,7 @@ public class UserDashboardController {
             
             User user = userRepository.findById(userId).orElse(null);
             if (user == null) {
-                // 기본 사용자 생성
+                // 기본 사용자 생성 (람다 없이)
                 user = new User();
                 user.setId(userId);
                 user.setNickname("새 사용자");
@@ -127,22 +127,20 @@ public class UserDashboardController {
         }
     }
     
-    // 프로필 업데이트
+    // 프로필 업데이트 (람다 없이)
     @PutMapping("/profile")
     public ResponseEntity<?> updateProfile(@RequestBody Map<String, Object> request, HttpSession session) {
         try {
             Long userId = (Long) session.getAttribute("userId");
             if (userId == null) userId = 1L;
             
-            // final로 선언하여 람다에서 사용 가능하게 함
-            final Long finalUserId = userId;
-            
-            User user = userRepository.findById(finalUserId).orElseGet(() -> {
-                User newUser = new User();
-                newUser.setId(finalUserId);
-                newUser.setCreatedAt(LocalDateTime.now());
-                return newUser;
-            });
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                // 새 사용자 생성 (람다 없이)
+                user = new User();
+                user.setId(userId);
+                user.setCreatedAt(LocalDateTime.now());
+            }
             
             // 프로필 정보 업데이트
             if (request.containsKey("nickname")) {
