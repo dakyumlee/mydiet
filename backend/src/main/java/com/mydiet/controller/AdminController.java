@@ -1,19 +1,23 @@
 package com.mydiet.controller;
 
-import com.mydiet.repository.*;
 import com.mydiet.model.User;
+import com.mydiet.model.MealLog;
+import com.mydiet.model.WorkoutLog;
+import com.mydiet.model.EmotionLog;
+import com.mydiet.repository.UserRepository;
+import com.mydiet.repository.MealLogRepository;
+import com.mydiet.repository.WorkoutLogRepository;
+import com.mydiet.repository.EmotionLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ArrayList;
 
 @Slf4j
 @RestController
@@ -26,150 +30,206 @@ public class AdminController {
     private final MealLogRepository mealLogRepository;
     private final WorkoutLogRepository workoutLogRepository;
     private final EmotionLogRepository emotionLogRepository;
-    
-    @PersistenceContext
-    private EntityManager entityManager;
-    
+     
     @GetMapping("/stats")
-    public ResponseEntity<?> getStats() {
-        Map<String, Object> stats = new HashMap<>();
-        
+    public ResponseEntity<?> getAdminStats() {
         try {
+            Map<String, Object> stats = new HashMap<>();
+             
             long totalUsers = userRepository.count();
             long totalMeals = mealLogRepository.count();
             long totalWorkouts = workoutLogRepository.count();
             long totalEmotions = emotionLogRepository.count();
-            
+             
             LocalDate today = LocalDate.now();
-            
-            Long todayMeals = 0L;
-            Long todayWorkouts = 0L;
-            Long todayEmotions = 0L;
-            Long activeUsers = 0L;
-            
-            try {
-                todayMeals = (Long) entityManager
-                    .createQuery("SELECT COUNT(m) FROM MealLog m WHERE m.date = :today")
-                    .setParameter("today", today)
-                    .getSingleResult();
-            } catch (Exception e) {
-                log.error("Error counting today meals: ", e);
-                todayMeals = 0L;
-            }
-            
-            try {
-                todayWorkouts = (Long) entityManager
-                    .createQuery("SELECT COUNT(w) FROM WorkoutLog w WHERE w.date = :today")
-                    .setParameter("today", today)
-                    .getSingleResult();
-            } catch (Exception e) {
-                log.error("Error counting today workouts: ", e);
-                todayWorkouts = 0L;
-            }
-            
-            try {
-                todayEmotions = (Long) entityManager
-                    .createQuery("SELECT COUNT(e) FROM EmotionLog e WHERE e.date = :today")
-                    .setParameter("today", today)
-                    .getSingleResult();
-            } catch (Exception e) {
-                log.error("Error counting today emotions: ", e);
-                todayEmotions = 0L;
-            }
-            
-            try {
-                activeUsers = (Long) entityManager
-                    .createQuery("SELECT COUNT(u) FROM User u WHERE DATE(u.lastLoginAt) = :today")
-                    .setParameter("today", today)
-                    .getSingleResult();
-            } catch (Exception e) {
-                log.error("Error counting active users: ", e);
-                activeUsers = 0L;
-            }
+            List<MealLog> todayMeals = mealLogRepository.findAll().stream()
+                .filter(meal -> today.equals(meal.getDate()))
+                .toList();
+            List<WorkoutLog> todayWorkouts = workoutLogRepository.findAll().stream()
+                .filter(workout -> today.equals(workout.getDate()))
+                .toList();
+            List<EmotionLog> todayEmotions = emotionLogRepository.findAll().stream()
+                .filter(emotion -> today.equals(emotion.getDate()))
+                .toList();
             
             stats.put("totalUsers", totalUsers);
+            stats.put("activeUsers", totalUsers);
             stats.put("totalMeals", totalMeals);
             stats.put("totalWorkouts", totalWorkouts);
             stats.put("totalEmotions", totalEmotions);
-            stats.put("activeUsers", activeUsers);
-            stats.put("todayMeals", todayMeals);
-            stats.put("todayWorkouts", todayWorkouts);
-            stats.put("todayEmotions", todayEmotions);
+            stats.put("todayMeals", todayMeals.size());
+            stats.put("todayWorkouts", todayWorkouts.size());
+            stats.put("todayEmotions", todayEmotions.size());
             
-            log.info("Admin stats: totalUsers={}, totalMeals={}, totalWorkouts={}, totalEmotions={}, todayMeals={}, todayWorkouts={}, todayEmotions={}", 
-                totalUsers, totalMeals, totalWorkouts, totalEmotions, todayMeals, todayWorkouts, todayEmotions);
+            log.info("Admin stats requested: {}", stats);
+            return ResponseEntity.ok(stats);
             
         } catch (Exception e) {
-            log.error("Error in getStats: ", e);
-            stats.put("totalUsers", 0L);
-            stats.put("totalMeals", 0L);
-            stats.put("totalWorkouts", 0L);
-            stats.put("totalEmotions", 0L);
-            stats.put("activeUsers", 0L);
-            stats.put("todayMeals", 0L);
-            stats.put("todayWorkouts", 0L);
-            stats.put("todayEmotions", 0L);
+            log.error("Error fetching admin stats: ", e);
+            return ResponseEntity.ok(Map.of(
+                "error", e.getMessage(),
+                "totalUsers", 0,
+                "activeUsers", 0,
+                "totalMeals", 0,
+                "totalWorkouts", 0,
+                "totalEmotions", 0,
+                "todayMeals", 0,
+                "todayWorkouts", 0,
+                "todayEmotions", 0
+            ));
         }
-        
-        return ResponseEntity.ok(stats);
     }
-    
+     
     @GetMapping("/users")
-    public ResponseEntity<?> getUsers() {
+    public ResponseEntity<?> getAllUsers() {
         try {
             List<User> users = userRepository.findAll();
-            log.info("Found {} users", users.size());
+            log.info("Admin users list requested: {} users found", users.size());
             return ResponseEntity.ok(users);
         } catch (Exception e) {
-            log.error("Error getting users: ", e);
-            return ResponseEntity.ok(new ArrayList<>());
+            log.error("Error fetching users: ", e);
+            return ResponseEntity.ok(List.of());
         }
     }
-    
-    @PostMapping("/login")
-    public ResponseEntity<?> adminLogin(@RequestBody Map<String, String> credentials) {
-        String password = credentials.get("password");
-        
-        if ("admin1234".equals(password)) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "관리자 로그인 성공");
-            
-            log.info("Admin login successful");
-            return ResponseEntity.ok(response);
-        }
-        
-        log.warn("Admin login failed - wrong password");
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("success", false);
-        errorResponse.put("message", "비밀번호가 틀렸습니다");
-        return ResponseEntity.badRequest().body(errorResponse);
-    }
-    
-    @GetMapping("/test")
-    public ResponseEntity<?> testDatabase() {
-        Map<String, Object> result = new HashMap<>();
-        
+     
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<?> getUserDetail(@PathVariable Long userId) {
         try {
-            List<User> users = userRepository.findAll();
-            result.put("users", users.size());
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                return ResponseEntity.ok(Map.of("error", "사용자를 찾을 수 없습니다"));
+            }
             
-            List<?> meals = mealLogRepository.findAll();
-            result.put("meals", meals.size());
+            LocalDate today = LocalDate.now();
+            List<MealLog> userMeals = mealLogRepository.findByUserIdAndDate(userId, today);
+            List<WorkoutLog> userWorkouts = workoutLogRepository.findByUserIdAndDate(userId, today);
+            List<EmotionLog> userEmotions = emotionLogRepository.findByUserIdAndDate(userId, today);
             
-            List<?> workouts = workoutLogRepository.findAll();
-            result.put("workouts", workouts.size());
+            Map<String, Object> userDetail = new HashMap<>();
+            userDetail.put("user", user);
+            userDetail.put("todayMeals", userMeals);
+            userDetail.put("todayWorkouts", userWorkouts);
+            userDetail.put("todayEmotions", userEmotions);
+             
+            List<MealLog> allUserMeals = mealLogRepository.findAll().stream()
+                .filter(meal -> userId.equals(meal.getUser().getId()))
+                .toList();
+            List<WorkoutLog> allUserWorkouts = workoutLogRepository.findAll().stream()
+                .filter(workout -> userId.equals(workout.getUser().getId()))
+                .toList();
+            List<EmotionLog> allUserEmotions = emotionLogRepository.findAll().stream()
+                .filter(emotion -> userId.equals(emotion.getUser().getId()))
+                .toList();
             
-            List<?> emotions = emotionLogRepository.findAll();
-            result.put("emotions", emotions.size());
+            userDetail.put("totalMeals", allUserMeals.size());
+            userDetail.put("totalWorkouts", allUserWorkouts.size());
+            userDetail.put("totalEmotions", allUserEmotions.size());
             
-            result.put("status", "Database connected");
+            log.info("User detail requested for ID: {}", userId);
+            return ResponseEntity.ok(userDetail);
             
         } catch (Exception e) {
-            result.put("status", "Database error");
-            result.put("error", e.getMessage());
+            log.error("Error fetching user detail for ID {}: ", userId, e);
+            return ResponseEntity.ok(Map.of("error", e.getMessage()));
         }
-        
-        return ResponseEntity.ok(result);
+    }
+     
+    @DeleteMapping("/users/{userId}")
+    @Transactional
+    public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
+        try {
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                return ResponseEntity.ok(Map.of(
+                    "success", false,
+                    "error", "사용자를 찾을 수 없습니다"
+                ));
+            }
+             
+            List<MealLog> userMeals = mealLogRepository.findAll().stream()
+                .filter(meal -> userId.equals(meal.getUser().getId()))
+                .toList();
+            mealLogRepository.deleteAll(userMeals);
+             
+            List<WorkoutLog> userWorkouts = workoutLogRepository.findAll().stream()
+                .filter(workout -> userId.equals(workout.getUser().getId()))
+                .toList();
+            workoutLogRepository.deleteAll(userWorkouts);
+             
+            List<EmotionLog> userEmotions = emotionLogRepository.findAll().stream()
+                .filter(emotion -> userId.equals(emotion.getUser().getId()))
+                .toList();
+            emotionLogRepository.deleteAll(userEmotions);
+             
+            userRepository.delete(user);
+            
+            log.info("User deleted: ID={}, nickname={}", userId, user.getNickname());
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "사용자와 관련된 모든 데이터가 삭제되었습니다",
+                "deletedUserId", userId,
+                "deletedUserNickname", user.getNickname()
+            ));
+            
+        } catch (Exception e) {
+            log.error("Error deleting user ID {}: ", userId, e);
+            return ResponseEntity.ok(Map.of(
+                "success", false,
+                "error", "사용자 삭제 중 오류가 발생했습니다: " + e.getMessage()
+            ));
+        }
+    }
+     
+    @GetMapping("/test")
+    public ResponseEntity<?> testDatabase() {
+        try {
+            Map<String, Object> testResult = new HashMap<>();
+            
+            testResult.put("users", userRepository.count());
+            testResult.put("meals", mealLogRepository.count());
+            testResult.put("workouts", workoutLogRepository.count());
+            testResult.put("emotions", emotionLogRepository.count());
+            testResult.put("status", "OK");
+            testResult.put("timestamp", System.currentTimeMillis());
+            
+            return ResponseEntity.ok(testResult);
+            
+        } catch (Exception e) {
+            log.error("Database test error: ", e);
+            return ResponseEntity.ok(Map.of(
+                "status", "ERROR",
+                "error", e.getMessage(),
+                "timestamp", System.currentTimeMillis()
+            ));
+        }
+    }
+     
+    @GetMapping("/system")
+    public ResponseEntity<?> getSystemInfo() {
+        try {
+            Map<String, Object> systemInfo = new HashMap<>();
+            
+            Runtime runtime = Runtime.getRuntime();
+            long maxMemory = runtime.maxMemory();
+            long totalMemory = runtime.totalMemory();
+            long freeMemory = runtime.freeMemory();
+            long usedMemory = totalMemory - freeMemory;
+            
+            systemInfo.put("maxMemory", maxMemory / 1024 / 1024 + "MB");
+            systemInfo.put("totalMemory", totalMemory / 1024 / 1024 + "MB");
+            systemInfo.put("usedMemory", usedMemory / 1024 / 1024 + "MB");
+            systemInfo.put("freeMemory", freeMemory / 1024 / 1024 + "MB");
+            systemInfo.put("processors", runtime.availableProcessors());
+            systemInfo.put("javaVersion", System.getProperty("java.version"));
+            systemInfo.put("osName", System.getProperty("os.name"));
+            systemInfo.put("timestamp", System.currentTimeMillis());
+            
+            return ResponseEntity.ok(systemInfo);
+            
+        } catch (Exception e) {
+            log.error("Error fetching system info: ", e);
+            return ResponseEntity.ok(Map.of("error", e.getMessage()));
+        }
     }
 }
