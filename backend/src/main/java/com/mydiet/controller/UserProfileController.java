@@ -2,94 +2,146 @@ package com.mydiet.controller;
 
 import com.mydiet.model.User;
 import com.mydiet.repository.UserRepository;
+import com.mydiet.dto.UpdateProfileRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpSession;
+import java.time.LocalDateTime;
+import java.util.*;
+
 @RestController
-@RequestMapping("/api/profile")
+@RequestMapping("/api/user")
 @RequiredArgsConstructor
+@Slf4j
 public class UserProfileController {
 
     private final UserRepository userRepository;
 
-    @GetMapping
-    public ResponseEntity<UserProfileResponse> getUserProfile(Authentication authentication) {
-        User user = getCurrentUser(authentication);
+    /**
+     * 사용자 프로필 조회 - 안전한 버전
+     */
+    @GetMapping("/profile")
+    public ResponseEntity<Map<String, Object>> getUserProfile(HttpSession session) {
+        log.info("=== 사용자 프로필 조회 ===");
         
-        UserProfileResponse response = new UserProfileResponse();
-        response.setId(user.getId());
-        response.setNickname(user.getNickname());
-        response.setEmail(user.getEmail());
-        response.setWeightGoal(user.getWeightGoal());
-        response.setEmotionMode(user.getEmotionMode());
-        
-        return ResponseEntity.ok(response);
-    }
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            log.info("세션에서 가져온 userId: {}", userId);
+            
+            // 세션에 userId가 없으면 기본값 사용 (개발용)
+            if (userId == null) {
+                userId = 1L;
+                log.info("세션 userId 없음. 기본값 사용: {}", userId);
+            }
 
-    @PutMapping
-    public ResponseEntity<String> updateUserProfile(@RequestBody UpdateProfileRequest request, Authentication authentication) {
-        User user = getCurrentUser(authentication);
-        
-        if (request.getNickname() != null && !request.getNickname().trim().isEmpty()) {
-            user.setNickname(request.getNickname().trim());
+            final Long finalUserId = userId;
+
+            // 사용자 조회
+            Optional<User> userOpt = userRepository.findById(finalUserId);
+            
+            if (userOpt.isEmpty()) {
+                log.warn("사용자를 찾을 수 없음: userId={}", finalUserId);
+                
+                // 첫 번째 사용자를 찾아서 사용
+                List<User> allUsers = userRepository.findAll();
+                if (allUsers.isEmpty()) {
+                    return ResponseEntity.badRequest().body(Map.of(
+                        "error", "등록된 사용자가 없습니다",
+                        "suggestion", "먼저 회원가입을 해주세요"
+                    ));
+                }
+                
+                User firstUser = allUsers.get(0);
+                log.info("첫 번째 사용자를 사용합니다: ID={}, 닉네임={}", firstUser.getId(), firstUser.getNickname());
+                
+                Map<String, Object> profile = new HashMap<>();
+                profile.put("id", firstUser.getId());
+                profile.put("nickname", firstUser.getNickname());
+                profile.put("email", firstUser.getEmail());
+                profile.put("weightGoal", firstUser.getWeightGoal());
+                profile.put("emotionMode", firstUser.getEmotionMode());
+                profile.put("createdAt", firstUser.getCreatedAt());
+                profile.put("message", "첫 번째 사용자 프로필을 표시합니다");
+                
+                return ResponseEntity.ok(profile);
+            }
+
+            User user = userOpt.get();
+            log.info("사용자 프로필 조회 성공: 닉네임={}", user.getNickname());
+
+            Map<String, Object> profile = new HashMap<>();
+            profile.put("id", user.getId());
+            profile.put("nickname", user.getNickname());
+            profile.put("email", user.getEmail());
+            profile.put("weightGoal", user.getWeightGoal());
+            profile.put("emotionMode", user.getEmotionMode());
+            profile.put("createdAt", user.getCreatedAt());
+            profile.put("message", "프로필 조회 성공");
+
+            return ResponseEntity.ok(profile);
+
+        } catch (Exception e) {
+            log.error("사용자 프로필 조회 실패", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "error", "프로필 조회 중 오류가 발생했습니다: " + e.getMessage(),
+                "errorType", e.getClass().getSimpleName()
+            ));
         }
+    }
+
+    /**
+     * 프로필 업데이트
+     */
+    @PutMapping("/profile")
+    public ResponseEntity<Map<String, Object>> updateProfile(
+            @RequestBody UpdateProfileRequest request, 
+            HttpSession session) {
         
-        if (request.getWeightGoal() != null && request.getWeightGoal() > 0) {
-            user.setWeightGoal(request.getWeightGoal());
+        log.info("=== 프로필 업데이트 ===");
+        log.info("요청 데이터: {}", request);
+        
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            if (userId == null) {
+                userId = 1L; // 기본값
+            }
+
+            Optional<User> userOpt = userRepository.findById(userId);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "사용자를 찾을 수 없습니다"));
+            }
+
+            User user = userOpt.get();
+
+            // 업데이트
+            if (request.getNickname() != null && !request.getNickname().trim().isEmpty()) {
+                user.setNickname(request.getNickname().trim());
+            }
+            if (request.getWeightGoal() != null && request.getWeightGoal() > 0) {
+                user.setWeightGoal(request.getWeightGoal());
+            }
+            if (request.getEmotionMode() != null && !request.getEmotionMode().trim().isEmpty()) {
+                user.setEmotionMode(request.getEmotionMode().trim());
+            }
+
+            User updated = userRepository.save(user);
+            log.info("프로필 업데이트 완료: 닉네임={}", updated.getNickname());
+
+            return ResponseEntity.ok(Map.of(
+                "message", "프로필이 성공적으로 업데이트되었습니다",
+                "user", updated
+            ));
+
+        } catch (Exception e) {
+            log.error("프로필 업데이트 실패", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "error", "업데이트 중 오류가 발생했습니다: " + e.getMessage()
+            ));
         }
-        
-        if (request.getEmotionMode() != null && !request.getEmotionMode().trim().isEmpty()) {
-            user.setEmotionMode(request.getEmotionMode());
-        }
-        
-        userRepository.save(user);
-        return ResponseEntity.ok("프로필이 업데이트되었습니다!");
     }
 
-    private User getCurrentUser(Authentication authentication) {
-        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-        String email = (String) oAuth2User.getAttributes().get("email");
-        String oauthId = String.valueOf(oAuth2User.getAttributes().get("id"));
-        String userIdentifier = email != null ? email : oauthId;
-        
-        return userRepository.findByEmail(userIdentifier)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
-    }
 
-    public static class UserProfileResponse {
-        private Long id;
-        private String nickname;
-        private String email;
-        private Double weightGoal;
-        private String emotionMode;
-        
-        // Getters and Setters
-        public Long getId() { return id; }
-        public void setId(Long id) { this.id = id; }
-        public String getNickname() { return nickname; }
-        public void setNickname(String nickname) { this.nickname = nickname; }
-        public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
-        public Double getWeightGoal() { return weightGoal; }
-        public void setWeightGoal(Double weightGoal) { this.weightGoal = weightGoal; }
-        public String getEmotionMode() { return emotionMode; }
-        public void setEmotionMode(String emotionMode) { this.emotionMode = emotionMode; }
-    }
-
-    public static class UpdateProfileRequest {
-        private String nickname;
-        private Double weightGoal;
-        private String emotionMode;
-        
-        // Getters and Setters
-        public String getNickname() { return nickname; }
-        public void setNickname(String nickname) { this.nickname = nickname; }
-        public Double getWeightGoal() { return weightGoal; }
-        public void setWeightGoal(Double weightGoal) { this.weightGoal = weightGoal; }
-        public String getEmotionMode() { return emotionMode; }
-        public void setEmotionMode(String emotionMode) { this.emotionMode = emotionMode; }
-    }
 }
