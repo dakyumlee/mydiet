@@ -41,6 +41,15 @@ public class User {
     @Column(name = "provider_id")
     private String providerId;
 
+    @Column(name = "social_id")
+    private String socialId; // OAuth 소셜 ID
+
+    @Column(name = "social_provider")
+    private String socialProvider; // OAuth 제공자
+
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt; // 마지막 로그인 시간
+
     @Column(name = "role")
     private String role = "USER"; // "USER", "ADMIN"
 

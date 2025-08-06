@@ -144,7 +144,7 @@ public class AdminController {
             // 관리자 권한 확인
             Boolean isAdmin = (Boolean) session.getAttribute("isAdmin");
             if (!Boolean.TRUE.equals(isAdmin)) {
-                return ResponseEntity.forbidden().body(Map.of("error", "관리자 권한이 필요합니다"));
+                return ResponseEntity.status(403).body(Map.of("error", "관리자 권한이 필요합니다"));
             }
             
             List<User> users = userRepository.findAll();
