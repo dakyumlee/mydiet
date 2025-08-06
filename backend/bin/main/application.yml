@@ -1,45 +1,48 @@
-server:
-  port: ${PORT:8080}
-  servlet:
-    session:
-      timeout: 30m
-
 spring:
   application:
     name: mydiet
-    
+
   datasource:
-    url: ${DATABASE_URL}
-    driver-class-name: org.postgresql.Driver
-    
+    url: ${DATABASE_URL:jdbc:h2:mem:testdb}
+    username: ${DATABASE_USERNAME:sa}
+    password: ${DATABASE_PASSWORD:}
+    driver-class-name: ${DATABASE_DRIVER:org.h2.Driver}
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false  # 프로덕션에서는 false로 설정
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-      
+        format_sql: false
+        dialect: ${HIBERNATE_DIALECT:org.hibernate.dialect.H2Dialect}
+
   security:
     oauth2:
       client:
         registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:354371787745-8rgohugb8agq7ev36verb68neukq6lqt.apps.googleusercontent.com}
+            client-secret: ${GOOGLE_CLIENT_SECRET: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}
+            scope:
+              - openid
+              - email
+              - profile
+            redirect-uri: ${GOOGLE_REDIRECT_URI:https://mydiet.herokuapp.com/login/oauth2/code/google}
           kakao:
-            client-id: ${KAKAO_CLIENT_ID}
-            client-secret: ${KAKAO_CLIENT_SECRET}
-            redirect-uri: ${KAKAO_REDIRECT_URI:https://mydiet-d60a7ae19e04.herokuapp.com/login/oauth2/code/kakao}
+            client-id: ${KAKAO_CLIENT_ID:669f202766270a2bcb94605f89e116bd}
+            client-secret: ${KAKAO_CLIENT_SECRET:UdcaoBXxsbnaOoFH9cDb9cTSkpdpIlhP}
+            redirect-uri: ${KAKAO_REDIRECT_URI:https://mydiet.herokuapp.com/login/oauth2/code/kakao}
             authorization-grant-type: authorization_code
-            client-authentication-method: client_secret_post
             scope:
               - profile_nickname
-          google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
-            redirect-uri: ${GOOGLE_REDIRECT_URI:https://mydiet-d60a7ae19e04.herokuapp.com/login/oauth2/code/google}
-            scope:
-              - profile
-              - email
+              - account_email
+            client-name: Kakao
         provider:
           kakao:
             authorization-uri: https://kauth.kakao.com/oauth/authorize
@@ -47,14 +50,56 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
 
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+server:
+  port: ${PORT:8080}
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        http-only: true
+        secure: true  # HTTPS에서만 쿠키 전송
+
+# Claude API 설정
 claude:
   api:
-    key: ${CLAUDE_API_KEY}
+    key: ${CLAUDE_API_KEY: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}
+    model: claude-3-sonnet-20240229
+    max-tokens: 1024
 
+# 관리자 계정 설정
+admin:
+  email: ${ADMIN_EMAIL:admin@mydiet.com}
+  password: ${ADMIN_PASSWORD:admin123}
+
+# 로깅 설정 (Heroku 최적화)
 logging:
   level:
+    com.mydiet: INFO
+    org.springframework.security: WARN
+    org.springframework.web: WARN
+    org.hibernate: WARN
     root: INFO
-    com.mydiet: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.security.oauth2: DEBUG
-    org.springframework.web: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{30} - %msg%n"
+
+# 애플리케이션 정보
+info:
+  app:
+    name: MyDiet
+    description: AI 기반 개인 맞춤형 건강 관리 서비스
+    version: 1.0.0
+    
+# 액추에터 설정 (모니터링)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized

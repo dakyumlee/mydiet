@@ -1,87 +1,52 @@
 package com.mydiet.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "users")
-@Data
+@Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class User {
     
-    @Id
+    @Id 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String email;
 
     @Column(nullable = false)
     private String nickname;
 
-    @Column(unique = true)
-    private String email;
+    @Column(nullable = false)
+    @Builder.Default
+    private String role = "USER"; // USER, ADMIN
 
-    @Column(name = "weight_goal")
     private Double weightGoal;
+    
+    @Builder.Default
+    private String emotionMode = "다정함"; // 무자비, 츤데레, 다정함
 
-    @Column(name = "emotion_mode")
-    private String emotionMode;
-
-    @Column(name = "created_at")
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    // OAuth 관련 필드들
-    @Column(name = "provider")
-    private String provider; // "google", "kakao", "local"
-
-    @Column(name = "provider_id")
-    private String providerId;
-
-    @Column(name = "social_id")
-    private String socialId; // OAuth 소셜 ID
-
-    @Column(name = "social_provider")
-    private String socialProvider; // OAuth 제공자
-
-    @Column(name = "last_login_at")
-    private LocalDateTime lastLoginAt; // 마지막 로그인 시간
-
-    @Column(name = "role")
-    private String role = "USER"; // "USER", "ADMIN"
-
-    // 연관 관계 (선택사항 - 성능상 필요 없으면 제거 가능)
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<MealLog> meals;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<WorkoutLog> workouts;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<EmotionLog> emotions;
+    private LocalDateTime updatedAt;
 
     @PrePersist
-    protected void onCreate() {
+    public void prePersist() {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
         }
-        if (role == null) {
-            role = "USER";
-        }
-        if (emotionMode == null) {
-            emotionMode = "다정함";
-        }
+        updatedAt = LocalDateTime.now();
     }
 
-    // 편의 메서드
-    public boolean isAdmin() {
-        return "ADMIN".equals(this.role);
-    }
-
-    public void setAsAdmin() {
-        this.role = "ADMIN";
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }

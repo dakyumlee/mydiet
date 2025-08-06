@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 
 @Configuration
 @EnableWebSecurity
@@ -14,46 +15,45 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final OAuth2UserService oAuth2UserService;
-    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final OAuth2LoginSuccessHandler successHandler;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers(
-                    "/",
-                    "/index.html",
-                    "/dashboard.html",
-                    "/admin-login.html",
-                    "/admin-dashboard.html",
-                    "/meal-management.html",
-                    "/workout-management.html",
-                    "/emotion-diary.html",
-                    "/profile-settings.html",
-                    "/analytics.html",
-                    "/auth.html",
-                    "/api/**",
-                    "/static/**",
-                    "/css/**",
-                    "/js/**",
-                    "/images/**",
-                    "/favicon.ico",
-                    "/error",
-                    "/login/**",
-                    "/oauth2/**"
-                ).permitAll()
+                .requestMatchers("/", "/auth.html", "/admin-login.html", "/oauth2/**", "/login/**").permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/simple/**", "/api/debug/**").permitAll()
+                .requestMatchers("/api/ai/**").authenticated()
+                .requestMatchers("/admin-dashboard.html").hasRole("ADMIN")
+                .requestMatchers("/dashboard.html", "/api/**").authenticated()
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
                 .loginPage("/auth.html")
-                .userInfoEndpoint(userInfo -> userInfo
-                    .userService(oAuth2UserService)
+                .userInfoEndpoint(userInfo -> 
+                    userInfo.userService(oAuth2UserService)
                 )
-                .successHandler(oAuth2LoginSuccessHandler)
+                .successHandler(successHandler)
+                .failureUrl("/auth.html?error=true")
+            )
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/auth.html")
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .deleteCookies("JSESSIONID")
             )
             .headers(headers -> headers
-                .frameOptions().sameOrigin()
+                .httpStrictTransportSecurity(hstsConfig -> hstsConfig
+                    .maxAgeInSeconds(31536000)
+                    .includeSubdomains(true)
+                )
+                .contentTypeOptions(contentTypeOptionsConfig -> {})
+                .referrerPolicy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+                // frameOptions() deprecated 메소드 제거하고 새로운 방식 사용
+                .frameOptions(frameOptionsConfig -> frameOptionsConfig.sameOrigin())
             );
 
         return http.build();

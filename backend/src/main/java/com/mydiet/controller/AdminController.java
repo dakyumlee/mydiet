@@ -2,290 +2,265 @@ package com.mydiet.controller;
 
 import com.mydiet.model.User;
 import com.mydiet.repository.UserRepository;
+import com.mydiet.service.AdminService;
+import com.mydiet.service.OAuth2UserPrincipal;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpSession;
-import java.util.*;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
-@Slf4j
 public class AdminController {
 
+    private final AdminService adminService;
     private final UserRepository userRepository;
 
     /**
-     * 관리자 로그인 처리
+     * 관리자 로그인 (간단한 세션 기반)
      */
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> adminLogin(@RequestBody Map<String, Object> request, HttpSession session) {
-        log.info("=== 관리자 로그인 시도 ===");
+    public ResponseEntity<Map<String, Object>> adminLogin(
+        @RequestBody Map<String, String> request, 
+        HttpSession session) {
         
-        try {
-            String email = (String) request.get("email");
-            String password = (String) request.get("password");
-            
-            log.info("로그인 시도 - 이메일: {}", email);
-            
-            // 관리자 계정 확인 (사용자 지정 계정)
-            if ("oicrcutie".equals(email) && "aa667788".equals(password)) {
-                // 관리자 사용자 생성 또는 조회 (이메일이 아닌 아이디로 로그인하지만 이메일 형태로 저장)
-                String adminEmail = "oicrcutie@mydiet.com"; // 실제 저장될 이메일
-                User admin = userRepository.findByEmail(adminEmail).orElse(null);
-                
-                if (admin == null) {
-                    admin = new User();
-                    admin.setEmail(adminEmail);
-                    admin.setNickname("oicrcutie (관리자)");
-                    admin.setRole("ADMIN");
-                    admin.setWeightGoal(70.0);
-                    admin.setEmotionMode("무자비");
-                    admin = userRepository.save(admin);
-                    log.info("관리자 계정 생성 완료: ID={}, 닉네임={}", admin.getId(), admin.getNickname());
-                }
-                
-                // 관리자 세션 설정
-                session.setAttribute("userId", admin.getId());
-                session.setAttribute("userRole", "ADMIN");
-                session.setAttribute("isAdmin", true);
-                
-                log.info("관리자 로그인 성공: ID={}, 세션ID={}", admin.getId(), session.getId());
-                
-                return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "message", "관리자 로그인 성공",
-                    "user", Map.of(
-                        "id", admin.getId(),
-                        "nickname", admin.getNickname(),
-                        "email", admin.getEmail(),
-                        "role", admin.getRole()
-                    ),
-                    "redirectUrl", "/admin-dashboard.html"
-                ));
-            } else {
-                log.warn("관리자 로그인 실패 - 잘못된 인증 정보: 시도한 ID={}", email);
-                return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "message", "잘못된 아이디 또는 비밀번호입니다"
-                ));
-            }
-            
-        } catch (Exception e) {
-            log.error("관리자 로그인 처리 실패", e);
-            return ResponseEntity.internalServerError().body(Map.of(
-                "success", false,
-                "message", "로그인 처리 중 오류가 발생했습니다"
-            ));
-        }
-    }
-
-    /**
-     * 관리자 권한 확인
-     */
-    @GetMapping("/check")
-    public ResponseEntity<Map<String, Object>> checkAdminAccess(HttpSession session) {
-        log.info("=== 관리자 권한 확인 ===");
+        String email = request.get("email");
+        String password = request.get("password");
         
-        try {
-            Long userId = (Long) session.getAttribute("userId");
-            Boolean isAdmin = (Boolean) session.getAttribute("isAdmin");
-            
-            log.info("세션 확인 - userId: {}, isAdmin: {}", userId, isAdmin);
-            
-            if (userId == null || !Boolean.TRUE.equals(isAdmin)) {
-                log.warn("관리자 권한 없음");
-                return ResponseEntity.ok(Map.of(
-                    "hasAccess", false,
-                    "message", "관리자 권한이 필요합니다"
-                ));
-            }
-            
-            User user = userRepository.findById(userId).orElse(null);
-            if (user == null || !"ADMIN".equals(user.getRole())) {
-                log.warn("관리자 사용자 정보 없음 또는 권한 부족");
-                return ResponseEntity.ok(Map.of(
-                    "hasAccess", false,
-                    "message", "관리자 권한이 확인되지 않습니다"
-                ));
-            }
-            
-            log.info("관리자 권한 확인 완료: {}", user.getNickname());
-            return ResponseEntity.ok(Map.of(
-                "hasAccess", true,
-                "user", Map.of(
-                    "id", user.getId(),
-                    "nickname", user.getNickname(),
-                    "email", user.getEmail(),
-                    "role", user.getRole()
-                )
-            ));
-            
-        } catch (Exception e) {
-            log.error("관리자 권한 확인 실패", e);
-            return ResponseEntity.internalServerError().body(Map.of(
-                "hasAccess", false,
-                "message", "권한 확인 중 오류가 발생했습니다"
-            ));
-        }
-    }
-
-    /**
-     * 모든 사용자 조회 (관리자용)
-     */
-    @GetMapping("/users")
-    public ResponseEntity<Map<String, Object>> getAllUsers(HttpSession session) {
-        log.info("=== 모든 사용자 조회 (관리자) ===");
+        log.info("=== 관리자 로그인 시도: {} ===", email);
         
-        try {
-            // 관리자 권한 확인
-            Boolean isAdmin = (Boolean) session.getAttribute("isAdmin");
-            if (!Boolean.TRUE.equals(isAdmin)) {
-                return ResponseEntity.status(403).body(Map.of("error", "관리자 권한이 필요합니다"));
-            }
+        // 간단한 하드코딩된 관리자 계정 (실제 환경에서는 DB에서 확인)
+        if ("admin@mydiet.com".equals(email) && "admin123".equals(password)) {
+            // 관리자 계정이 DB에 없다면 생성
+            User admin = userRepository.findByEmail(email)
+                .orElseGet(() -> {
+                    User newAdmin = User.builder()
+                        .email(email)
+                        .nickname("관리자")
+                        .role("ADMIN")
+                        .weightGoal(70.0)
+                        .emotionMode("무자비")
+                        .createdAt(LocalDateTime.now())
+                        .build();
+                    return userRepository.save(newAdmin);
+                });
             
-            List<User> users = userRepository.findAll();
-            log.info("전체 사용자 수: {}", users.size());
+            // 세션에 관리자 정보 저장
+            session.setAttribute("adminId", admin.getId());
+            session.setAttribute("adminEmail", admin.getEmail());
+            session.setAttribute("isAdmin", true);
             
-            return ResponseEntity.ok(Map.of(
-                "users", users,
-                "totalUsers", users.size()
-            ));
-            
-        } catch (Exception e) {
-            log.error("사용자 목록 조회 실패", e);
-            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
-        }
-    }
-
-    /**
-     * 사용자 상세 정보 조회
-     */
-    @GetMapping("/users/{userId}")
-    public ResponseEntity<Map<String, Object>> getUserDetail(@PathVariable Long userId, HttpSession session) {
-        log.info("=== 사용자 상세 정보 조회: userId={} ===", userId);
-        
-        try {
-            // 관리자 권한 확인
-            Boolean isAdmin = (Boolean) session.getAttribute("isAdmin");
-            if (!Boolean.TRUE.equals(isAdmin)) {
-                return ResponseEntity.status(403).body(Map.of("error", "관리자 권한이 필요합니다"));
-            }
-            
-            User user = userRepository.findById(userId).orElse(null);
-            if (user == null) {
-                return ResponseEntity.badRequest().body(Map.of("error", "사용자를 찾을 수 없습니다"));
-            }
-            
-            return ResponseEntity.ok(Map.of(
-                "user", user,
-                "isAdmin", "ADMIN".equals(user.getRole())
-            ));
-            
-        } catch (Exception e) {
-            log.error("사용자 상세 정보 조회 실패", e);
-            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
-        }
-    }
-
-    /**
-     * 사용자 역할 변경 (관리자 승격/해제)
-     */
-    @PutMapping("/users/{userId}/role")
-    public ResponseEntity<Map<String, Object>> changeUserRole(@PathVariable Long userId, @RequestBody Map<String, Object> request, HttpSession session) {
-        log.info("=== 사용자 역할 변경: userId={} ===", userId);
-        
-        try {
-            // 관리자 권한 확인
-            Boolean isAdmin = (Boolean) session.getAttribute("isAdmin");
-            if (!Boolean.TRUE.equals(isAdmin)) {
-                return ResponseEntity.status(403).body(Map.of("error", "관리자 권한이 필요합니다"));
-            }
-            
-            String newRole = (String) request.get("role");
-            if (!"USER".equals(newRole) && !"ADMIN".equals(newRole)) {
-                return ResponseEntity.badRequest().body(Map.of("error", "유효하지 않은 역할입니다"));
-            }
-            
-            User user = userRepository.findById(userId).orElse(null);
-            if (user == null) {
-                return ResponseEntity.badRequest().body(Map.of("error", "사용자를 찾을 수 없습니다"));
-            }
-            
-            String oldRole = user.getRole();
-            user.setRole(newRole);
-            userRepository.save(user);
-            
-            log.info("사용자 역할 변경 완료: {} -> {}", oldRole, newRole);
+            log.info("관리자 로그인 성공: {}", email);
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
-                "message", "사용자 역할이 변경되었습니다",
-                "user", user
+                "message", "관리자 로그인 성공",
+                "adminId", admin.getId(),
+                "adminEmail", admin.getEmail()
             ));
-            
-        } catch (Exception e) {
-            log.error("사용자 역할 변경 실패", e);
-            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        } else {
+            log.warn("관리자 로그인 실패: {}", email);
+            return ResponseEntity.badRequest()
+                .body(Map.of("success", false, "message", "관리자 인증 실패"));
         }
+    }
+
+    /**
+     * 모든 사용자 목록 조회
+     */
+    @GetMapping("/users")
+    public ResponseEntity<Map<String, Object>> getAllUsers(HttpSession session) {
+        if (!isAdminSession(session)) {
+            return ResponseEntity.status(403)
+                .body(Map.of("error", "관리자 권한이 필요합니다."));
+        }
+
+        try {
+            List<User> users = userRepository.findAll();
+            log.info("=== 관리자 - 전체 사용자 조회: {}명 ===", users.size());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("users", users);
+            response.put("totalCount", users.size());
+            response.put("timestamp", LocalDateTime.now());
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("사용자 목록 조회 실패", e);
+            return ResponseEntity.internalServerError()
+                .body(Map.of("error", "사용자 목록 조회 실패"));
+        }
+    }
+
+    /**
+     * 특정 사용자 상세 정보 조회
+     */
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<Map<String, Object>> getUserDetail(
+        @PathVariable Long userId, HttpSession session) {
+        
+        if (!isAdminSession(session)) {
+            return ResponseEntity.status(403)
+                .body(Map.of("error", "관리자 권한이 필요합니다."));
+        }
+
+        log.info("=== 사용자 상세 정보 조회: userId={} ===", userId);
+        
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        User user = userOpt.get();
+        
+        // 사용자의 활동 데이터 통계 (추후 구현 가능)
+        Map<String, Object> userDetail = new HashMap<>();
+        userDetail.put("user", user);
+        userDetail.put("lastLoginDate", "구현 예정");
+        userDetail.put("totalMeals", "구현 예정");
+        userDetail.put("totalWorkouts", "구현 예정");
+        userDetail.put("moodAnalysis", "구현 예정");
+        
+        return ResponseEntity.ok(userDetail);
+    }
+
+    /**
+     * 사용자 역할 변경
+     */
+    @PutMapping("/users/{userId}/role")
+    public ResponseEntity<Map<String, Object>> updateUserRole(
+        @PathVariable Long userId,
+        @RequestBody Map<String, String> request,
+        HttpSession session) {
+        
+        if (!isAdminSession(session)) {
+            return ResponseEntity.status(403)
+                .body(Map.of("error", "관리자 권한이 필요합니다."));
+        }
+
+        String newRole = request.get("role");
+        if (!"USER".equals(newRole) && !"ADMIN".equals(newRole)) {
+            return ResponseEntity.badRequest()
+                .body(Map.of("error", "잘못된 역할입니다. USER 또는 ADMIN만 가능합니다."));
+        }
+
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        User user = userOpt.get();
+        String oldRole = user.getRole();
+        user.setRole(newRole);
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+
+        log.info("사용자 역할 변경: userId={}, {} -> {}", userId, oldRole, newRole);
+        
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", String.format("사용자 역할이 %s에서 %s로 변경되었습니다.", oldRole, newRole),
+            "user", user
+        ));
     }
 
     /**
      * 사용자 삭제
      */
     @DeleteMapping("/users/{userId}")
-    public ResponseEntity<Map<String, Object>> deleteUser(@PathVariable Long userId, HttpSession session) {
-        log.info("=== 사용자 삭제: userId={} ===", userId);
+    public ResponseEntity<Map<String, Object>> deleteUser(
+        @PathVariable Long userId, HttpSession session) {
         
+        if (!isAdminSession(session)) {
+            return ResponseEntity.status(403)
+                .body(Map.of("error", "관리자 권한이 필요합니다."));
+        }
+
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        User user = userOpt.get();
+        
+        // 관리자 계정 삭제 방지
+        if ("ADMIN".equals(user.getRole())) {
+            return ResponseEntity.badRequest()
+                .body(Map.of("error", "관리자 계정은 삭제할 수 없습니다."));
+        }
+
         try {
-            // 관리자 권한 확인
-            Boolean isAdmin = (Boolean) session.getAttribute("isAdmin");
-            if (!Boolean.TRUE.equals(isAdmin)) {
-                return ResponseEntity.status(403).body(Map.of("error", "관리자 권한이 필요합니다"));
-            }
-            
-            User user = userRepository.findById(userId).orElse(null);
-            if (user == null) {
-                return ResponseEntity.badRequest().body(Map.of("error", "사용자를 찾을 수 없습니다"));
-            }
-            
-            String nickname = user.getNickname();
-            userRepository.delete(user);
-            
-            log.info("사용자 삭제 완료: {}", nickname);
+            userRepository.deleteById(userId);
+            log.info("사용자 삭제 완료: userId={}, email={}", userId, user.getEmail());
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
-                "message", "사용자가 삭제되었습니다: " + nickname
+                "message", String.format("사용자 '%s'가 삭제되었습니다.", user.getNickname())
             ));
-            
         } catch (Exception e) {
-            log.error("사용자 삭제 실패", e);
-            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+            log.error("사용자 삭제 실패: userId={}", userId, e);
+            return ResponseEntity.internalServerError()
+                .body(Map.of("error", "사용자 삭제 중 오류가 발생했습니다."));
         }
     }
+
+    /**
+     * 사용자 통계 조회
+     */
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getAdminStats(HttpSession session) {
+        if (!isAdminSession(session)) {
+            return ResponseEntity.status(403)
+                .body(Map.of("error", "관리자 권한이 필요합니다."));
+        }
+
+        try {
+            long totalUsers = userRepository.count();
+            long adminCount = userRepository.countByRole("ADMIN");
+            long userCount = userRepository.countByRole("USER");
+            
+            Map<String, Object> stats = new HashMap<>();
+            stats.put("totalUsers", totalUsers);
+            stats.put("adminCount", adminCount);
+            stats.put("userCount", userCount);
+            stats.put("timestamp", LocalDateTime.now());
+            
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            log.error("관리자 통계 조회 실패", e);
+            return ResponseEntity.internalServerError()
+                .body(Map.of("error", "통계 조회 실패"));
+        }
+    }
+
+    /**
+     * 관리자 로그아웃
+     */
     @PostMapping("/logout")
     public ResponseEntity<Map<String, Object>> adminLogout(HttpSession session) {
-        log.info("=== 관리자 로그아웃 ===");
-        
-        try {
-            session.invalidate();
-            
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "로그아웃되었습니다",
-                "redirectUrl", "/admin-login.html"
-            ));
-            
-        } catch (Exception e) {
-            log.error("로그아웃 처리 실패", e);
-            return ResponseEntity.internalServerError().body(Map.of(
-                "success", false,
-                "message", "로그아웃 처리 중 오류가 발생했습니다"
-            ));
-        }
+        session.invalidate();
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "message", "관리자 로그아웃 완료"
+        ));
+    }
+
+    /**
+     * 세션에서 관리자 권한 확인
+     */
+    private boolean isAdminSession(HttpSession session) {
+        Boolean isAdmin = (Boolean) session.getAttribute("isAdmin");
+        Long adminId = (Long) session.getAttribute("adminId");
+        return Boolean.TRUE.equals(isAdmin) && adminId != null;
     }
 }

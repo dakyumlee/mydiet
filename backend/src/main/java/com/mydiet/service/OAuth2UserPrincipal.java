@@ -8,33 +8,57 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import java.util.*;
 
 public class OAuth2UserPrincipal implements OAuth2User {
-    
-    private User user;
-    private Map<String, Object> attributes;
-    
-    public OAuth2UserPrincipal(User user, Map<String, Object> attributes) {
+    private final User user;
+    private final Map<String, Object> attributes;
+    private final String nameAttributeKey;
+
+    public OAuth2UserPrincipal(User user, Map<String, Object> attributes, String nameAttributeKey) {
         this.user = user;
         this.attributes = attributes;
+        this.nameAttributeKey = nameAttributeKey;
     }
-    
+
     @Override
     public Map<String, Object> getAttributes() {
         return attributes;
     }
-    
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole()));
-        return authorities;
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
     }
-    
+
     @Override
     public String getName() {
+        return attributes.get(nameAttributeKey).toString();
+    }
+
+    // 추가 메소드들 - 컴파일 에러 해결
+    public Long getUserId() {
+        return user.getId();
+    }
+
+    public String getNickname() {
         return user.getNickname();
     }
-    
+
+    public String getEmail() {
+        return user.getEmail();
+    }
+
     public User getUser() {
         return user;
+    }
+
+    public String getRole() {
+        return user.getRole() != null ? user.getRole() : "USER";
+    }
+
+    public Double getWeightGoal() {
+        return user.getWeightGoal();
+    }
+
+    public String getEmotionMode() {
+        return user.getEmotionMode();
     }
 }
