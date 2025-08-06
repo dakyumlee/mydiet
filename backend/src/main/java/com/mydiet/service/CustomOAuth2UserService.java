@@ -35,10 +35,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         
         if ("kakao".equals(registrationId)) {
             Map<String, Object> kakaoAccount = (Map<String, Object>) oauth2User.getAttributes().get("kakao_account");
-            Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-            
-            email = (String) kakaoAccount.get("email");
-            nickname = (String) profile.get("nickname");
+            if (kakaoAccount != null) {
+                Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+                email = (String) kakaoAccount.get("email");
+                if (profile != null) {
+                    nickname = (String) profile.get("nickname");
+                }
+            }
             providerId = oauth2User.getName();
             
         } else if ("google".equals(registrationId)) {
@@ -48,7 +51,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
         
         log.debug("추출된 정보 - 이메일: {}, 닉네임: {}, 제공자ID: {}", email, nickname, providerId);
-         
+        
         User user = processOAuthPostLogin(email, nickname, registrationId, providerId);
         
         return new OAuth2UserPrincipal(oauth2User, user);
@@ -68,12 +71,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             }
             
             return user;
-        } else { 
+        } else {
             User newUser = new User();
             newUser.setEmail(email);
             newUser.setNickname(nickname != null ? nickname : "사용자");
-            newUser.setEmotionMode("다정함"); 
-            newUser.setWeightGoal(60.0);  
+            newUser.setEmotionMode("다정함");
+            newUser.setWeightGoal(60.0);
             newUser.setCreatedAt(LocalDateTime.now());
             
             User savedUser = userRepository.save(newUser);

@@ -26,9 +26,9 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
-                .loginPage("/auth")
+                .loginPage("/auth.html")
                 .successHandler(oAuth2LoginSuccessHandler)
-                .failureUrl("/auth?error")
+                .failureUrl("/auth.html?error")
                 .userInfoEndpoint(userInfo -> userInfo
                     .userService(customOAuth2UserService)
                 )

@@ -13,12 +13,12 @@ public class RedirectController {
 
     @GetMapping("/")
     public String home() {
-        return "forward:/index.html";
+        return "redirect:/index.html";
     }
 
     @GetMapping("/auth")
     public String auth() {
-        return "forward:/auth.html";
+        return "redirect:/auth.html";
     }
 
     @GetMapping("/dashboard")
