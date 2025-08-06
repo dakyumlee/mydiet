@@ -162,8 +162,111 @@ public class AdminController {
     }
 
     /**
-     * 관리자 로그아웃
+     * 사용자 상세 정보 조회
      */
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<Map<String, Object>> getUserDetail(@PathVariable Long userId, HttpSession session) {
+        log.info("=== 사용자 상세 정보 조회: userId={} ===", userId);
+        
+        try {
+            // 관리자 권한 확인
+            Boolean isAdmin = (Boolean) session.getAttribute("isAdmin");
+            if (!Boolean.TRUE.equals(isAdmin)) {
+                return ResponseEntity.status(403).body(Map.of("error", "관리자 권한이 필요합니다"));
+            }
+            
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "사용자를 찾을 수 없습니다"));
+            }
+            
+            return ResponseEntity.ok(Map.of(
+                "user", user,
+                "isAdmin", "ADMIN".equals(user.getRole())
+            ));
+            
+        } catch (Exception e) {
+            log.error("사용자 상세 정보 조회 실패", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * 사용자 역할 변경 (관리자 승격/해제)
+     */
+    @PutMapping("/users/{userId}/role")
+    public ResponseEntity<Map<String, Object>> changeUserRole(@PathVariable Long userId, @RequestBody Map<String, Object> request, HttpSession session) {
+        log.info("=== 사용자 역할 변경: userId={} ===", userId);
+        
+        try {
+            // 관리자 권한 확인
+            Boolean isAdmin = (Boolean) session.getAttribute("isAdmin");
+            if (!Boolean.TRUE.equals(isAdmin)) {
+                return ResponseEntity.status(403).body(Map.of("error", "관리자 권한이 필요합니다"));
+            }
+            
+            String newRole = (String) request.get("role");
+            if (!"USER".equals(newRole) && !"ADMIN".equals(newRole)) {
+                return ResponseEntity.badRequest().body(Map.of("error", "유효하지 않은 역할입니다"));
+            }
+            
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "사용자를 찾을 수 없습니다"));
+            }
+            
+            String oldRole = user.getRole();
+            user.setRole(newRole);
+            userRepository.save(user);
+            
+            log.info("사용자 역할 변경 완료: {} -> {}", oldRole, newRole);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "사용자 역할이 변경되었습니다",
+                "user", user
+            ));
+            
+        } catch (Exception e) {
+            log.error("사용자 역할 변경 실패", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * 사용자 삭제
+     */
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<Map<String, Object>> deleteUser(@PathVariable Long userId, HttpSession session) {
+        log.info("=== 사용자 삭제: userId={} ===", userId);
+        
+        try {
+            // 관리자 권한 확인
+            Boolean isAdmin = (Boolean) session.getAttribute("isAdmin");
+            if (!Boolean.TRUE.equals(isAdmin)) {
+                return ResponseEntity.status(403).body(Map.of("error", "관리자 권한이 필요합니다"));
+            }
+            
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "사용자를 찾을 수 없습니다"));
+            }
+            
+            String nickname = user.getNickname();
+            userRepository.delete(user);
+            
+            log.info("사용자 삭제 완료: {}", nickname);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "사용자가 삭제되었습니다: " + nickname
+            ));
+            
+        } catch (Exception e) {
+            log.error("사용자 삭제 실패", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
     @PostMapping("/logout")
     public ResponseEntity<Map<String, Object>> adminLogout(HttpSession session) {
         log.info("=== 관리자 로그아웃 ===");
