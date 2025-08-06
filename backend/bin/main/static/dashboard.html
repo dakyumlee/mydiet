@@ -733,7 +733,7 @@
             showTypingIndicator();
             
             try {
-                const response = await fetch('/api/ai/question', {
+                const response = await fetch('/api/chat/ask', { // 경로 변경
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

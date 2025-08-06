@@ -22,7 +22,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/ai")
+@RequestMapping("/api/chat") // 경로 변경하여 충돌 방지
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class AIQuestionController {
@@ -33,7 +33,7 @@ public class AIQuestionController {
     private final WorkoutLogRepository workoutLogRepository;
     private final EmotionLogRepository emotionLogRepository;
     
-    @PostMapping("/question")
+    @PostMapping("/ask") // 엔드포인트 변경
     public ResponseEntity<?> askQuestion(@RequestBody Map<String, Object> request, HttpSession session) {
         try {
             String question = (String) request.get("question");
