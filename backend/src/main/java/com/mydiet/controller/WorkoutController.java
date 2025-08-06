@@ -26,20 +26,23 @@ public class WorkoutController {
     private final UserRepository userRepository;
     
     @PostMapping
-    public ResponseEntity<?> saveWorkout(@RequestBody Map<String, Object> request, HttpSession session) {
-        log.info("Saving workout: {}", request);
+public ResponseEntity<?> saveWorkout(@RequestBody Map<String, Object> request, HttpSession session) {
+    log.info("Saving workout: {}", request);
+    
+    try {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) userId = 1L;
         
-        try {
-            Long userId = (Long) session.getAttribute("userId");
-            if (userId == null) userId = 1L;
-            
-            User user = userRepository.findById(userId).orElseGet(() -> {
-                User newUser = new User();
-                newUser.setId(userId);
-                newUser.setEmail("user" + userId + "@mydiet.com");
-                newUser.setNickname("사용자" + userId);
-                return userRepository.save(newUser);
-            });
+        // final 변수로 선언
+        final Long finalUserId = userId;
+        
+        User user = userRepository.findById(finalUserId).orElseGet(() -> {
+            User newUser = new User();
+            newUser.setId(finalUserId);
+            newUser.setEmail("user" + finalUserId + "@mydiet.com");
+            newUser.setNickname("사용자" + finalUserId);
+            return userRepository.save(newUser);
+        });
             
             WorkoutLog workout = new WorkoutLog();
             workout.setUser(user);

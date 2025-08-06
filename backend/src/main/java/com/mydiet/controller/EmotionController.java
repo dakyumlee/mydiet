@@ -33,11 +33,14 @@ public class EmotionController {
             Long userId = (Long) session.getAttribute("userId");
             if (userId == null) userId = 1L;
             
-            User user = userRepository.findById(userId).orElseGet(() -> {
+            // final 변수로 선언
+            final Long finalUserId = userId;
+            
+            User user = userRepository.findById(finalUserId).orElseGet(() -> {
                 User newUser = new User();
-                newUser.setId(userId);
-                newUser.setEmail("user" + userId + "@mydiet.com");
-                newUser.setNickname("사용자" + userId);
+                newUser.setId(finalUserId);
+                newUser.setEmail("user" + finalUserId + "@mydiet.com");
+                newUser.setNickname("사용자" + finalUserId);
                 return userRepository.save(newUser);
             });
             
