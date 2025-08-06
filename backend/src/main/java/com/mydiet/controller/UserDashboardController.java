@@ -134,9 +134,12 @@ public class UserDashboardController {
             Long userId = (Long) session.getAttribute("userId");
             if (userId == null) userId = 1L;
             
-            User user = userRepository.findById(userId).orElseGet(() -> {
+            // final로 선언하여 람다에서 사용 가능하게 함
+            final Long finalUserId = userId;
+            
+            User user = userRepository.findById(finalUserId).orElseGet(() -> {
                 User newUser = new User();
-                newUser.setId(userId);
+                newUser.setId(finalUserId);
                 newUser.setCreatedAt(LocalDateTime.now());
                 return newUser;
             });
