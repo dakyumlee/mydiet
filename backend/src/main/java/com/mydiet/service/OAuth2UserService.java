@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
@@ -34,19 +35,31 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
             return processKakaoUser(oAuth2User);
         }
         
-        throw new OAuth2AuthenticationException("Unsupported provider: " + registrationId);
+        OAuth2Error oauth2Error = new OAuth2Error("invalid_provider", 
+            "Unsupported provider: " + registrationId, null);
+        throw new OAuth2AuthenticationException(oauth2Error);
     }
 
     private OAuth2User processKakaoUser(OAuth2User oAuth2User) {
         Map<String, Object> attributes = oAuth2User.getAttributes();
-         
+        
         Long kakaoId = ((Number) attributes.get("id")).longValue();
-         
+        
         Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-        String email = (String) kakaoAccount.get("email");
-         
-        Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-        String nickname = (String) profile.get("nickname");
+        
+        String email = kakaoAccount != null ? (String) kakaoAccount.get("email") : null;
+        if (email == null) {
+            email = kakaoId + "@kakao.user";
+        }
+        
+        String nickname = "카카오유저";
+        if (kakaoAccount != null) {
+            Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+            if (profile != null) {
+                nickname = (String) profile.get("nickname");
+                if (nickname == null) nickname = "카카오유저";
+            }
+        }
         
         log.info("Kakao user - ID: {}, Email: {}, Nickname: {}", kakaoId, email, nickname);
 
