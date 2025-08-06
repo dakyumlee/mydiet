@@ -1,114 +1,255 @@
 package com.mydiet.controller;
 
-import com.mydiet.model.EmotionLog;
-import com.mydiet.model.MealLog;
-import com.mydiet.model.User;
-import com.mydiet.model.WorkoutLog;
-import com.mydiet.repository.EmotionLogRepository;
-import com.mydiet.repository.MealLogRepository;
-import com.mydiet.repository.UserRepository;
-import com.mydiet.repository.WorkoutLogRepository;
+import com.mydiet.model.*;
+import com.mydiet.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpSession;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.HashMap;
 
+@Slf4j
 @RestController
-@RequestMapping("/api/data")
+@RequestMapping("/api")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class DataInputController {
-
+    
     private final UserRepository userRepository;
     private final MealLogRepository mealLogRepository;
-    private final EmotionLogRepository emotionLogRepository;
     private final WorkoutLogRepository workoutLogRepository;
-
-    @PostMapping("/meal")
-    public ResponseEntity<String> saveMeal(@RequestBody MealRequest request, Authentication authentication) {
-        User user = getCurrentUser(authentication);
-        
-        MealLog meal = new MealLog();
-        meal.setUser(user);
-        meal.setDescription(request.getDescription());
-        meal.setCaloriesEstimate(request.getCaloriesEstimate());
-        meal.setDate(LocalDate.now());
-        
-        mealLogRepository.save(meal);
-        return ResponseEntity.ok("식단이 저장되었습니다!");
+    private final EmotionLogRepository emotionLogRepository;
+    
+    // 사용자 생성 또는 조회 헬퍼 메소드
+    private User getOrCreateUser(Long userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            user = new User();
+            user.setId(userId);
+            user.setNickname("사용자" + userId);
+            user.setEmail("user" + userId + "@mydiet.com");
+            user.setWeightGoal(65.0);
+            user.setEmotionMode("보통");
+            user.setCreatedAt(LocalDateTime.now());
+            user = userRepository.save(user);
+            log.info("Created new user with ID: {}", userId);
+        }
+        return user;
     }
-
-    @PostMapping("/emotion")
-    public ResponseEntity<String> saveEmotion(@RequestBody EmotionRequest request, Authentication authentication) {
-        User user = getCurrentUser(authentication);
+    
+    // 식단 기록
+    @PostMapping("/meals")
+    public ResponseEntity<?> saveMeal(@RequestBody Map<String, Object> request, HttpSession session) {
+        log.info("식단 기록 요청: {}", request);
         
-        EmotionLog emotion = new EmotionLog();
-        emotion.setUser(user);
-        emotion.setMood(request.getMood());
-        emotion.setNote(request.getNote());
-        emotion.setDate(LocalDate.now());
-        
-        emotionLogRepository.save(emotion);
-        return ResponseEntity.ok("감정이 저장되었습니다!");
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            if (userId == null) userId = 1L;
+            
+            User user = getOrCreateUser(userId);
+            
+            MealLog meal = new MealLog();
+            meal.setUser(user);
+            meal.setDescription((String) request.getOrDefault("description", "식단"));
+            
+            // 칼로리 처리
+            Object caloriesObj = request.get("calories");
+            if (caloriesObj == null) caloriesObj = request.get("caloriesEstimate");
+            
+            Integer calories = 0;
+            if (caloriesObj != null) {
+                if (caloriesObj instanceof Number) {
+                    calories = ((Number) caloriesObj).intValue();
+                } else {
+                    try {
+                        calories = Integer.valueOf(caloriesObj.toString());
+                    } catch (NumberFormatException e) {
+                        calories = 0;
+                    }
+                }
+            }
+            meal.setCaloriesEstimate(calories);
+            
+            // 사진 처리
+            if (request.containsKey("photoData")) {
+                String photoData = (String) request.get("photoData");
+                if (photoData != null && photoData.length() > 1000000) {
+                    log.warn("사진 데이터가 너무 큼, 건너뜀");
+                    meal.setPhotoUrl(null);
+                } else {
+                    meal.setPhotoUrl(photoData);
+                }
+            }
+            
+            meal.setDate(LocalDate.now());
+            
+            MealLog saved = mealLogRepository.save(meal);
+            log.info("식단 저장 완료 ID: {}", saved.getId());
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "id", saved.getId(),
+                "message", "식단이 저장되었습니다!",
+                "meal", saved
+            ));
+            
+        } catch (Exception e) {
+            log.error("식단 저장 중 오류: ", e);
+            return ResponseEntity.ok(Map.of(
+                "success", false,
+                "error", e.getMessage()
+            ));
+        }
     }
-
-    @PostMapping("/workout")
-    public ResponseEntity<String> saveWorkout(@RequestBody WorkoutRequest request, Authentication authentication) {
-        User user = getCurrentUser(authentication);
+    
+    // 운동 기록
+    @PostMapping("/workouts")
+    public ResponseEntity<?> saveWorkout(@RequestBody Map<String, Object> request, HttpSession session) {
+        log.info("운동 기록 요청: {}", request);
         
-        WorkoutLog workout = new WorkoutLog();
-        workout.setUser(user);
-        workout.setType(request.getType());
-        workout.setDuration(request.getDuration());
-        workout.setCaloriesBurned(request.getCaloriesBurned());
-        workout.setDate(LocalDate.now());
-        
-        workoutLogRepository.save(workout);
-        return ResponseEntity.ok("운동이 저장되었습니다!");
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            if (userId == null) userId = 1L;
+            
+            User user = getOrCreateUser(userId);
+            
+            WorkoutLog workout = new WorkoutLog();
+            workout.setUser(user);
+            workout.setType((String) request.getOrDefault("type", "운동"));
+            
+            // 시간 처리
+            Object durationObj = request.get("duration");
+            Integer duration = 0;
+            if (durationObj != null) {
+                if (durationObj instanceof Number) {
+                    duration = ((Number) durationObj).intValue();
+                } else {
+                    try {
+                        duration = Integer.valueOf(durationObj.toString());
+                    } catch (NumberFormatException e) {
+                        duration = 0;
+                    }
+                }
+            }
+            workout.setDuration(duration);
+            
+            // 칼로리 소모 처리
+            Object burnedObj = request.get("caloriesBurned");
+            if (burnedObj == null) burnedObj = request.get("calories");
+            
+            Integer caloriesBurned = 0;
+            if (burnedObj != null) {
+                if (burnedObj instanceof Number) {
+                    caloriesBurned = ((Number) burnedObj).intValue();
+                } else {
+                    try {
+                        caloriesBurned = Integer.valueOf(burnedObj.toString());
+                    } catch (NumberFormatException e) {
+                        caloriesBurned = 0;
+                    }
+                }
+            }
+            workout.setCaloriesBurned(caloriesBurned);
+            
+            workout.setDate(LocalDate.now());
+            
+            WorkoutLog saved = workoutLogRepository.save(workout);
+            log.info("운동 저장 완료 ID: {}", saved.getId());
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "id", saved.getId(),
+                "message", "운동이 기록되었습니다!",
+                "workout", saved
+            ));
+            
+        } catch (Exception e) {
+            log.error("운동 저장 중 오류: ", e);
+            return ResponseEntity.ok(Map.of(
+                "success", false,
+                "error", e.getMessage()
+            ));
+        }
     }
-
-    private User getCurrentUser(Authentication authentication) {
-        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-        String email = (String) oAuth2User.getAttributes().get("email");
-        String oauthId = String.valueOf(oAuth2User.getAttributes().get("id"));
-        String userIdentifier = email != null ? email : oauthId;
+    
+    // 감정 기록
+    @PostMapping("/emotions")
+    public ResponseEntity<?> saveEmotion(@RequestBody Map<String, Object> request, HttpSession session) {
+        log.info("감정 기록 요청: {}", request);
         
-        return userRepository.findByEmail(userIdentifier)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            if (userId == null) userId = 1L;
+            
+            User user = getOrCreateUser(userId);
+            
+            EmotionLog emotion = new EmotionLog();
+            emotion.setUser(user);
+            emotion.setMood((String) request.getOrDefault("mood", "보통"));
+            emotion.setNote((String) request.getOrDefault("note", ""));
+            emotion.setDate(LocalDate.now());
+            
+            EmotionLog saved = emotionLogRepository.save(emotion);
+            log.info("감정 저장 완료 ID: {}", saved.getId());
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "id", saved.getId(),
+                "message", "감정이 기록되었습니다!",
+                "emotion", saved
+            ));
+            
+        } catch (Exception e) {
+            log.error("감정 저장 중 오류: ", e);
+            return ResponseEntity.ok(Map.of(
+                "success", false,
+                "error", e.getMessage()
+            ));
+        }
     }
-
-    public static class MealRequest {
-        private String description;
-        private Integer caloriesEstimate;
-        
-        public String getDescription() { return description; }
-        public void setDescription(String description) { this.description = description; }
-        public Integer getCaloriesEstimate() { return caloriesEstimate; }
-        public void setCaloriesEstimate(Integer caloriesEstimate) { this.caloriesEstimate = caloriesEstimate; }
+    
+    // 오늘 데이터 조회
+    @GetMapping("/meals/today")
+    public ResponseEntity<?> getTodayMeals(HttpSession session) {
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            if (userId == null) userId = 1L;
+            
+            return ResponseEntity.ok(mealLogRepository.findByUserIdAndDate(userId, LocalDate.now()));
+        } catch (Exception e) {
+            log.error("오늘 식단 조회 오류: ", e);
+            return ResponseEntity.ok(Map.of("error", e.getMessage()));
+        }
     }
-
-    public static class EmotionRequest {
-        private String mood;
-        private String note;
-        
-        public String getMood() { return mood; }
-        public void setMood(String mood) { this.mood = mood; }
-        public String getNote() { return note; }
-        public void setNote(String note) { this.note = note; }
+    
+    @GetMapping("/workouts/today")
+    public ResponseEntity<?> getTodayWorkouts(HttpSession session) {
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            if (userId == null) userId = 1L;
+            
+            return ResponseEntity.ok(workoutLogRepository.findByUserIdAndDate(userId, LocalDate.now()));
+        } catch (Exception e) {
+            log.error("오늘 운동 조회 오류: ", e);
+            return ResponseEntity.ok(Map.of("error", e.getMessage()));
+        }
     }
-
-    public static class WorkoutRequest {
-        private String type;
-        private Integer duration;
-        private Integer caloriesBurned;
-        
-        public String getType() { return type; }
-        public void setType(String type) { this.type = type; }
-        public Integer getDuration() { return duration; }
-        public void setDuration(Integer duration) { this.duration = duration; }
-        public Integer getCaloriesBurned() { return caloriesBurned; }
-        public void setCaloriesBurned(Integer caloriesBurned) { this.caloriesBurned = caloriesBurned; }
+    
+    @GetMapping("/emotions/today")
+    public ResponseEntity<?> getTodayEmotions(HttpSession session) {
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            if (userId == null) userId = 1L;
+            
+            return ResponseEntity.ok(emotionLogRepository.findByUserIdAndDate(userId, LocalDate.now()));
+        } catch (Exception e) {
+            log.error("오늘 감정 조회 오류: ", e);
+            return ResponseEntity.ok(Map.of("error", e.getMessage()));
+        }
     }
 }
