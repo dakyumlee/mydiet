@@ -22,10 +22,34 @@ public class IntegratedSaveController {
     private final EmotionLogRepository emotionLogRepository;
 
     /**
-     * 식단 저장
+     * 현재 사용자 ID 가져오기 (세션 기반)
+     */
+    private Long getCurrentUserId(HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        
+        if (userId != null) {
+            Optional<User> userOpt = userRepository.findById(userId);
+            if (userOpt.isPresent()) {
+                return userId;
+            }
+        }
+
+        // 세션에 없으면 첫 번째 사용자 사용하고 세션에 저장
+        List<User> users = userRepository.findAll();
+        if (users.isEmpty()) {
+            return null;
+        }
+
+        User firstUser = users.get(0);
+        session.setAttribute("userId", firstUser.getId());
+        return firstUser.getId();
+    }
+
+    /**
+     * 식단 저장 (세션 기반)
      */
     @PostMapping("/meal")
-    public ResponseEntity<Map<String, Object>> saveMeal(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<Map<String, Object>> saveMeal(@RequestBody Map<String, Object> request, HttpSession session) {
         log.info("=== 식단 저장 시작 ===");
         log.info("요청 데이터: {}", request);
 

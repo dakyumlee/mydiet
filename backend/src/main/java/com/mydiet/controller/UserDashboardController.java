@@ -9,9 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
-import java.time.format.TextStyle;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/user")
@@ -25,70 +23,201 @@ public class UserDashboardController {
     private final EmotionLogRepository emotionLogRepository;
 
     /**
-     * 실제 사용자 ID 찾기 (첫 번째 사용자)
+     * 현재 사용자 ID 가져오기 (개선된 버전)
      */
-    private Long getActualUserId(HttpSession session) {
+    private Long getCurrentUserId(HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
+        log.info("세션에서 userId 조회: {}", userId);
         
         if (userId != null) {
-            log.info("세션에서 userId 찾음: {}", userId);
-            return userId;
+            // 사용자 존재 여부 확인
+            Optional<User> userOpt = userRepository.findById(userId);
+            if (userOpt.isPresent()) {
+                log.info("유효한 사용자 ID: {}", userId);
+                return userId;
+            } else {
+                log.warn("세션의 userId {}에 해당하는 사용자 없음", userId);
+            }
         }
 
-        // 세션에 없으면 첫 번째 사용자 사용
+        // 세션에 userId가 없거나 유효하지 않으면, 첫 번째 사용자 사용하고 세션에 저장
         List<User> users = userRepository.findAll();
         if (users.isEmpty()) {
-            log.warn("사용자가 없습니다");
-            return 1L; // 기본값
+            log.error("등록된 사용자가 없습니다");
+            return null;
         }
 
-        Long firstUserId = users.get(0).getId();
-        log.info("첫 번째 사용자 ID 사용: {}", firstUserId);
-        return firstUserId;
+        User firstUser = users.get(0);
+        session.setAttribute("userId", firstUser.getId());
+        log.info("첫 번째 사용자를 세션에 설정: ID={}, 닉네임={}", firstUser.getId(), firstUser.getNickname());
+        
+        return firstUser.getId();
     }
 
     /**
-     * 사용자 대시보드 통계
+     * 현재 로그인 사용자 정보 확인
+     */
+    @GetMapping("/current")
+    public ResponseEntity<Map<String, Object>> getCurrentUser(HttpSession session) {
+        log.info("=== 현재 사용자 정보 요청 ===");
+        
+        try {
+            Long userId = getCurrentUserId(session);
+            if (userId == null) {
+                return ResponseEntity.ok(Map.of(
+                    "error", "사용자가 없습니다",
+                    "suggestion", "먼저 사용자를 생성하세요"
+                ));
+            }
+
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                return ResponseEntity.ok(Map.of("error", "사용자를 찾을 수 없습니다"));
+            }
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("id", user.getId());
+            result.put("nickname", user.getNickname());
+            result.put("email", user.getEmail());
+            result.put("weightGoal", user.getWeightGoal());
+            result.put("emotionMode", user.getEmotionMode());
+            result.put("role", user.getRole());
+            result.put("sessionId", session.getId());
+
+            log.info("현재 사용자: ID={}, 닉네임={}", user.getId(), user.getNickname());
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            log.error("현재 사용자 정보 조회 실패", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * 사용자 프로필 조회
+     */
+    @GetMapping("/profile")
+    public ResponseEntity<Map<String, Object>> getUserProfile(HttpSession session) {
+        log.info("=== 사용자 프로필 조회 ===");
+        
+        try {
+            Long userId = getCurrentUserId(session);
+            if (userId == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "사용자 인증이 필요합니다"));
+            }
+
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "사용자를 찾을 수 없습니다"));
+            }
+
+            Map<String, Object> profile = new HashMap<>();
+            profile.put("id", user.getId());
+            profile.put("nickname", user.getNickname() != null ? user.getNickname() : "사용자");
+            profile.put("email", user.getEmail());
+            profile.put("weightGoal", user.getWeightGoal() != null ? user.getWeightGoal() : 65.0);
+            profile.put("emotionMode", user.getEmotionMode() != null ? user.getEmotionMode() : "다정함");
+            profile.put("createdAt", user.getCreatedAt());
+            profile.put("role", user.getRole());
+
+            log.info("프로필 조회 성공: 사용자 ID={}, 닉네임={}", user.getId(), user.getNickname());
+            return ResponseEntity.ok(profile);
+
+        } catch (Exception e) {
+            log.error("프로필 조회 실패", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * 프로필 업데이트
+     */
+    @PutMapping("/profile")
+    public ResponseEntity<Map<String, Object>> updateProfile(@RequestBody Map<String, Object> request, HttpSession session) {
+        log.info("=== 프로필 업데이트 ===");
+        log.info("요청 데이터: {}", request);
+        
+        try {
+            Long userId = getCurrentUserId(session);
+            if (userId == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "사용자 인증이 필요합니다"));
+            }
+
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "사용자를 찾을 수 없습니다"));
+            }
+
+            // 업데이트
+            if (request.containsKey("nickname") && request.get("nickname") != null) {
+                user.setNickname(request.get("nickname").toString());
+            }
+            if (request.containsKey("email") && request.get("email") != null) {
+                user.setEmail(request.get("email").toString());
+            }
+            if (request.containsKey("weightGoal") && request.get("weightGoal") != null) {
+                user.setWeightGoal(Double.valueOf(request.get("weightGoal").toString()));
+            }
+            if (request.containsKey("emotionMode") && request.get("emotionMode") != null) {
+                user.setEmotionMode(request.get("emotionMode").toString());
+            }
+
+            User updated = userRepository.save(user);
+            log.info("프로필 업데이트 완료: 사용자 ID={}, 닉네임={}", updated.getId(), updated.getNickname());
+
+            return ResponseEntity.ok(Map.of(
+                "message", "프로필이 성공적으로 업데이트되었습니다",
+                "user", Map.of(
+                    "id", updated.getId(),
+                    "nickname", updated.getNickname(),
+                    "email", updated.getEmail(),
+                    "weightGoal", updated.getWeightGoal(),
+                    "emotionMode", updated.getEmotionMode()
+                )
+            ));
+
+        } catch (Exception e) {
+            log.error("프로필 업데이트 실패", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * 대시보드 통계
      */
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getDashboardStats(HttpSession session) {
         try {
-            Long userId = getActualUserId(session);
+            Long userId = getCurrentUserId(session);
+            if (userId == null) {
+                return ResponseEntity.ok(getEmptyStats());
+            }
+
             final LocalDate today = LocalDate.now();
             
-            log.info("=== 대시보드 통계 요청 ===");
-            log.info("userId: {}, date: {}", userId, today);
+            log.info("=== 대시보드 통계 요청: userId={}, date={} ===", userId, today);
 
-            // 오늘의 데이터 조회
             List<MealLog> todayMeals = mealLogRepository.findByUserIdAndDate(userId, today);
             List<WorkoutLog> todayWorkouts = workoutLogRepository.findByUserIdAndDate(userId, today);
             List<EmotionLog> todayEmotions = emotionLogRepository.findByUserIdAndDate(userId, today);
             
-            log.info("조회 결과 - userId: {}, 식단: {}개, 운동: {}개, 감정: {}개", 
-                    userId, todayMeals.size(), todayWorkouts.size(), todayEmotions.size());
+            log.info("데이터 조회 결과 - 식단: {}개, 운동: {}개, 감정: {}개", 
+                    todayMeals.size(), todayWorkouts.size(), todayEmotions.size());
 
             // 통계 계산
             int mealCount = todayMeals.size();
-            
             int totalCaloriesBurned = todayWorkouts.stream()
-                    .mapToInt(workout -> workout.getCaloriesBurned() != null ? workout.getCaloriesBurned() : 0)
+                    .mapToInt(w -> w.getCaloriesBurned() != null ? w.getCaloriesBurned() : 0)
                     .sum();
-            
             int totalCaloriesConsumed = todayMeals.stream()
-                    .mapToInt(meal -> meal.getCaloriesEstimate() != null ? meal.getCaloriesEstimate() : 0)
+                    .mapToInt(m -> m.getCaloriesEstimate() != null ? m.getCaloriesEstimate() : 0)
                     .sum();
-
-            // 운동 시간 합계 (분)
             int totalWorkoutMinutes = todayWorkouts.stream()
-                    .mapToInt(workout -> workout.getDuration() != null ? workout.getDuration() : 0)
+                    .mapToInt(w -> w.getDuration() != null ? w.getDuration() : 0)
                     .sum();
 
-            // 목표 달성도 계산 (칼로리 기준)
-            double goalAchievement = 0.0;
-            if (totalCaloriesConsumed > 0) {
-                int dailyCalorieGoal = 2000;
-                goalAchievement = Math.min(100.0, (double) totalCaloriesConsumed / dailyCalorieGoal * 100);
-            }
+            double goalAchievement = totalCaloriesConsumed > 0 ? 
+                    Math.min(100.0, (double) totalCaloriesConsumed / 2000 * 100) : 0.0;
 
             Map<String, Object> stats = new HashMap<>();
             stats.put("mealCount", mealCount);
@@ -98,116 +227,67 @@ public class UserDashboardController {
             stats.put("goalAchievement", Math.round(goalAchievement * 10.0) / 10.0);
             stats.put("userId", userId); // 디버깅용
 
-            log.info("=== 최종 통계 결과 ===");
-            log.info("식단 수: {}, 소모 칼로리: {}, 섭취 칼로리: {}, 운동 시간: {}분, 목표 달성도: {}%", 
-                    mealCount, totalCaloriesBurned, totalCaloriesConsumed, totalWorkoutMinutes, goalAchievement);
-
+            log.info("통계 결과: {}", stats);
             return ResponseEntity.ok(stats);
 
         } catch (Exception e) {
-            log.error("대시보드 통계 조회 중 오류 발생", e);
-            
-            Map<String, Object> defaultStats = new HashMap<>();
-            defaultStats.put("mealCount", 0);
-            defaultStats.put("burnedCalories", 0);
-            defaultStats.put("consumedCalories", 0);
-            defaultStats.put("workoutMinutes", 0);
-            defaultStats.put("goalAchievement", 0.0);
-            defaultStats.put("error", e.getMessage());
-            
-            return ResponseEntity.ok(defaultStats);
+            log.error("통계 조회 실패", e);
+            return ResponseEntity.ok(getEmptyStats());
         }
     }
 
     /**
-     * 오늘의 모든 기록 조회
+     * 오늘의 데이터 조회
      */
     @GetMapping("/today-data")
     public ResponseEntity<Map<String, Object>> getTodayData(HttpSession session) {
         try {
-            Long userId = getActualUserId(session);
+            Long userId = getCurrentUserId(session);
+            if (userId == null) {
+                return ResponseEntity.ok(getEmptyTodayData());
+            }
+
             final LocalDate today = LocalDate.now();
+            log.info("=== 오늘 데이터 요청: userId={}, date={} ===", userId, today);
 
-            log.info("=== 오늘 데이터 요청 ===");
-            log.info("userId: {}, date: {}", userId, today);
-
-            // 오늘의 모든 데이터 조회
             List<MealLog> meals = mealLogRepository.findByUserIdAndDate(userId, today);
             List<WorkoutLog> workouts = workoutLogRepository.findByUserIdAndDate(userId, today);
             List<EmotionLog> emotions = emotionLogRepository.findByUserIdAndDate(userId, today);
 
-            log.info("오늘 데이터 조회 결과 - userId: {}, 식단: {}개, 운동: {}개, 감정: {}개", 
-                    userId, meals.size(), workouts.size(), emotions.size());
-
-            // 데이터 상세 로그
-            meals.forEach(meal -> 
-                log.debug("식단: {} ({}kcal) - 사용자ID: {}", meal.getDescription(), meal.getCaloriesEstimate(), meal.getUser().getId()));
-            workouts.forEach(workout -> 
-                log.debug("운동: {} {}분 ({}kcal) - 사용자ID: {}", workout.getType(), workout.getDuration(), workout.getCaloriesBurned(), workout.getUser().getId()));
-            emotions.forEach(emotion -> 
-                log.debug("감정: {} - {} - 사용자ID: {}", emotion.getMood(), emotion.getNote(), emotion.getUser().getId()));
+            log.info("오늘 데이터 조회 결과 - 식단: {}개, 운동: {}개, 감정: {}개", 
+                    meals.size(), workouts.size(), emotions.size());
 
             Map<String, Object> result = new HashMap<>();
             result.put("meals", meals);
             result.put("workouts", workouts);
             result.put("emotions", emotions);
             result.put("date", today.toString());
-            result.put("userId", userId); // 디버깅용
+            result.put("userId", userId);
 
             return ResponseEntity.ok(result);
 
         } catch (Exception e) {
-            log.error("오늘 데이터 조회 중 오류 발생", e);
-            
-            Map<String, Object> emptyResult = new HashMap<>();
-            emptyResult.put("meals", new ArrayList<>());
-            emptyResult.put("workouts", new ArrayList<>());
-            emptyResult.put("emotions", new ArrayList<>());
-            emptyResult.put("date", LocalDate.now().toString());
-            emptyResult.put("error", e.getMessage());
-            
-            return ResponseEntity.ok(emptyResult);
+            log.error("오늘 데이터 조회 실패", e);
+            return ResponseEntity.ok(getEmptyTodayData());
         }
     }
 
-    /**
-     * 모든 사용자의 오늘 데이터 조회 (디버깅용)
-     */
-    @GetMapping("/today-all-users")
-    public ResponseEntity<Map<String, Object>> getTodayAllUsers() {
-        try {
-            final LocalDate today = LocalDate.now();
-            log.info("=== 모든 사용자 오늘 데이터 ===");
+    private Map<String, Object> getEmptyStats() {
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("mealCount", 0);
+        stats.put("burnedCalories", 0);
+        stats.put("consumedCalories", 0);
+        stats.put("workoutMinutes", 0);
+        stats.put("goalAchievement", 0.0);
+        return stats;
+    }
 
-            List<User> allUsers = userRepository.findAll();
-            Map<String, Object> result = new HashMap<>();
-
-            for (User user : allUsers) {
-                List<MealLog> meals = mealLogRepository.findByUserIdAndDate(user.getId(), today);
-                List<WorkoutLog> workouts = workoutLogRepository.findByUserIdAndDate(user.getId(), today);
-                List<EmotionLog> emotions = emotionLogRepository.findByUserIdAndDate(user.getId(), today);
-
-                if (meals.size() > 0 || workouts.size() > 0 || emotions.size() > 0) {
-                    Map<String, Object> userData = new HashMap<>();
-                    userData.put("user", user);
-                    userData.put("meals", meals);
-                    userData.put("workouts", workouts);
-                    userData.put("emotions", emotions);
-                    
-                    result.put("user_" + user.getId(), userData);
-                    log.info("사용자 {} (ID: {}): 식단 {}개, 운동 {}개, 감정 {}개", 
-                            user.getNickname(), user.getId(), meals.size(), workouts.size(), emotions.size());
-                }
-            }
-
-            result.put("date", today.toString());
-            result.put("totalUsers", allUsers.size());
-
-            return ResponseEntity.ok(result);
-
-        } catch (Exception e) {
-            log.error("전체 사용자 데이터 조회 실패", e);
-            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
-        }
+    private Map<String, Object> getEmptyTodayData() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("meals", new ArrayList<>());
+        data.put("workouts", new ArrayList<>());
+        data.put("emotions", new ArrayList<>());
+        data.put("date", LocalDate.now().toString());
+        return data;
     }
 }

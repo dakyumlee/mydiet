@@ -1,235 +1,188 @@
 package com.mydiet.controller;
 
 import com.mydiet.model.User;
-import com.mydiet.model.MealLog;
-import com.mydiet.model.WorkoutLog;
-import com.mydiet.model.EmotionLog;
 import com.mydiet.repository.UserRepository;
-import com.mydiet.repository.MealLogRepository;
-import com.mydiet.repository.WorkoutLogRepository;
-import com.mydiet.repository.EmotionLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
+import jakarta.servlet.http.HttpSession;
+import java.util.*;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+@Slf4j
 public class AdminController {
-    
+
     private final UserRepository userRepository;
-    private final MealLogRepository mealLogRepository;
-    private final WorkoutLogRepository workoutLogRepository;
-    private final EmotionLogRepository emotionLogRepository;
-     
-    @GetMapping("/stats")
-    public ResponseEntity<?> getAdminStats() {
+
+    /**
+     * 관리자 로그인 처리
+     */
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, Object>> adminLogin(@RequestBody Map<String, Object> request, HttpSession session) {
+        log.info("=== 관리자 로그인 시도 ===");
+        
         try {
-            Map<String, Object> stats = new HashMap<>();
-             
-            long totalUsers = userRepository.count();
-            long totalMeals = mealLogRepository.count();
-            long totalWorkouts = workoutLogRepository.count();
-            long totalEmotions = emotionLogRepository.count();
-             
-            LocalDate today = LocalDate.now();
-            List<MealLog> todayMeals = mealLogRepository.findAll().stream()
-                .filter(meal -> today.equals(meal.getDate()))
-                .toList();
-            List<WorkoutLog> todayWorkouts = workoutLogRepository.findAll().stream()
-                .filter(workout -> today.equals(workout.getDate()))
-                .toList();
-            List<EmotionLog> todayEmotions = emotionLogRepository.findAll().stream()
-                .filter(emotion -> today.equals(emotion.getDate()))
-                .toList();
+            String email = (String) request.get("email");
+            String password = (String) request.get("password");
             
-            stats.put("totalUsers", totalUsers);
-            stats.put("activeUsers", totalUsers);
-            stats.put("totalMeals", totalMeals);
-            stats.put("totalWorkouts", totalWorkouts);
-            stats.put("totalEmotions", totalEmotions);
-            stats.put("todayMeals", todayMeals.size());
-            stats.put("todayWorkouts", todayWorkouts.size());
-            stats.put("todayEmotions", todayEmotions.size());
+            log.info("로그인 시도 - 이메일: {}", email);
             
-            log.info("Admin stats requested: {}", stats);
-            return ResponseEntity.ok(stats);
+            // 관리자 계정 확인 (사용자 지정 계정)
+            if ("oicrcutie".equals(email) && "aa667788".equals(password)) {
+                // 관리자 사용자 생성 또는 조회 (이메일이 아닌 아이디로 로그인하지만 이메일 형태로 저장)
+                String adminEmail = "oicrcutie@mydiet.com"; // 실제 저장될 이메일
+                User admin = userRepository.findByEmail(adminEmail).orElse(null);
+                
+                if (admin == null) {
+                    admin = new User();
+                    admin.setEmail(adminEmail);
+                    admin.setNickname("oicrcutie (관리자)");
+                    admin.setRole("ADMIN");
+                    admin.setWeightGoal(70.0);
+                    admin.setEmotionMode("무자비");
+                    admin = userRepository.save(admin);
+                    log.info("관리자 계정 생성 완료: ID={}, 닉네임={}", admin.getId(), admin.getNickname());
+                }
+                
+                // 관리자 세션 설정
+                session.setAttribute("userId", admin.getId());
+                session.setAttribute("userRole", "ADMIN");
+                session.setAttribute("isAdmin", true);
+                
+                log.info("관리자 로그인 성공: ID={}, 세션ID={}", admin.getId(), session.getId());
+                
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "관리자 로그인 성공",
+                    "user", Map.of(
+                        "id", admin.getId(),
+                        "nickname", admin.getNickname(),
+                        "email", admin.getEmail(),
+                        "role", admin.getRole()
+                    ),
+                    "redirectUrl", "/admin-dashboard.html"
+                ));
+            } else {
+                log.warn("관리자 로그인 실패 - 잘못된 인증 정보: 시도한 ID={}", email);
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "잘못된 아이디 또는 비밀번호입니다"
+                ));
+            }
             
         } catch (Exception e) {
-            log.error("Error fetching admin stats: ", e);
-            return ResponseEntity.ok(Map.of(
-                "error", e.getMessage(),
-                "totalUsers", 0,
-                "activeUsers", 0,
-                "totalMeals", 0,
-                "totalWorkouts", 0,
-                "totalEmotions", 0,
-                "todayMeals", 0,
-                "todayWorkouts", 0,
-                "todayEmotions", 0
+            log.error("관리자 로그인 처리 실패", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "message", "로그인 처리 중 오류가 발생했습니다"
             ));
         }
     }
-     
-    @GetMapping("/users")
-    public ResponseEntity<?> getAllUsers() {
+
+    /**
+     * 관리자 권한 확인
+     */
+    @GetMapping("/check")
+    public ResponseEntity<Map<String, Object>> checkAdminAccess(HttpSession session) {
+        log.info("=== 관리자 권한 확인 ===");
+        
         try {
-            List<User> users = userRepository.findAll();
-            log.info("Admin users list requested: {} users found", users.size());
-            return ResponseEntity.ok(users);
-        } catch (Exception e) {
-            log.error("Error fetching users: ", e);
-            return ResponseEntity.ok(List.of());
-        }
-    }
-     
-    @GetMapping("/users/{userId}")
-    public ResponseEntity<?> getUserDetail(@PathVariable Long userId) {
-        try {
-            User user = userRepository.findById(userId).orElse(null);
-            if (user == null) {
-                return ResponseEntity.ok(Map.of("error", "사용자를 찾을 수 없습니다"));
-            }
+            Long userId = (Long) session.getAttribute("userId");
+            Boolean isAdmin = (Boolean) session.getAttribute("isAdmin");
             
-            LocalDate today = LocalDate.now();
-            List<MealLog> userMeals = mealLogRepository.findByUserIdAndDate(userId, today);
-            List<WorkoutLog> userWorkouts = workoutLogRepository.findByUserIdAndDate(userId, today);
-            List<EmotionLog> userEmotions = emotionLogRepository.findByUserIdAndDate(userId, today);
+            log.info("세션 확인 - userId: {}, isAdmin: {}", userId, isAdmin);
             
-            Map<String, Object> userDetail = new HashMap<>();
-            userDetail.put("user", user);
-            userDetail.put("todayMeals", userMeals);
-            userDetail.put("todayWorkouts", userWorkouts);
-            userDetail.put("todayEmotions", userEmotions);
-             
-            List<MealLog> allUserMeals = mealLogRepository.findAll().stream()
-                .filter(meal -> userId.equals(meal.getUser().getId()))
-                .toList();
-            List<WorkoutLog> allUserWorkouts = workoutLogRepository.findAll().stream()
-                .filter(workout -> userId.equals(workout.getUser().getId()))
-                .toList();
-            List<EmotionLog> allUserEmotions = emotionLogRepository.findAll().stream()
-                .filter(emotion -> userId.equals(emotion.getUser().getId()))
-                .toList();
-            
-            userDetail.put("totalMeals", allUserMeals.size());
-            userDetail.put("totalWorkouts", allUserWorkouts.size());
-            userDetail.put("totalEmotions", allUserEmotions.size());
-            
-            log.info("User detail requested for ID: {}", userId);
-            return ResponseEntity.ok(userDetail);
-            
-        } catch (Exception e) {
-            log.error("Error fetching user detail for ID {}: ", userId, e);
-            return ResponseEntity.ok(Map.of("error", e.getMessage()));
-        }
-    }
-     
-    @DeleteMapping("/users/{userId}")
-    @Transactional
-    public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
-        try {
-            User user = userRepository.findById(userId).orElse(null);
-            if (user == null) {
+            if (userId == null || !Boolean.TRUE.equals(isAdmin)) {
+                log.warn("관리자 권한 없음");
                 return ResponseEntity.ok(Map.of(
-                    "success", false,
-                    "error", "사용자를 찾을 수 없습니다"
+                    "hasAccess", false,
+                    "message", "관리자 권한이 필요합니다"
                 ));
             }
-             
-            List<MealLog> userMeals = mealLogRepository.findAll().stream()
-                .filter(meal -> userId.equals(meal.getUser().getId()))
-                .toList();
-            mealLogRepository.deleteAll(userMeals);
-             
-            List<WorkoutLog> userWorkouts = workoutLogRepository.findAll().stream()
-                .filter(workout -> userId.equals(workout.getUser().getId()))
-                .toList();
-            workoutLogRepository.deleteAll(userWorkouts);
-             
-            List<EmotionLog> userEmotions = emotionLogRepository.findAll().stream()
-                .filter(emotion -> userId.equals(emotion.getUser().getId()))
-                .toList();
-            emotionLogRepository.deleteAll(userEmotions);
-             
-            userRepository.delete(user);
             
-            log.info("User deleted: ID={}, nickname={}", userId, user.getNickname());
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null || !"ADMIN".equals(user.getRole())) {
+                log.warn("관리자 사용자 정보 없음 또는 권한 부족");
+                return ResponseEntity.ok(Map.of(
+                    "hasAccess", false,
+                    "message", "관리자 권한이 확인되지 않습니다"
+                ));
+            }
+            
+            log.info("관리자 권한 확인 완료: {}", user.getNickname());
+            return ResponseEntity.ok(Map.of(
+                "hasAccess", true,
+                "user", Map.of(
+                    "id", user.getId(),
+                    "nickname", user.getNickname(),
+                    "email", user.getEmail(),
+                    "role", user.getRole()
+                )
+            ));
+            
+        } catch (Exception e) {
+            log.error("관리자 권한 확인 실패", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "hasAccess", false,
+                "message", "권한 확인 중 오류가 발생했습니다"
+            ));
+        }
+    }
+
+    /**
+     * 모든 사용자 조회 (관리자용)
+     */
+    @GetMapping("/users")
+    public ResponseEntity<Map<String, Object>> getAllUsers(HttpSession session) {
+        log.info("=== 모든 사용자 조회 (관리자) ===");
+        
+        try {
+            // 관리자 권한 확인
+            Boolean isAdmin = (Boolean) session.getAttribute("isAdmin");
+            if (!Boolean.TRUE.equals(isAdmin)) {
+                return ResponseEntity.forbidden().body(Map.of("error", "관리자 권한이 필요합니다"));
+            }
+            
+            List<User> users = userRepository.findAll();
+            log.info("전체 사용자 수: {}", users.size());
+            
+            return ResponseEntity.ok(Map.of(
+                "users", users,
+                "totalUsers", users.size()
+            ));
+            
+        } catch (Exception e) {
+            log.error("사용자 목록 조회 실패", e);
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * 관리자 로그아웃
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, Object>> adminLogout(HttpSession session) {
+        log.info("=== 관리자 로그아웃 ===");
+        
+        try {
+            session.invalidate();
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
-                "message", "사용자와 관련된 모든 데이터가 삭제되었습니다",
-                "deletedUserId", userId,
-                "deletedUserNickname", user.getNickname()
+                "message", "로그아웃되었습니다",
+                "redirectUrl", "/admin-login.html"
             ));
             
         } catch (Exception e) {
-            log.error("Error deleting user ID {}: ", userId, e);
-            return ResponseEntity.ok(Map.of(
+            log.error("로그아웃 처리 실패", e);
+            return ResponseEntity.internalServerError().body(Map.of(
                 "success", false,
-                "error", "사용자 삭제 중 오류가 발생했습니다: " + e.getMessage()
+                "message", "로그아웃 처리 중 오류가 발생했습니다"
             ));
-        }
-    }
-     
-    @GetMapping("/test")
-    public ResponseEntity<?> testDatabase() {
-        try {
-            Map<String, Object> testResult = new HashMap<>();
-            
-            testResult.put("users", userRepository.count());
-            testResult.put("meals", mealLogRepository.count());
-            testResult.put("workouts", workoutLogRepository.count());
-            testResult.put("emotions", emotionLogRepository.count());
-            testResult.put("status", "OK");
-            testResult.put("timestamp", System.currentTimeMillis());
-            
-            return ResponseEntity.ok(testResult);
-            
-        } catch (Exception e) {
-            log.error("Database test error: ", e);
-            return ResponseEntity.ok(Map.of(
-                "status", "ERROR",
-                "error", e.getMessage(),
-                "timestamp", System.currentTimeMillis()
-            ));
-        }
-    }
-     
-    @GetMapping("/system")
-    public ResponseEntity<?> getSystemInfo() {
-        try {
-            Map<String, Object> systemInfo = new HashMap<>();
-            
-            Runtime runtime = Runtime.getRuntime();
-            long maxMemory = runtime.maxMemory();
-            long totalMemory = runtime.totalMemory();
-            long freeMemory = runtime.freeMemory();
-            long usedMemory = totalMemory - freeMemory;
-            
-            systemInfo.put("maxMemory", maxMemory / 1024 / 1024 + "MB");
-            systemInfo.put("totalMemory", totalMemory / 1024 / 1024 + "MB");
-            systemInfo.put("usedMemory", usedMemory / 1024 / 1024 + "MB");
-            systemInfo.put("freeMemory", freeMemory / 1024 / 1024 + "MB");
-            systemInfo.put("processors", runtime.availableProcessors());
-            systemInfo.put("javaVersion", System.getProperty("java.version"));
-            systemInfo.put("osName", System.getProperty("os.name"));
-            systemInfo.put("timestamp", System.currentTimeMillis());
-            
-            return ResponseEntity.ok(systemInfo);
-            
-        } catch (Exception e) {
-            log.error("Error fetching system info: ", e);
-            return ResponseEntity.ok(Map.of("error", e.getMessage()));
         }
     }
 }
