@@ -8,20 +8,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import jakarta.servlet.http.HttpSession;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.Base64;
 
 @Slf4j
 @RestController
 @RequestMapping("/api/meals")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class MealController {
     
     private final MealLogRepository mealLogRepository;
@@ -29,91 +27,52 @@ public class MealController {
     
     @PostMapping
     public ResponseEntity<?> saveMeal(@RequestBody Map<String, Object> request, HttpSession session) {
+        log.info("Saving meal: {}", request);
+        
         try {
+            // 사용자 ID 가져오기
             Long userId = (Long) session.getAttribute("userId");
-            if (userId == null && request.containsKey("userId")) {
-                userId = Long.valueOf(request.get("userId").toString());
-            }
             if (userId == null) {
+                // 세션에 없으면 기본값 사용
                 userId = 1L;
+                log.info("Using default userId: 1");
             }
             
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            // 사용자가 없으면 생성
+            User user = userRepository.findById(userId).orElseGet(() -> {
+                User newUser = new User();
+                newUser.setId(userId);
+                newUser.setEmail("user" + userId + "@mydiet.com");
+                newUser.setNickname("사용자" + userId);
+                return userRepository.save(newUser);
+            });
             
+            // MealLog 생성
             MealLog meal = new MealLog();
             meal.setUser(user);
             meal.setDescription((String) request.get("description"));
+            meal.setCaloriesEstimate(Integer.valueOf(request.getOrDefault("calories", 0).toString()));
             
-            Object caloriesObj = request.get("calories");
-            if (caloriesObj != null) {
-                meal.setCaloriesEstimate(Integer.valueOf(caloriesObj.toString()));
-            }
-             
-            if (request.containsKey("photoUrl")) {
-                meal.setPhotoUrl((String) request.get("photoUrl"));
-            }
-             
+            // 사진 처리
             if (request.containsKey("photoData")) {
-                String photoData = (String) request.get("photoData");
-                meal.setPhotoUrl(photoData);
+                meal.setPhotoUrl((String) request.get("photoData"));
             }
             
             meal.setDate(LocalDate.now());
             
             MealLog saved = mealLogRepository.save(meal);
-            log.info("Meal saved for user {}: {}", user.getEmail(), saved.getDescription());
+            log.info("Meal saved with id: {}", saved.getId());
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("id", saved.getId());
-            response.put("message", "식사가 기록되었습니다!");
+            response.put("message", "식단이 저장되었습니다!");
             
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
             log.error("Error saving meal: ", e);
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(errorResponse);
-        }
-    }
-    
-    @PostMapping("/upload")
-    public ResponseEntity<?> uploadMealWithPhoto(@RequestParam("file") MultipartFile file,
-                                                 @RequestParam("description") String description,
-                                                 @RequestParam("calories") Integer calories,
-                                                 HttpSession session) {
-        try {
-            Long userId = (Long) session.getAttribute("userId");
-            if (userId == null) userId = 1L;
-            
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            
-            String base64Image = Base64.getEncoder().encodeToString(file.getBytes());
-            String dataUrl = "data:" + file.getContentType() + ";base64," + base64Image;
-            
-            MealLog meal = new MealLog();
-            meal.setUser(user);
-            meal.setDescription(description);
-            meal.setCaloriesEstimate(calories);
-            meal.setPhotoUrl(dataUrl);
-            meal.setDate(LocalDate.now());
-            
-            MealLog saved = mealLogRepository.save(meal);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("id", saved.getId());
-            response.put("message", "사진과 함께 저장되었습니다!");
-            
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            log.error("Error uploading meal with photo: ", e);
-            return ResponseEntity.badRequest().body(Map.of(
+            return ResponseEntity.ok(Map.of(
                 "success", false,
                 "error", e.getMessage()
             ));
@@ -121,19 +80,16 @@ public class MealController {
     }
     
     @GetMapping("/today")
-    public ResponseEntity<?> getTodayMeals(@RequestParam(required = false) Long userId, 
-                                          HttpSession session) {
+    public ResponseEntity<?> getTodayMeals(HttpSession session) {
         try {
-            if (userId == null) {
-                userId = (Long) session.getAttribute("userId");
-            }
+            Long userId = (Long) session.getAttribute("userId");
             if (userId == null) userId = 1L;
             
             List<MealLog> meals = mealLogRepository.findByUserIdAndDate(userId, LocalDate.now());
             return ResponseEntity.ok(meals);
         } catch (Exception e) {
             log.error("Error fetching meals: ", e);
-            return ResponseEntity.ok(new ArrayList<>());
+            return ResponseEntity.ok(List.of());
         }
     }
 }
