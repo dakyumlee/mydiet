@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -54,24 +55,17 @@ public class IntegratedSaveController {
         log.info("요청 데이터: {}", request);
 
         try {
-            // 사용자 ID 추출
-            Long userId = request.get("userId") != null ? 
-                Long.valueOf(request.get("userId").toString()) : 1L;
-
-            // 사용자 조회
-            Optional<User> userOpt = userRepository.findById(userId);
-            if (userOpt.isEmpty()) {
-                // 첫 번째 사용자 사용
-                List<User> allUsers = userRepository.findAll();
-                if (allUsers.isEmpty()) {
-                    return ResponseEntity.badRequest().body(Map.of("error", "사용자가 없습니다"));
-                }
-                userOpt = Optional.of(allUsers.get(0));
-                userId = allUsers.get(0).getId();
-                log.info("첫 번째 사용자 사용: ID={}", userId);
+            // 사용자 ID 추출 (세션 기반)
+            Long userId = getCurrentUserId(session);
+            if (userId == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "사용자 인증이 필요합니다"));
             }
 
-            User user = userOpt.get();
+            // 사용자 조회
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "사용자를 찾을 수 없습니다"));
+            }
 
             // 식단 생성
             MealLog meal = new MealLog();
@@ -110,30 +104,25 @@ public class IntegratedSaveController {
     }
 
     /**
-     * 운동 저장
+     * 운동 저장 (세션 기반)
      */
     @PostMapping("/workout")
-    public ResponseEntity<Map<String, Object>> saveWorkout(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<Map<String, Object>> saveWorkout(@RequestBody Map<String, Object> request, HttpSession session) {
         log.info("=== 운동 저장 시작 ===");
         log.info("요청 데이터: {}", request);
 
         try {
-            // 사용자 ID 추출
-            Long userId = request.get("userId") != null ? 
-                Long.valueOf(request.get("userId").toString()) : 1L;
-
-            // 사용자 조회
-            Optional<User> userOpt = userRepository.findById(userId);
-            if (userOpt.isEmpty()) {
-                List<User> allUsers = userRepository.findAll();
-                if (allUsers.isEmpty()) {
-                    return ResponseEntity.badRequest().body(Map.of("error", "사용자가 없습니다"));
-                }
-                userOpt = Optional.of(allUsers.get(0));
-                userId = allUsers.get(0).getId();
+            // 사용자 ID 추출 (세션 기반)
+            Long userId = getCurrentUserId(session);
+            if (userId == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "사용자 인증이 필요합니다"));
             }
 
-            User user = userOpt.get();
+            // 사용자 조회
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "사용자를 찾을 수 없습니다"));
+            }
 
             // 운동 생성
             WorkoutLog workout = new WorkoutLog();
@@ -172,30 +161,25 @@ public class IntegratedSaveController {
     }
 
     /**
-     * 감정 저장
+     * 감정 저장 (세션 기반)
      */
     @PostMapping("/emotion")
-    public ResponseEntity<Map<String, Object>> saveEmotion(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<Map<String, Object>> saveEmotion(@RequestBody Map<String, Object> request, HttpSession session) {
         log.info("=== 감정 저장 시작 ===");
         log.info("요청 데이터: {}", request);
 
         try {
-            // 사용자 ID 추출
-            Long userId = request.get("userId") != null ? 
-                Long.valueOf(request.get("userId").toString()) : 1L;
-
-            // 사용자 조회
-            Optional<User> userOpt = userRepository.findById(userId);
-            if (userOpt.isEmpty()) {
-                List<User> allUsers = userRepository.findAll();
-                if (allUsers.isEmpty()) {
-                    return ResponseEntity.badRequest().body(Map.of("error", "사용자가 없습니다"));
-                }
-                userOpt = Optional.of(allUsers.get(0));
-                userId = allUsers.get(0).getId();
+            // 사용자 ID 추출 (세션 기반)
+            Long userId = getCurrentUserId(session);
+            if (userId == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "사용자 인증이 필요합니다"));
             }
 
-            User user = userOpt.get();
+            // 사용자 조회
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "사용자를 찾을 수 없습니다"));
+            }
 
             // 감정 생성
             EmotionLog emotion = new EmotionLog();
@@ -230,21 +214,25 @@ public class IntegratedSaveController {
     }
 
     /**
-     * 전체 저장 테스트 (한 번에 모든 데이터)
+     * 전체 저장 테스트 (한 번에 모든 데이터) - 세션 기반
      */
     @PostMapping("/all-test")
-    public ResponseEntity<Map<String, Object>> saveAllTest() {
+    public ResponseEntity<Map<String, Object>> saveAllTest(HttpSession session) {
         log.info("=== 전체 저장 테스트 ===");
 
         Map<String, Object> results = new HashMap<>();
 
         try {
-            // 첫 번째 사용자 가져오기
-            List<User> users = userRepository.findAll();
-            if (users.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "사용자가 없습니다"));
+            // 사용자 ID 추출 (세션 기반)
+            Long userId = getCurrentUserId(session);
+            if (userId == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "사용자 인증이 필요합니다"));
             }
-            User user = users.get(0);
+
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "사용자를 찾을 수 없습니다"));
+            }
 
             // 1. 식단 저장
             MealLog meal = new MealLog();
