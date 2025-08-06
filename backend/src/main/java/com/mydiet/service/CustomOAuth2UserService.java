@@ -9,80 +9,52 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
 
     @Override
+    @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        log.info("=== CustomOAuth2UserService.loadUser 시작 ===");
+        
         OAuth2User oauth2User = super.loadUser(userRequest);
+        log.info("OAuth2User loaded: {}", oauth2User.getName());
         
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
-        log.debug("OAuth2 로그인 제공자: {}", registrationId);
-        log.debug("OAuth2 사용자 정보: {}", oauth2User.getAttributes());
+        log.info("Registration ID: {}", registrationId);
         
-        String email = null;
-        String nickname = null;
-        String providerId = null;
+        Map<String, Object> attributes = oauth2User.getAttributes();
+        
+        User user = null;
         
         if ("kakao".equals(registrationId)) {
-            Map<String, Object> kakaoAccount = (Map<String, Object>) oauth2User.getAttributes().get("kakao_account");
-            if (kakaoAccount != null) {
-                Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-                email = (String) kakaoAccount.get("email");
-                if (profile != null) {
-                    nickname = (String) profile.get("nickname");
-                }
-            }
-            providerId = oauth2User.getName();
+            Long kakaoId = (Long) attributes.get("id");
+            Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+            String email = (String) kakaoAccount.get("email");
+            Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+            String nickname = (String) profile.get("nickname");
             
-        } else if ("google".equals(registrationId)) {
-            email = (String) oauth2User.getAttributes().get("email");
-            nickname = (String) oauth2User.getAttributes().get("name");
-            providerId = oauth2User.getName(); // 구글 ID
+            user = userRepository.findByEmail(email)
+                    .orElseGet(() -> {
+                        User newUser = new User();
+                        newUser.setEmail(email);
+                        newUser.setNickname(nickname);
+                        newUser.setSocialId(String.valueOf(kakaoId));
+                        newUser.setSocialProvider("kakao");
+                        newUser.setCreatedAt(LocalDateTime.now());
+                        return userRepository.save(newUser);
+                    });
         }
         
-        log.debug("추출된 정보 - 이메일: {}, 닉네임: {}, 제공자ID: {}", email, nickname, providerId);
-        
-        User user = processOAuthPostLogin(email, nickname, registrationId, providerId);
-        
-        return new OAuth2UserPrincipal(oauth2User, user);
-    }
-    
-    private User processOAuthPostLogin(String email, String nickname, String provider, String providerId) {
-        Optional<User> existingUser = userRepository.findByEmail(email);
-        
-        if (existingUser.isPresent()) {
-            User user = existingUser.get();
-            log.debug("기존 사용자 로그인: {}", email);
-             
-            if (nickname != null && !nickname.equals(user.getNickname())) {
-                user.setNickname(nickname);
-                user = userRepository.save(user);
-                log.debug("사용자 닉네임 업데이트: {}", nickname);
-            }
-            
-            return user;
-        } else {
-            User newUser = new User();
-            newUser.setEmail(email);
-            newUser.setNickname(nickname != null ? nickname : "사용자");
-            newUser.setEmotionMode("다정함");
-            newUser.setWeightGoal(60.0);
-            newUser.setCreatedAt(LocalDateTime.now());
-            
-            User savedUser = userRepository.save(newUser);
-            log.debug("새 사용자 생성: {}", email);
-            
-            return savedUser;
-        }
+        return new OAuth2UserPrincipal(user, attributes);
     }
 }
