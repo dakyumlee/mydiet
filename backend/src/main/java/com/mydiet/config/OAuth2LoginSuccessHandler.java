@@ -11,20 +11,21 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-@Component
 @Slf4j
+@Component
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-                                      Authentication authentication) throws IOException, ServletException {
+    public void onAuthenticationSuccess(HttpServletRequest request, 
+                                        HttpServletResponse response,
+                                        Authentication authentication) throws IOException, ServletException {
         
-        OAuth2UserPrincipal oAuth2User = (OAuth2UserPrincipal) authentication.getPrincipal();
-        
-        log.debug("OAuth2 로그인 성공: {}", oAuth2User.getName());
-        log.debug("사용자 이메일: {}", oAuth2User.getEmail());
-        log.debug("사용자 닉네임: {}", oAuth2User.getNickname());
-        
-        getRedirectStrategy().sendRedirect(request, response, "/dashboard.html");
+        OAuth2UserPrincipal principal = (OAuth2UserPrincipal) authentication.getPrincipal();
+        log.info("Login successful for user: {}", principal.getEmail());
+         
+        request.getSession().setAttribute("userId", principal.getUserId());
+        request.getSession().setAttribute("userEmail", principal.getEmail());
+         
+        response.sendRedirect("/dashboard.html");
     }
 }

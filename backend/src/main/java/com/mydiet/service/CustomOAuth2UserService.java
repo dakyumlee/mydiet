@@ -47,7 +47,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         } else if ("google".equals(registrationId)) {
             email = (String) oauth2User.getAttributes().get("email");
             nickname = (String) oauth2User.getAttributes().get("name");
-            providerId = oauth2User.getName();
+            providerId = oauth2User.getName(); // 구글 ID
         }
         
         log.debug("추출된 정보 - 이메일: {}, 닉네임: {}, 제공자ID: {}", email, nickname, providerId);
