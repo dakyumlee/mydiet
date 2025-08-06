@@ -1,138 +1,87 @@
 package com.mydiet.service;
 
-import com.mydiet.model.User;
-import com.mydiet.model.ClaudeResponse;
-import com.mydiet.repository.UserRepository;
-import com.mydiet.repository.MealLogRepository;
-import com.mydiet.repository.EmotionLogRepository;
-import com.mydiet.repository.WorkoutLogRepository;
-import com.mydiet.repository.ClaudeResponseRepository;
+import com.mydiet.repository.*;
+import com.mydiet.model.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class AdminService {
-
+    
     private final UserRepository userRepository;
     private final MealLogRepository mealLogRepository;
-    private final EmotionLogRepository emotionLogRepository;
     private final WorkoutLogRepository workoutLogRepository;
-    private final ClaudeResponseRepository claudeResponseRepository;
-
-    public Map<String, Object> getAdminStats() {
+    private final EmotionLogRepository emotionLogRepository;
+    
+    public Map<String, Object> getStats() {
         Map<String, Object> stats = new HashMap<>();
         
-        long userCount = userRepository.count();
-        long mealCount = mealLogRepository.count();
-        long emotionCount = emotionLogRepository.count();
-        long workoutCount = workoutLogRepository.count();
-        
-        stats.put("totalUsers", userCount);
-        stats.put("totalMeals", mealCount);
-        stats.put("totalEmotions", emotionCount);
-        stats.put("totalWorkouts", workoutCount);
+        try {
+            long totalUsers = userRepository.count();
+            
+            LocalDate today = LocalDate.now();
+            LocalDateTime todayStart = today.atStartOfDay();
+            long activeUsers = userRepository.countByLastLoginAtAfter(todayStart);
+            
+            long todayMeals = mealLogRepository.countByDate(today);
+            long todayWorkouts = workoutLogRepository.countByDate(today);
+            long todayEmotions = emotionLogRepository.countByDate(today);
+            
+            long totalMeals = mealLogRepository.count();
+            long totalWorkouts = workoutLogRepository.count();
+            long totalEmotions = emotionLogRepository.count();
+            
+            stats.put("totalUsers", totalUsers);
+            stats.put("activeUsers", activeUsers);
+            stats.put("todayMeals", todayMeals);
+            stats.put("todayWorkouts", todayWorkouts);
+            stats.put("todayEmotions", todayEmotions);
+            stats.put("totalMeals", totalMeals);
+            stats.put("totalWorkouts", totalWorkouts);
+            stats.put("totalEmotions", totalEmotions);
+            
+            log.info("Admin stats loaded: {}", stats);
+            
+        } catch (Exception e) {
+            log.error("Error loading admin stats: ", e);
+        }
         
         return stats;
     }
-
+    
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
-
-    public Long getUserCount() {
-        return userRepository.count();
-    }
-
-    public User getUserDetail(Long userId) {
-        return userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
-    }
-
+    
     public Map<String, Object> getUserStats(Long userId) {
-        Map<String, Object> stats = new HashMap<>();
+        Map<String, Object> userStats = new HashMap<>();
         
-        long mealCount = mealLogRepository.findAll().stream()
-            .filter(meal -> meal.getUser().getId().equals(userId))
-            .count();
+        try {
+            User user = userRepository.findById(userId).orElse(null);
+            if (user != null) {
+                userStats.put("user", user);
+                
+                long userMeals = mealLogRepository.countByUserId(userId);
+                long userWorkouts = workoutLogRepository.countByUserId(userId);
+                long userEmotions = emotionLogRepository.countByUserId(userId);
+                
+                userStats.put("totalMeals", userMeals);
+                userStats.put("totalWorkouts", userWorkouts);
+                userStats.put("totalEmotions", userEmotions);
+            }
+        } catch (Exception e) {
+            log.error("Error loading user stats for userId {}: ", userId, e);
+        }
         
-        long emotionCount = emotionLogRepository.findAll().stream()
-            .filter(emotion -> emotion.getUser().getId().equals(userId))
-            .count();
-        
-        long workoutCount = workoutLogRepository.findAll().stream()
-            .filter(workout -> workout.getUser().getId().equals(userId))
-            .count();
-        
-        stats.put("mealCount", mealCount);
-        stats.put("emotionCount", emotionCount);
-        stats.put("workoutCount", workoutCount);
-        stats.put("lastActivity", null);
-        
-        return stats;
-    }
-
-    @Transactional
-    public void deleteUser(Long userId) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        mealLogRepository.deleteAll(
-            mealLogRepository.findAll().stream()
-                .filter(meal -> meal.getUser().getId().equals(userId))
-                .toList()
-        );
-        
-        emotionLogRepository.deleteAll(
-            emotionLogRepository.findAll().stream()
-                .filter(emotion -> emotion.getUser().getId().equals(userId))
-                .toList()
-        );
-        
-        workoutLogRepository.deleteAll(
-            workoutLogRepository.findAll().stream()
-                .filter(workout -> workout.getUser().getId().equals(userId))
-                .toList()
-        );
-        
-        claudeResponseRepository.deleteAll(
-            claudeResponseRepository.findByUserIdOrderByCreatedAtDesc(userId)
-        );
-        
-        userRepository.delete(user);
-    }
-
-    public List<ClaudeResponse> getClaudeResponses() {
-        return claudeResponseRepository.findAll();
-    }
-
-    public Map<String, Object> getUserCountStats() {
-        Map<String, Object> stats = new HashMap<>();
-        stats.put("count", userRepository.count());
-        return stats;
-    }
-
-    public Map<String, Object> getMealCountStats() {
-        Map<String, Object> stats = new HashMap<>();
-        stats.put("count", mealLogRepository.count());
-        return stats;
-    }
-
-    public Map<String, Object> getEmotionCountStats() {
-        Map<String, Object> stats = new HashMap<>();
-        stats.put("count", emotionLogRepository.count());
-        return stats;
-    }
-
-    public Map<String, Object> getWorkoutCountStats() {
-        Map<String, Object> stats = new HashMap<>();
-        stats.put("count", workoutLogRepository.count());
-        return stats;
+        return userStats;
     }
 }

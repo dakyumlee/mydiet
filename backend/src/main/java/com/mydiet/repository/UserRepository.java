@@ -10,5 +10,6 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
-    long countByCreatedAtAfter(LocalDateTime date);
+    Optional<User> findBySocialId(String socialId);
+    long countByLastLoginAtAfter(LocalDateTime dateTime);
 }

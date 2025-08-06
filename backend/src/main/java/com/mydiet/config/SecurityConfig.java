@@ -21,8 +21,15 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                // 모든 경로 일단 허용 (테스트용)
-                .anyRequest().permitAll()
+                .requestMatchers("/", "/auth.html", "/login/**", "/oauth2/**", "/error").permitAll()
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                .requestMatchers("/admin-login.html").permitAll()
+                
+                .requestMatchers("/admin-dashboard.html").permitAll()
+                
+                .requestMatchers("/dashboard.html").authenticated()
+                .requestMatchers("/api/**").authenticated()
+                .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
                 .loginPage("/auth.html")
@@ -31,6 +38,12 @@ public class SecurityConfig {
                     .userService(oAuth2UserService)
                 )
                 .successHandler(oAuth2LoginSuccessHandler)
+            )
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/auth.html")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
             );
             
         return http.build();

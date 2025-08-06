@@ -20,12 +20,22 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
         
-        OAuth2UserPrincipal principal = (OAuth2UserPrincipal) authentication.getPrincipal();
-        log.info("Login successful for user: {}", principal.getEmail());
-         
-        request.getSession().setAttribute("userId", principal.getUserId());
-        request.getSession().setAttribute("userEmail", principal.getEmail());
-         
-        response.sendRedirect("/dashboard.html");
+        try {
+            OAuth2UserPrincipal principal = (OAuth2UserPrincipal) authentication.getPrincipal();
+            log.info("Login successful for user: {}", principal.getEmail());
+            
+            request.getSession().setAttribute("userId", principal.getUserId());
+            request.getSession().setAttribute("userEmail", principal.getEmail());
+            request.getSession().setAttribute("userNickname", principal.getNickname());
+            
+            String redirectUrl = request.getContextPath() + "/dashboard.html";
+            log.info("Redirecting to: {}", redirectUrl);
+            
+            getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+            
+        } catch (Exception e) {
+            log.error("Login success handler error: ", e);
+            response.sendRedirect("/auth.html?error=login_failed");
+        }
     }
 }
