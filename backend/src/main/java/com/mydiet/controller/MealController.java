@@ -39,6 +39,9 @@ public class MealController {
             }
             
             // 사용자가 없으면 생성
+
+            final Long finalUserId = userId;
+            
             User user = userRepository.findById(userId).orElseGet(() -> {
                 User newUser = new User();
                 newUser.setId(userId);
