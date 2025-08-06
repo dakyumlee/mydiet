@@ -29,7 +29,7 @@ public class MealController {
     public ResponseEntity<?> saveMeal(@RequestBody Map<String, Object> request, HttpSession session) {
         log.info("Saving meal: {}", request);
         
-        try { 
+        try {
             Long userId = (Long) session.getAttribute("userId");
             if (userId == null) {
                 userId = 1L;
@@ -37,7 +37,7 @@ public class MealController {
             }
             
             final Long finalUserId = userId;
-             
+            
             User user = userRepository.findById(finalUserId).orElseGet(() -> {
                 User newUser = new User();
                 newUser.setId(finalUserId);
@@ -45,14 +45,20 @@ public class MealController {
                 newUser.setNickname("사용자" + finalUserId);
                 return userRepository.save(newUser);
             });
-             
+            
             MealLog meal = new MealLog();
             meal.setUser(user);
             meal.setDescription((String) request.get("description"));
             meal.setCaloriesEstimate(Integer.valueOf(request.getOrDefault("calories", 0).toString()));
             
             if (request.containsKey("photoData")) {
-                meal.setPhotoUrl((String) request.get("photoData"));
+                String photoData = (String) request.get("photoData");
+                if (photoData != null && photoData.length() > 1000000) {
+                    log.warn("Photo data too large, truncating or skipping");
+                    meal.setPhotoUrl(null);
+                } else {
+                    meal.setPhotoUrl(photoData);
+                }
             }
             
             meal.setDate(LocalDate.now());
