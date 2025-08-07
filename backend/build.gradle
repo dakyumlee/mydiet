@@ -7,6 +7,7 @@ plugins {
 group = 'com.mydiet'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
+targetCompatibility = '11'
 
 configurations {
     compileOnly {
@@ -29,9 +30,9 @@ dependencies {
     // PostgreSQL Database
     runtimeOnly 'org.postgresql:postgresql'
     
-    // Lombok
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
+    // Lombok - 최신 버전으로 업그레이드
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
     
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -44,4 +45,9 @@ tasks.named('test') {
 
 jar {
     enabled = false
+}
+
+// Lombok 컴파일 옵션 추가
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ['-parameters']
 }
