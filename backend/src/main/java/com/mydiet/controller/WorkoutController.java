@@ -1,84 +1,50 @@
 package com.mydiet.controller;
 
+import com.mydiet.dto.WorkoutRequest;
 import com.mydiet.model.WorkoutLog;
-import com.mydiet.model.User;
-import com.mydiet.repository.WorkoutLogRepository;
-import com.mydiet.repository.UserRepository;
+import com.mydiet.service.WorkoutService;
+import com.mydiet.util.SessionUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpSession;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import javax.servlet.http.HttpServletRequest;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/workouts")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class WorkoutController {
-    
-    private final WorkoutLogRepository workoutLogRepository;
-    private final UserRepository userRepository;
-    
+
+    private final WorkoutService workoutService;
+    private final SessionUtil sessionUtil;
+
     @PostMapping
-    public ResponseEntity<?> saveWorkout(@RequestBody Map<String, Object> request, HttpSession session) {
-        log.info("Saving workout: {}", request);
-        
+    public ResponseEntity<?> saveWorkout(@RequestBody WorkoutRequest request, HttpServletRequest httpRequest) {
         try {
-            Long userId = (Long) session.getAttribute("userId");
-            if (userId == null) userId = 1L;
-            
-            final Long finalUserId = userId;
-            
-            User user = userRepository.findById(finalUserId).orElseGet(() -> {
-                User newUser = new User();
-                newUser.setId(finalUserId);
-                newUser.setEmail("user" + finalUserId + "@mydiet.com");
-                newUser.setNickname("사용자" + finalUserId);
-                return userRepository.save(newUser);
-            });
-                
-            WorkoutLog workout = new WorkoutLog();
-            workout.setUser(user);
-            workout.setType((String) request.get("type"));
-            workout.setDuration(Integer.valueOf(request.get("duration").toString()));
-            workout.setCaloriesBurned(Integer.valueOf(request.getOrDefault("caloriesBurned", 0).toString()));
-            workout.setDate(LocalDate.now());
-            
-            WorkoutLog saved = workoutLogRepository.save(workout);
-            log.info("Workout saved with id: {}", saved.getId());
-            
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "id", saved.getId(),
-                "message", "운동이 기록되었습니다!"
-            ));
-            
+            Long userId = sessionUtil.getCurrentUserId(httpRequest);
+            if (userId == null) {
+                return ResponseEntity.status(401).body("로그인이 필요합니다.");
+            }
+
+            request.setUserId(userId);
+            WorkoutLog saved = workoutService.saveWorkout(request);
+            return ResponseEntity.ok(saved);
         } catch (Exception e) {
-            log.error("Error saving workout: ", e);
-            return ResponseEntity.ok(Map.of(
-                "success", false,
-                "error", e.getMessage()
-            ));
+            return ResponseEntity.status(500).body("운동 기록 저장 실패: " + e.getMessage());
         }
     }
-    
+
     @GetMapping("/today")
-    public ResponseEntity<?> getTodayWorkouts(HttpSession session) {
+    public ResponseEntity<?> getTodayWorkouts(HttpServletRequest httpRequest) {
         try {
-            Long userId = (Long) session.getAttribute("userId");
-            if (userId == null) userId = 1L;
-            
-            List<WorkoutLog> workouts = workoutLogRepository.findByUserIdAndDate(userId, LocalDate.now());
-            return ResponseEntity.ok(workouts);
+            Long userId = sessionUtil.getCurrentUserId(httpRequest);
+            if (userId == null) {
+                return ResponseEntity.status(401).body("로그인이 필요합니다.");
+            }
+
+            return ResponseEntity.ok(workoutService.getTodayWorkouts(userId));
         } catch (Exception e) {
-            log.error("Error fetching workouts: ", e);
-            return ResponseEntity.ok(List.of());
+            return ResponseEntity.status(500).body("운동 기록 조회 실패: " + e.getMessage());
         }
     }
 }

@@ -1,17 +1,15 @@
 package com.mydiet.service;
 
+import com.mydiet.config.ClaudeApiClient;
 import com.mydiet.model.*;
 import com.mydiet.repository.*;
-import com.mydiet.config.ClaudeApiClient;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ClaudeService {
@@ -25,14 +23,8 @@ public class ClaudeService {
 
     public String generateResponse(Long userId) {
         try {
-            if (userId == null) {
-                userId = 1L;
-            }
-            
-            User user = userRepository.findById(userId).orElse(null);
-            if (user == null) {
-                return "아직 사용자 정보가 없습니다. 프로필을 설정해주세요!";
-            }
+            User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
             
             LocalDate today = LocalDate.now();
 
@@ -43,18 +35,18 @@ public class ClaudeService {
             String prompt = buildPrompt(user, meals, emotions, workouts);
             String response = claudeApiClient.askClaude(prompt);
 
-            ClaudeResponse log = new ClaudeResponse();
-            log.setUser(user);
-            log.setType("daily");
-            log.setContent(response);
-            log.setCreatedAt(LocalDateTime.now());
+            // Claude 응답 로그 저장
+            ClaudeResponse log = ClaudeResponse.builder()
+                .user(user)
+                .type("daily")
+                .content(response)
+                .createdAt(LocalDateTime.now())
+                .build();
             claudeResponseRepository.save(log);
 
             return response;
-            
         } catch (Exception e) {
-            log.error("Error generating Claude response: ", e);
-            return "오늘도 화이팅! 💪";
+            return "Claude 응답 생성 중 오류가 발생했습니다: " + e.getMessage();
         }
     }
 
@@ -66,25 +58,46 @@ public class ClaudeService {
         prompt.append("감정 모드: ").append(user.getEmotionMode()).append("\n\n");
     
         prompt.append("🥗 오늘 먹은 음식:\n");
-        if (meals.isEmpty()) prompt.append("- 없음\n");
-        for (MealLog meal : meals) {
-            prompt.append("- ").append(meal.getDescription()).append(" (예상 칼로리: ").append(meal.getCaloriesEstimate()).append(" kcal)\n");
+        if (meals.isEmpty()) {
+            prompt.append("- 없음\n");
+        } else {
+            for (MealLog meal : meals) {
+                prompt.append("- ").append(meal.getDescription());
+                if (meal.getCaloriesEstimate() != null) {
+                    prompt.append(" (예상 칼로리: ").append(meal.getCaloriesEstimate()).append(" kcal)");
+                }
+                prompt.append("\n");
+            }
         }
     
-        prompt.append("\n😵 오늘 감정:\n");
-        if (emotions.isEmpty()) prompt.append("- 없음\n");
-        for (EmotionLog emo : emotions) {
-            prompt.append("- ").append(emo.getMood()).append(": ").append(emo.getNote()).append("\n");
+        prompt.append("\n😊 오늘 감정:\n");
+        if (emotions.isEmpty()) {
+            prompt.append("- 없음\n");
+        } else {
+            for (EmotionLog emo : emotions) {
+                prompt.append("- ").append(emo.getMood());
+                if (emo.getNote() != null && !emo.getNote().trim().isEmpty()) {
+                    prompt.append(": ").append(emo.getNote());
+                }
+                prompt.append("\n");
+            }
         }
     
         prompt.append("\n🏃 운동 기록:\n");
-        if (workouts.isEmpty()) prompt.append("- 없음\n");
-        for (WorkoutLog w : workouts) {
-            prompt.append("- ").append(w.getType()).append(" ").append(w.getDuration()).append("분 ").append("(칼로리: ").append(w.getCaloriesBurned()).append(" kcal)\n");
+        if (workouts.isEmpty()) {
+            prompt.append("- 없음\n");
+        } else {
+            for (WorkoutLog w : workouts) {
+                prompt.append("- ").append(w.getType()).append(" ").append(w.getDuration()).append("분");
+                if (w.getCaloriesBurned() != null) {
+                    prompt.append(" (칼로리: ").append(w.getCaloriesBurned()).append(" kcal)");
+                }
+                prompt.append("\n");
+            }
         }
     
-        prompt.append("\n\n이 유저에게 감정 모드에 맞춰 한 마디 해줘. 짧고 강렬하게.\n");
-        prompt.append("응답 형식: 단 한 문장, 비꼬거나 감정 담긴 스타일로\n");
+        prompt.append("\n\n이 유저에게 감정 모드('").append(user.getEmotionMode()).append("')에 맞춰 한국어로 한 마디 해줘.\n");
+        prompt.append("응답 형식: 단 한 문장, 감정 모드에 맞는 스타일로. 친근하고 격려하는 톤으로.\n");
     
         return prompt.toString();
     }

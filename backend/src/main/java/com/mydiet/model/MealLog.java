@@ -1,18 +1,17 @@
 package com.mydiet.model;
 
-import jakarta.persistence.*;
 import lombok.*;
 
+import javax.persistence.*;
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "meal_logs")
-@Getter @Setter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class MealLog {
-    
     @Id 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,15 +23,17 @@ public class MealLog {
     @Column(nullable = false)
     private String description;
     
-    private String photoUrl; // optional
+    @Column(name = "photo_url")
+    private String photoUrl;
     
+    @Column(name = "calories_estimate")
     private Integer caloriesEstimate;
 
     @Column(nullable = false)
     private LocalDate date;
-
+    
     @PrePersist
-    public void prePersist() {
+    protected void onCreate() {
         if (date == null) {
             date = LocalDate.now();
         }

@@ -1,52 +1,46 @@
 package com.mydiet.model;
 
-import jakarta.persistence.*;
 import lombok.*;
 
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
-@Getter @Setter
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class User {
-    
     @Id 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String email;
-
     @Column(nullable = false)
     private String nickname;
+    
+    @Column(unique = true, nullable = false)
+    private String email;
+    
+    private String password; // 일반 로그인용
+    
+    private String provider; // oauth2 제공자 (google, kakao 등)
+    private String providerId; // oauth2 제공자의 사용자 ID
 
-    @Column(nullable = false)
+    @Column(name = "weight_goal")
+    private Double weightGoal;
+    
+    @Column(name = "emotion_mode")
+    private String emotionMode; // 예: 무자비, 츤데레, 다정함
+    
     @Builder.Default
     private String role = "USER"; // USER, ADMIN
 
-    private Double weightGoal;
-    
-    @Builder.Default
-    private String emotionMode = "다정함"; // 무자비, 츤데레, 다정함
-
-    @Column(nullable = false)
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
-
+    
     @PrePersist
-    public void prePersist() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
-        }
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now();
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
     }
 }

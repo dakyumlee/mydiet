@@ -1,84 +1,50 @@
 package com.mydiet.controller;
 
+import com.mydiet.dto.EmotionRequest;
 import com.mydiet.model.EmotionLog;
-import com.mydiet.model.User;
-import com.mydiet.repository.EmotionLogRepository;
-import com.mydiet.repository.UserRepository;
+import com.mydiet.service.EmotionService;
+import com.mydiet.util.SessionUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpSession;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import javax.servlet.http.HttpServletRequest;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/emotions")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class EmotionController {
-    
-    private final EmotionLogRepository emotionLogRepository;
-    private final UserRepository userRepository;
-    
+
+    private final EmotionService emotionService;
+    private final SessionUtil sessionUtil;
+
     @PostMapping
-    public ResponseEntity<?> saveEmotion(@RequestBody Map<String, Object> request, HttpSession session) {
-        log.info("Saving emotion: {}", request);
-        
+    public ResponseEntity<?> saveEmotion(@RequestBody EmotionRequest request, HttpServletRequest httpRequest) {
         try {
-            Long userId = (Long) session.getAttribute("userId");
-            if (userId == null) userId = 1L;
-            
-            // final 변수로 선언하여 람다에서 사용 가능하게 함
-            final Long finalUserId = userId;
-            
-            User user = userRepository.findById(finalUserId).orElseGet(() -> {
-                User newUser = new User();
-                newUser.setId(finalUserId);
-                newUser.setEmail("user" + finalUserId + "@mydiet.com");
-                newUser.setNickname("사용자" + finalUserId);
-                return userRepository.save(newUser);
-            });
-                
-            EmotionLog emotion = new EmotionLog();
-            emotion.setUser(user);
-            emotion.setMood((String) request.get("mood"));
-            emotion.setNote((String) request.get("note"));
-            emotion.setDate(LocalDate.now());
-            
-            EmotionLog saved = emotionLogRepository.save(emotion);
-            log.info("Emotion saved with id: {}", saved.getId());
-            
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "id", saved.getId(),
-                "message", "감정이 기록되었습니다!"
-            ));
-            
+            Long userId = sessionUtil.getCurrentUserId(httpRequest);
+            if (userId == null) {
+                return ResponseEntity.status(401).body("로그인이 필요합니다.");
+            }
+
+            request.setUserId(userId);
+            EmotionLog saved = emotionService.saveEmotion(request);
+            return ResponseEntity.ok(saved);
         } catch (Exception e) {
-            log.error("Error saving emotion: ", e);
-            return ResponseEntity.ok(Map.of(
-                "success", false,
-                "error", e.getMessage()
-            ));
+            return ResponseEntity.status(500).body("감정 기록 저장 실패: " + e.getMessage());
         }
     }
-    
+
     @GetMapping("/today")
-    public ResponseEntity<?> getTodayEmotions(HttpSession session) {
+    public ResponseEntity<?> getTodayEmotions(HttpServletRequest httpRequest) {
         try {
-            Long userId = (Long) session.getAttribute("userId");
-            if (userId == null) userId = 1L;
-            
-            List<EmotionLog> emotions = emotionLogRepository.findByUserIdAndDate(userId, LocalDate.now());
-            return ResponseEntity.ok(emotions);
+            Long userId = sessionUtil.getCurrentUserId(httpRequest);
+            if (userId == null) {
+                return ResponseEntity.status(401).body("로그인이 필요합니다.");
+            }
+
+            return ResponseEntity.ok(emotionService.getTodayEmotions(userId));
         } catch (Exception e) {
-            log.error("Error fetching emotions: ", e);
-            return ResponseEntity.ok(List.of());
+            return ResponseEntity.status(500).body("감정 기록 조회 실패: " + e.getMessage());
         }
     }
 }

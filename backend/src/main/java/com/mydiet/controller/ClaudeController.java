@@ -1,37 +1,33 @@
 package com.mydiet.controller;
 
 import com.mydiet.service.ClaudeService;
+import com.mydiet.util.SessionUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpSession;
 
-@Slf4j
+import javax.servlet.http.HttpServletRequest;
+
 @RestController
 @RequestMapping("/api/claude")
 @RequiredArgsConstructor
 public class ClaudeController {
 
     private final ClaudeService claudeService;
+    private final SessionUtil sessionUtil;
 
     @GetMapping("/message")
-    public ResponseEntity<String> getClaudeMessage(@RequestParam(required = false) Long userId,
-                                                   HttpSession session) {
+    public ResponseEntity<String> getClaudeMessage(HttpServletRequest request) {
         try {
+            Long userId = sessionUtil.getCurrentUserId(request);
             if (userId == null) {
-                userId = (Long) session.getAttribute("userId");
+                return ResponseEntity.status(401).body("로그인이 필요합니다.");
             }
-            
-            if (userId == null) {
-                userId = 1L;
-            }
-            
+
             String message = claudeService.generateResponse(userId);
             return ResponseEntity.ok(message);
         } catch (Exception e) {
-            log.error("Error getting Claude message: ", e);
-            return ResponseEntity.ok("오늘도 좋은 하루 보내세요! 🌟");
+            return ResponseEntity.status(500).body("Claude 응답 생성 실패: " + e.getMessage());
         }
     }
 }

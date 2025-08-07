@@ -1,6 +1,8 @@
 package com.mydiet.service;
 
+import com.mydiet.dto.MealRequest;
 import com.mydiet.model.MealLog;
+import com.mydiet.model.User;
 import com.mydiet.repository.MealLogRepository;
 import com.mydiet.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,37 +19,21 @@ public class MealService {
     private final UserRepository userRepository;
 
     public MealLog saveMeal(MealRequest request) {
-        MealLog mealLog = new MealLog();
-        mealLog.setUser(userRepository.findById(request.getUserId()).orElseThrow());
-        mealLog.setDescription(request.getDescription());
-        mealLog.setCaloriesEstimate(request.getCaloriesEstimate());
-        mealLog.setPhotoUrl(request.getPhotoUrl());
-        mealLog.setDate(LocalDate.now());
-        
+        User user = userRepository.findById(request.getUserId())
+            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        MealLog mealLog = MealLog.builder()
+            .user(user)
+            .description(request.getDescription())
+            .photoUrl(request.getPhotoUrl())
+            .caloriesEstimate(request.getCaloriesEstimate())
+            .date(request.getDate() != null ? request.getDate() : LocalDate.now())
+            .build();
+
         return mealLogRepository.save(mealLog);
     }
 
     public List<MealLog> getTodayMeals(Long userId) {
         return mealLogRepository.findByUserIdAndDate(userId, LocalDate.now());
-    }
-
-    public static class MealRequest {
-        private Long userId;
-        private String description;
-        private Integer caloriesEstimate;
-        private String photoUrl;
-
-        // Getters and Setters
-        public Long getUserId() { return userId; }
-        public void setUserId(Long userId) { this.userId = userId; }
-        
-        public String getDescription() { return description; }
-        public void setDescription(String description) { this.description = description; }
-        
-        public Integer getCaloriesEstimate() { return caloriesEstimate; }
-        public void setCaloriesEstimate(Integer caloriesEstimate) { this.caloriesEstimate = caloriesEstimate; }
-        
-        public String getPhotoUrl() { return photoUrl; }
-        public void setPhotoUrl(String photoUrl) { this.photoUrl = photoUrl; }
     }
 }
