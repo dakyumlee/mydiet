@@ -26,9 +26,7 @@ public class AdminController {
     private final AdminService adminService;
     private final UserRepository userRepository;
 
-    /**
-     * 관리자 로그인 (간단한 세션 기반)
-     */
+
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> adminLogin(
         @RequestBody Map<String, String> request, 
@@ -39,9 +37,7 @@ public class AdminController {
         
         log.info("=== 관리자 로그인 시도: {} ===", email);
         
-        // 간단한 하드코딩된 관리자 계정 (실제 환경에서는 DB에서 확인)
         if ("admin@mydiet.com".equals(email) && "admin123".equals(password)) {
-            // 관리자 계정이 DB에 없다면 생성
             User admin = userRepository.findByEmail(email)
                 .orElseGet(() -> {
                     User newAdmin = User.builder()
@@ -55,29 +51,36 @@ public class AdminController {
                     return userRepository.save(newAdmin);
                 });
             
-            // 세션에 관리자 정보 저장
             session.setAttribute("adminId", admin.getId());
             session.setAttribute("adminEmail", admin.getEmail());
+            session.setAttribute("adminNickname", admin.getNickname());
+            session.setAttribute("adminRole", admin.getRole());
             session.setAttribute("isAdmin", true);
+            session.setAttribute("authenticated", true);
             
-            log.info("관리자 로그인 성공: {}", email);
+            session.setAttribute("userId", admin.getId());
+            session.setAttribute("userEmail", admin.getEmail());
+            session.setAttribute("userNickname", admin.getNickname());
+            session.setAttribute("userRole", admin.getRole());
+            
+            log.info("✅ 관리자 로그인 성공: {}", email);
+            log.info("✅ 세션 ID: {}", session.getId());
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "관리자 로그인 성공",
                 "adminId", admin.getId(),
-                "adminEmail", admin.getEmail()
+                "adminEmail", admin.getEmail(),
+                "adminNickname", admin.getNickname(),
+                "redirectUrl", "/admin-dashboard.html"
             ));
         } else {
-            log.warn("관리자 로그인 실패: {}", email);
+            log.warn("❌ 관리자 로그인 실패: {}", email);
             return ResponseEntity.badRequest()
                 .body(Map.of("success", false, "message", "관리자 인증 실패"));
         }
     }
 
-    /**
-     * 모든 사용자 목록 조회
-     */
     @GetMapping("/users")
     public ResponseEntity<Map<String, Object>> getAllUsers(HttpSession session) {
         if (!isAdminSession(session)) {
@@ -102,9 +105,6 @@ public class AdminController {
         }
     }
 
-    /**
-     * 특정 사용자 상세 정보 조회
-     */
     @GetMapping("/users/{userId}")
     public ResponseEntity<Map<String, Object>> getUserDetail(
         @PathVariable Long userId, HttpSession session) {
@@ -123,7 +123,6 @@ public class AdminController {
 
         User user = userOpt.get();
         
-        // 사용자의 활동 데이터 통계 (추후 구현 가능)
         Map<String, Object> userDetail = new HashMap<>();
         userDetail.put("user", user);
         userDetail.put("lastLoginDate", "구현 예정");
@@ -134,9 +133,6 @@ public class AdminController {
         return ResponseEntity.ok(userDetail);
     }
 
-    /**
-     * 사용자 역할 변경
-     */
     @PutMapping("/users/{userId}/role")
     public ResponseEntity<Map<String, Object>> updateUserRole(
         @PathVariable Long userId,
@@ -174,9 +170,6 @@ public class AdminController {
         ));
     }
 
-    /**
-     * 사용자 삭제
-     */
     @DeleteMapping("/users/{userId}")
     public ResponseEntity<Map<String, Object>> deleteUser(
         @PathVariable Long userId, HttpSession session) {
@@ -214,9 +207,7 @@ public class AdminController {
         }
     }
 
-    /**
-     * 사용자 통계 조회
-     */
+
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getAdminStats(HttpSession session) {
         if (!isAdminSession(session)) {
@@ -243,9 +234,6 @@ public class AdminController {
         }
     }
 
-    /**
-     * 관리자 로그아웃
-     */
     @PostMapping("/logout")
     public ResponseEntity<Map<String, Object>> adminLogout(HttpSession session) {
         session.invalidate();
@@ -255,9 +243,6 @@ public class AdminController {
         ));
     }
 
-    /**
-     * 세션에서 관리자 권한 확인
-     */
     private boolean isAdminSession(HttpSession session) {
         Boolean isAdmin = (Boolean) session.getAttribute("isAdmin");
         Long adminId = (Long) session.getAttribute("adminId");
