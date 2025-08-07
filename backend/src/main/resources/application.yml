@@ -16,6 +16,7 @@ spring:
         format_sql: false
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+  # OAuth2 설정 (하나로 통합)
   security:
     oauth2:
       client:
@@ -27,11 +28,11 @@ spring:
               - openid
               - email
               - profile
-            redirect-uri: ${GOOGLE_REDIRECT_URI}
+            redirect-uri: "https://mydiet-d60a7ae19e04.herokuapp.com/login/oauth2/code/google"
           kakao:
             client-id: ${KAKAO_CLIENT_ID}
             client-secret: ${KAKAO_CLIENT_SECRET}
-            redirect-uri: ${KAKAO_REDIRECT_URI}
+            redirect-uri: "https://mydiet-d60a7ae19e04.herokuapp.com/login/oauth2/code/kakao"
             authorization-grant-type: authorization_code
             scope:
               - profile_nickname
