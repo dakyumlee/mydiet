@@ -35,7 +35,6 @@ public class ClaudeService {
             String prompt = buildPrompt(user, meals, emotions, workouts);
             String response = claudeApiClient.askClaude(prompt);
 
-            // Claude 응답 로그 저장
             ClaudeResponse log = ClaudeResponse.builder()
                 .user(user)
                 .type("daily")
