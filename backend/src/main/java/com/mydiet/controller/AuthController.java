@@ -1,9 +1,10 @@
 package com.mydiet.controller;
 
 import com.mydiet.dto.ErrorResponse;
+import com.mydiet.dto.LoginRequest;
+import com.mydiet.dto.RegisterRequest;
 import com.mydiet.model.User;
 import com.mydiet.repository.UserRepository;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,7 +26,6 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         try {
-            // 이메일 중복 확인
             if (userRepository.findByEmail(request.getEmail()).isPresent()) {
                 return ResponseEntity.badRequest().body(
                     ErrorResponse.builder()
@@ -33,8 +33,7 @@ public class AuthController {
                         .build()
                 );
             }
-
-            // 사용자 생성
+ 
             User user = User.builder()
                 .nickname(request.getNickname())
                 .email(request.getEmail())
@@ -72,7 +71,6 @@ public class AuthController {
                 );
             }
 
-            // 세션에 사용자 정보 저장
             HttpSession session = httpRequest.getSession(true);
             session.setAttribute("userId", user.getId());
             session.setAttribute("userEmail", user.getEmail());
@@ -119,3 +117,4 @@ public class AuthController {
         }
         return ResponseEntity.ok(Map.of("message", "로그아웃 완료"));
     }
+}
