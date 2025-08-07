@@ -21,13 +21,24 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/", "/auth.html", "/admin-login.html", "/oauth2/**", "/login/**").permitAll()
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers(
+                    "/", "/index.html", "/auth.html", "/admin-login.html",
+                    "/css/**", "/js/**", "/images/**", "/favicon.ico",
+                    "/oauth2/**", "/login/**", "/error", "/static/**"
+                ).permitAll()
+                
                 .requestMatchers("/api/simple/**", "/api/debug/**").permitAll()
-                .requestMatchers("/api/ai/**").authenticated()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                
                 .requestMatchers("/admin-dashboard.html").hasRole("ADMIN")
-                .requestMatchers("/dashboard.html", "/api/**").authenticated()
-                .anyRequest().authenticated()
+                
+                .requestMatchers("/dashboard.html", "/meal-management.html", 
+                                "/workout-management.html", "/emotion-diary.html",
+                                "/profile-settings.html", "/analytics.html").authenticated()
+                
+                .requestMatchers("/api/**").authenticated()
+                
+                .anyRequest().permitAll()
             )
             .oauth2Login(oauth2 -> oauth2
                 .loginPage("/auth.html")
@@ -35,21 +46,16 @@ public class SecurityConfig {
                     userInfo.userService(oAuth2UserService)
                 )
                 .successHandler(successHandler)
-                .failureUrl("/auth.html?error=true")
+                .failureUrl("/auth.html?error=oauth_failed")
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/auth.html")
+                .logoutSuccessUrl("/")
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
                 .deleteCookies("JSESSIONID")
             )
             .headers(headers -> headers
-                .httpStrictTransportSecurity(hsts -> hsts
-                    .maxAgeInSeconds(31536000)
-                    .includeSubDomains(true)
-                )
-                .contentTypeOptions(contentType -> {})
                 .frameOptions(frame -> frame.sameOrigin())
             );
 

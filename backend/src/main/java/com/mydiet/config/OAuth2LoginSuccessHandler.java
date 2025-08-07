@@ -1,6 +1,5 @@
 package com.mydiet.config;
 
-import com.mydiet.model.User;
 import com.mydiet.service.OAuth2UserPrincipal;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,37 +12,59 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-@Component
 @Slf4j
+@Component
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-                                        Authentication authentication) throws IOException, ServletException {
+                                      Authentication authentication) throws IOException, ServletException {
         
-        OAuth2UserPrincipal userPrincipal = (OAuth2UserPrincipal) authentication.getPrincipal();
-        User user = userPrincipal.getUser();
+        log.info("=== OAuth 로그인 성공 핸들러 시작 ===");
         
-        // 세션에 사용자 정보 저장
-        HttpSession session = request.getSession();
-        session.setAttribute("userId", user.getId());
-        session.setAttribute("userEmail", user.getEmail());
-        session.setAttribute("userNickname", user.getNickname());
-        session.setAttribute("userRole", user.getRole());
-        session.setAttribute("isAuthenticated", true);
-        
-        if ("ADMIN".equals(user.getRole())) {
-            session.setAttribute("isAdmin", true);
+        try {
+            OAuth2UserPrincipal principal = (OAuth2UserPrincipal) authentication.getPrincipal();
+            
+            log.info("🎉 OAuth 로그인 성공!");
+            log.info("📧 이메일: {}", principal.getEmail());
+            log.info("👤 닉네임: {}", principal.getNickname());
+            log.info("🔑 역할: {}", principal.getRole());
+            log.info("🆔 사용자 ID: {}", principal.getUserId());
+            
+            HttpSession session = request.getSession(true);
+            session.setAttribute("userId", principal.getUserId());
+            session.setAttribute("userEmail", principal.getEmail());
+            session.setAttribute("userNickname", principal.getNickname());
+            session.setAttribute("userRole", principal.getRole());
+            session.setAttribute("authenticated", true);
+            
+            log.info("✅ 세션에 사용자 정보 저장 완료");
+            
+            String redirectUrl = determineRedirectUrl(principal.getRole());
+            
+            log.info("🔄 리다이렉트 URL: {}", redirectUrl);
+            
+            response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+            response.setHeader("Pragma", "no-cache");
+            response.setDateHeader("Expires", 0);
+            
+            getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+            
+            log.info("🚀 리다이렉트 전송 완료");
+            
+        } catch (Exception e) {
+            log.error("❌ OAuth 로그인 성공 처리 중 오류 발생", e);
+            response.sendRedirect("/auth.html?error=login_processing_failed");
         }
-        
-        log.info("OAuth2 로그인 성공 - 사용자 ID: {}, 닉네임: {}, 역할: {}", 
-                user.getId(), user.getNickname(), user.getRole());
-        
-        // 역할에 따라 리다이렉트
-        if ("ADMIN".equals(user.getRole())) {
-            getRedirectStrategy().sendRedirect(request, response, "/admin-dashboard.html");
+    }
+
+    private String determineRedirectUrl(String role) {
+        if ("ADMIN".equals(role)) {
+            log.info("👑 관리자 역할 - 관리자 대시보드로 이동");
+            return "/admin-dashboard.html";
         } else {
-            getRedirectStrategy().sendRedirect(request, response, "/dashboard.html");
+            log.info("👥 일반 사용자 - 대시보드로 이동");
+            return "/dashboard.html";
         }
     }
 }
