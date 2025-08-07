@@ -47,6 +47,7 @@ public class SecurityConfig {
                 )
                 .successHandler(successHandler)
                 .failureUrl("/auth.html?error=oauth_failed")
+                .defaultSuccessUrl("/dashboard.html", true)
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")
