@@ -3,7 +3,7 @@ package com.mydiet.controller;
 import com.mydiet.model.User;
 import com.mydiet.repository.UserRepository;
 import com.mydiet.dto.UpdateProfileRequest;
-import jakarta.servlet.http.HttpSession;
+import javax.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

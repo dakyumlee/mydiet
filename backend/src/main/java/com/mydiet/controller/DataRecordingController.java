@@ -2,7 +2,7 @@ package com.mydiet.controller;
 
 import com.mydiet.model.*;
 import com.mydiet.repository.*;
-import jakarta.servlet.http.HttpSession;
+import javax.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

@@ -1,7 +1,7 @@
 package com.mydiet.controller;
 
 import com.mydiet.service.OAuth2UserPrincipal;
-import jakarta.servlet.http.HttpSession;
+import javax.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
