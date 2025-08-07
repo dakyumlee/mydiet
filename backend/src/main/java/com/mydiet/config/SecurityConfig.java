@@ -29,8 +29,8 @@ public class SecurityConfig {
             .csrf().disable()
             .authorizeRequests()
                 .antMatchers("/", "/index.html", "/auth.html", 
-                    "/api/auth/**", "/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
-                .antMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
+                    "/api/auth/**", "/css/**", "/js/**", "/images/**").permitAll()
+                .antMatchers("/admin/**", "/api/admin/**").permitAll() // 임시로 관리자도 허용
                 .anyRequest().authenticated()
                 .and()
             .oauth2Login()
@@ -43,9 +43,20 @@ public class SecurityConfig {
                 .and()
             .formLogin()
                 .loginPage("/auth.html")
+                .loginProcessingUrl("/api/auth/login")
+                .successHandler((request, response, authentication) -> {
+                    response.sendRedirect("/dashboard.html");
+                })
+                .failureHandler((request, response, exception) -> {
+                    response.sendRedirect("/auth.html?error=true");
+                })
                 .permitAll()
                 .and()
             .logout()
+                .logoutUrl("/api/auth/logout")
+                .logoutSuccessUrl("/")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
                 .permitAll();
 
         return http.build();
