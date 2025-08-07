@@ -27,19 +27,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session
+            .csrf().disable()
+            .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .maximumSessions(1)
-                .maxSessionsPreventsLogin(false)
-            )
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/index.html", "/auth.html", 
+                .maxSessionsPreventsLogins(false)
+                .and()
+            .authorizeRequests()
+                .antMatchers("/", "/index.html", "/auth.html", 
                     "/api/auth/**", "/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
-                .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
+                .antMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
-            )
-            .formLogin(form -> form
+                .and()
+            .formLogin()
                 .loginPage("/auth.html")
                 .loginProcessingUrl("/api/auth/login")
                 .successHandler((request, response, authentication) -> {
@@ -49,22 +49,21 @@ public class SecurityConfig {
                     response.sendRedirect("/auth.html?error=true");
                 })
                 .permitAll()
-            )
-            .oauth2Login(oauth2 -> oauth2
+                .and()
+            .oauth2Login()
                 .loginPage("/auth.html")
-                .userInfoEndpoint(userInfo -> userInfo
+                .userInfoEndpoint()
                     .userService(oAuth2UserService)
-                )
+                    .and()
                 .successHandler(oAuth2LoginSuccessHandler)
                 .failureUrl("/auth.html?error=true")
-            )
-            .logout(logout -> logout
+                .and()
+            .logout()
                 .logoutUrl("/api/auth/logout")
                 .logoutSuccessUrl("/")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
-                .permitAll()
-            );
+                .permitAll();
 
         return http.build();
     }

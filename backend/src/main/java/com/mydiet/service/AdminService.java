@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -70,7 +71,8 @@ public class AdminService {
                 userMap.put("emotionMode", user.getEmotionMode());
                 userMap.put("provider", user.getProvider());
                 userMap.put("createdAt", user.getCreatedAt());
+                userMap.put("updatedAt", user.getUpdatedAt());
                 return userMap;
-            }).toList();
+            }).collect(Collectors.toList()); // toList() 대신 collect() 사용
     }
 }

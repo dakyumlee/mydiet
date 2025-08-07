@@ -22,25 +22,34 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
     
-    private String password; // 일반 로그인용
-    
-    private String provider; // oauth2 제공자 (google, kakao 등)
-    private String providerId; // oauth2 제공자의 사용자 ID
+    private String password;
+    private String provider;  
+    private String providerId;  
 
     @Column(name = "weight_goal")
     private Double weightGoal;
     
     @Column(name = "emotion_mode")
-    private String emotionMode; // 예: 무자비, 츤데레, 다정함
+    private String emotionMode;  
     
     @Builder.Default
-    private String role = "USER"; // USER, ADMIN
+    private String role = "USER";  
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        createdAt = now;
+        updatedAt = now;
+    }
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }
