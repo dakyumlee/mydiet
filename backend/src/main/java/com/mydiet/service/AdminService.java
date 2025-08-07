@@ -73,6 +73,6 @@ public class AdminService {
                 userMap.put("createdAt", user.getCreatedAt());
                 userMap.put("updatedAt", user.getUpdatedAt());
                 return userMap;
-            }).collect(Collectors.toList()); // toList() 대신 collect() 사용
+            }).collect(Collectors.toList());  
     }
 }

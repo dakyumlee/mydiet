@@ -1,5 +1,7 @@
 package com.mydiet.config;
 
+import com.mydiet.service.OAuth2UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -10,7 +12,11 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final OAuth2UserService oAuth2UserService;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -22,7 +28,25 @@ public class SecurityConfig {
         http
             .csrf().disable()
             .authorizeRequests()
-                .anyRequest().permitAll();
+                .antMatchers("/", "/index.html", "/auth.html", 
+                    "/api/auth/**", "/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
+                .antMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
+                .anyRequest().authenticated()
+                .and()
+            .oauth2Login()
+                .loginPage("/auth.html")
+                .userInfoEndpoint()
+                    .userService(oAuth2UserService)
+                    .and()
+                .successHandler(oAuth2LoginSuccessHandler)
+                .failureUrl("/auth.html?error=true")
+                .and()
+            .formLogin()
+                .loginPage("/auth.html")
+                .permitAll()
+                .and()
+            .logout()
+                .permitAll();
 
         return http.build();
     }
