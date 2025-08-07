@@ -31,12 +31,12 @@ public class TestController {
             status.put("role", principal.getRole());
             status.put("userId", principal.getUserId());
             
-            log.info("✅ 인증된 사용자: {}", principal.getEmail());
+            log.info("인증된 사용자: {}", principal.getEmail());
         } else {
             status.put("authenticated", false);
-            log.info("❌ 비인증 사용자");
+            log.info("비인증 사용자");
         }
-        \
+        
         if (session != null) {
             status.put("sessionId", session.getId());
             status.put("sessionUserId", session.getAttribute("userId"));
